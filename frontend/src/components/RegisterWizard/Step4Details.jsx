@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { User, Phone, ShieldCheck } from "lucide-react";
+import { User, Phone, ShieldCheck, FileText } from "lucide-react";
 import {
   Box,
   VStack,
@@ -9,8 +9,19 @@ import {
   Button,
   Text,
   Link,
-  Checkbox,
+  Spinner,
+  Separator,
+  DialogRoot as Dialog,
+  DialogBackdrop,
+  DialogPositioner,
+  DialogContent,
+  DialogHeader,
+  DialogBody,
+  DialogFooter,
+  DialogCloseTrigger,
+  Portal,
 } from "@chakra-ui/react";
+import api from "../../api";
 
 const Step4Details = ({
   formData,
@@ -18,6 +29,24 @@ const Step4Details = ({
   handleFinalSubmit,
   loading,
 }) => {
+  const [policy, setPolicy] = useState("");
+  const [fetchingPolicy, setFetchingPolicy] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchPolicy = async () => {
+      try {
+        const response = await api.get("privacy-policy/");
+        setPolicy(response.data.content);
+      } catch (err) {
+        console.error("Failed to fetch privacy policy", err);
+        setPolicy("Unable to load Privacy Policy. Please try again later.");
+      } finally {
+        setFetchingPolicy(false);
+      }
+    };
+    fetchPolicy();
+  }, []);
   return (
     <form onSubmit={handleFinalSubmit}>
       <VStack gap={4}>
@@ -121,42 +150,167 @@ const Step4Details = ({
           />
         </Box>
 
-        <Box
-          w="full"
-          p={4}
-          bg="whiteAlpha.100"
-          borderRadius="lg"
-          border="1px solid"
-          borderColor="whiteAlpha.200"
-        >
-          <HStack gap={3} align="flex-start">
-            <Checkbox
-              name="accepted_privacy_policy"
-              isChecked={formData.accepted_privacy_policy}
-              onChange={handleChange}
-              colorScheme="red"
-              mt={1}
-            />
-            <Text color="slate.400" fontSize="xs" lineHeight="short">
-              I agree to the{" "}
-              <Link color="var(--color-accent)" fontWeight="bold">
-                Terms of Service
-              </Link>{" "}
-              and{" "}
-              <Link color="var(--color-accent)" fontWeight="bold">
-                Privacy Policy
-              </Link>
-              .
+        <HStack w="full" px={1} gap={3} align="flex-start">
+          <input
+            type="checkbox"
+            name="accepted_privacy_policy"
+            checked={formData.accepted_privacy_policy}
+            onChange={handleChange}
+            style={{
+              marginTop: "4px",
+              width: "18px",
+              height: "18px",
+              accentColor: "var(--color-accent)",
+              cursor: "pointer",
+            }}
+          />
+          <Text color="whiteAlpha.800" fontSize="sm" lineHeight="tall">
+            I have read and agree to the{" "}
+            <Link
+              color="blue.400"
+              fontWeight="bold"
+              textDecoration="underline"
+              _hover={{ color: "blue.300" }}
+            >
+              Terms of Service
+            </Link>{" "}
+            and the dynamic{" "}
+            <Text
+              as="span"
+              color="blue.400"
+              fontWeight="bold"
+              textDecoration="underline"
+              cursor="pointer"
+              onClick={() => setIsDialogOpen(true)}
+              _hover={{ color: "blue.300" }}
+            >
+              Privacy Policy
             </Text>
-          </HStack>
-        </Box>
+            .
+          </Text>
+        </HStack>
+
+        {/* Privacy Policy Dialog */}
+        <Dialog
+          open={isDialogOpen}
+          onOpenChange={(e) => setIsDialogOpen(e.open)}
+          size="md"
+        >
+          <Portal>
+            <DialogBackdrop
+              bg="blackAlpha.800"
+              backdropFilter="blur(10px)"
+              zIndex={99999}
+            />
+            <DialogPositioner
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              zIndex={100000}
+            >
+              <DialogContent
+                bg="var(--color-primary)"
+                border="1px solid"
+                borderColor="whiteAlpha.300"
+                boxShadow="dark-lg"
+                borderRadius="xl"
+                maxH="85vh"
+                w="90vw"
+                maxW="500px"
+                m="auto"
+              >
+                <DialogHeader
+                  color="white"
+                  borderBottom="1px solid"
+                  borderColor="whiteAlpha.100"
+                  py={5}
+                >
+                  <HStack gap={3}>
+                    <Box bg="var(--color-accent)" p={1.5} borderRadius="md">
+                      <FileText size={18} color="white" />
+                    </Box>
+                    <Text fontSize="lg" fontWeight="bold">
+                      Privacy Policy
+                    </Text>
+                  </HStack>
+                </DialogHeader>
+
+                <DialogCloseTrigger
+                  color="whiteAlpha.600"
+                  _hover={{ color: "white", bg: "whiteAlpha.200" }}
+                  top={4}
+                  right={4}
+                  borderRadius="full"
+                />
+
+                <DialogBody p={6} overflowY="auto">
+                  {fetchingPolicy ? (
+                    <VStack p={10} gap={4}>
+                      <Spinner
+                        size="lg"
+                        color="var(--color-accent)"
+                        thickness="3px"
+                      />
+                      <Text color="whiteAlpha.600" fontSize="sm">
+                        Updating policy content...
+                      </Text>
+                    </VStack>
+                  ) : (
+                    <Box
+                      pr={2}
+                      css={{
+                        "&::-webkit-scrollbar": { width: "5px" },
+                        "&::-webkit-scrollbar-track": {
+                          background: "rgba(255,255,255,0.05)",
+                        },
+                        "&::-webkit-scrollbar-thumb": {
+                          background: "rgba(255, 255, 255, 0.2)",
+                          borderRadius: "10px",
+                        },
+                      }}
+                    >
+                      <Text
+                        color="whiteAlpha.900"
+                        fontSize="sm"
+                        whiteSpace="pre-wrap"
+                        lineHeight="1.8"
+                      >
+                        {policy || "No privacy policy content available."}
+                      </Text>
+                    </Box>
+                  )}
+                </DialogBody>
+
+                <DialogFooter
+                  borderTop="1px solid"
+                  borderColor="whiteAlpha.100"
+                  pt={4}
+                  pb={6}
+                >
+                  <Button
+                    bg="var(--color-accent)"
+                    color="white"
+                    _hover={{ opacity: 0.9, transform: "translateY(-1px)" }}
+                    _active={{ transform: "translateY(0)" }}
+                    onClick={() => setIsDialogOpen(false)}
+                    w="full"
+                    fontWeight="bold"
+                    letterSpacing="wide"
+                  >
+                    BACK TO REGISTRATION
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </DialogPositioner>
+          </Portal>
+        </Dialog>
 
         <Button
           as={motion.button}
           whileHover={{ scale: 1.01, translateY: -1 }}
           whileTap={{ scale: 0.98 }}
           type="submit"
-          isLoading={loading}
+          loading={loading}
           disabled={!formData.accepted_privacy_policy}
           w="full"
           bg="var(--color-accent)"

@@ -1,12 +1,12 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, permissions
 from rest_framework_simplejwt.tokens import RefreshToken
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 import os
-from .models import OTP, User
-from .serializers import SendOTPSerializer, VerifyOTPSerializer, RegisterUserSerializer
+from .models import OTP, User, PrivacyPolicy
+from .serializers import SendOTPSerializer, VerifyOTPSerializer, RegisterUserSerializer, PrivacyPolicySerializer, UserSerializer
 from .utils import generate_and_send_otp
 
 class SendOTPView(APIView):
@@ -93,3 +93,36 @@ class GoogleLoginView(APIView):
             
         except ValueError:
             return Response({"message": "Invalid Google token."}, status=status.HTTP_400_BAD_REQUEST)
+
+class PrivacyPolicyView(APIView):
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]
+        return [permissions.IsAdminUser()]
+
+    def get(self, request):
+        policy = PrivacyPolicy.objects.first()
+        if not policy:
+            return Response({"content": ""}, status=status.HTTP_200_OK)
+        serializer = PrivacyPolicySerializer(policy)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        # We only ever want one privacy policy record
+        policy = PrivacyPolicy.objects.first()
+        if policy:
+            serializer = PrivacyPolicySerializer(policy, data=request.data)
+        else:
+            serializer = PrivacyPolicySerializer(data=request.data)
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UserProfileView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)

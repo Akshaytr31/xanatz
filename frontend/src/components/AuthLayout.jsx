@@ -4,10 +4,9 @@ import { Flex, Box } from "@chakra-ui/react";
 const AuthLayout = ({ leftPanel, children }) => {
   return (
     <Flex
-      h="100vh"
+      minH="100vh"
       direction={{ base: "column", md: "row" }}
       bg="var(--color-primary)"
-      overflow="hidden"
     >
       {/* Left Panel: Branding & Quotes */}
       <Flex
@@ -50,7 +49,15 @@ const AuthLayout = ({ leftPanel, children }) => {
       </Flex>
 
       {/* Right Panel: Form */}
-      <Flex flex="1" align="center" justify="center" p={6} position="relative">
+      <Flex
+        flex="1"
+        align="center"
+        justify="center"
+        p={6}
+        position="relative"
+        overflowY="auto"
+        maxH="100vh"
+      >
         {/* Mobile Background blur */}
         <Box
           display={{ base: "block", md: "none" }}

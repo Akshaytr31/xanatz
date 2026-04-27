@@ -31,7 +31,14 @@ const LoginForm = () => {
       const response = await api.post("auth/login/", credentials);
       localStorage.setItem("access", response.data.access);
       localStorage.setItem("refresh", response.data.refresh);
-      navigate("/dashboard");
+
+      // Fetch user role for redirection
+      const userRes = await api.get("me/");
+      if (userRes.data.is_staff) {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
       setError("Invalid credentials, please try again.");
     }
@@ -44,7 +51,14 @@ const LoginForm = () => {
       });
       localStorage.setItem("access", response.data.tokens.access);
       localStorage.setItem("refresh", response.data.tokens.refresh);
-      navigate("/dashboard");
+
+      // Fetch user role for redirection
+      const userRes = await api.get("me/");
+      if (userRes.data.is_staff) {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
       setError("Google Login failed.");
     }

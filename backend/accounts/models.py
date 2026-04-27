@@ -49,3 +49,15 @@ class OTP(models.Model):
 
     def __str__(self):
         return f"{self.email} - {self.otp}"
+
+
+class PrivacyPolicy(models.Model):
+    content = models.TextField()
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name_plural = "Privacy Policies"
+
+    def __str__(self):
+        return f"Privacy Policy updated at {self.updated_at}"

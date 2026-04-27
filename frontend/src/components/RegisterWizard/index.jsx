@@ -104,7 +104,14 @@ const RegisterWizard = () => {
       const response = await api.post("auth/register/", formData);
       localStorage.setItem("access", response.data.tokens.access);
       localStorage.setItem("refresh", response.data.tokens.refresh);
-      navigate("/dashboard");
+
+      // Fetch user role for redirection
+      const userRes = await api.get("me/");
+      if (userRes.data.is_staff) {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
       setError("Registration failed. Please check details.");
     } finally {
@@ -119,7 +126,14 @@ const RegisterWizard = () => {
       });
       localStorage.setItem("access", response.data.tokens.access);
       localStorage.setItem("refresh", response.data.tokens.refresh);
-      navigate("/dashboard");
+
+      // Fetch user role for redirection
+      const userRes = await api.get("me/");
+      if (userRes.data.is_staff) {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
       setError("Google Sign In failed.");
     }
@@ -141,7 +155,6 @@ const RegisterWizard = () => {
       borderColor="whiteAlpha.200"
       boxShadow="dark-lg"
       backdropFilter="blur(24px)"
-      overflow="hidden"
       position="relative"
     >
       <HStack gap={1.5} mb={8}>
