@@ -1,0 +1,12 @@
+from django.urls import path
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from .views import SendOTPView, VerifyOTPView, RegisterUserView, GoogleLoginView
+
+urlpatterns = [
+    path('auth/send-otp/', SendOTPView.as_view(), name='send-otp'),
+    path('auth/verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),
+    path('auth/register/', RegisterUserView.as_view(), name='register'),
+    path('auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('auth/google/', GoogleLoginView.as_view(), name='google_login'),
+]
