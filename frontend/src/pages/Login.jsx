@@ -1,8 +1,21 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Lock, Mail } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
+import {
+  Box,
+  Flex,
+  Heading,
+  Text,
+  Input,
+  Button,
+  VStack,
+  HStack,
+  Link,
+  Separator,
+  Circle,
+} from "@chakra-ui/react";
 import api from "../api";
 
 const Login = () => {
@@ -40,173 +53,396 @@ const Login = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col md:flex-row bg-primary overflow-hidden">
+    <Flex
+      h="100vh"
+      direction={{ base: "column", md: "row" }}
+      bg="var(--color-primary)"
+      overflow="hidden"
+    >
       {/* Left Panel: Branding & Quotes */}
-      <div className="hidden md:flex md:w-1/2 bg-primary relative items-center justify-center p-12 overflow-hidden border-r border-secondary/20">
-        <div className="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-accent/20 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
+      <Flex
+        display={{ base: "none", md: "flex" }}
+        flex="1"
+        bg="var(--color-primary)"
+        position="relative"
+        align="center"
+        justify="center"
+        p={12}
+        overflow="hidden"
+        borderRight="1px solid"
+        borderColor="whiteAlpha.100"
+      >
+        <Box
+          position="absolute"
+          top="-10%"
+          left="-10%"
+          w="40vw"
+          h="40vw"
+          bg="var(--color-accent)"
+          opacity="0.2"
+          borderRadius="full"
+          filter="blur(120px)"
+          pointerEvents="none"
+        />
+        <Box
+          position="absolute"
+          bottom="-10%"
+          right="-10%"
+          w="50vw"
+          h="50vw"
+          bg="var(--color-accent)"
+          opacity="0.1"
+          borderRadius="full"
+          filter="blur(120px)"
+          pointerEvents="none"
+        />
 
-        <div className="relative z-10 max-w-lg">
+        <Box position="relative" zIndex={10} maxW="lg">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 1 }}
           >
-            <h1 className="text-6xl font-black text-white mb-6 tracking-tighter">
-              Xanatz<span className="text-accent">.</span>
-            </h1>
-            <div className="space-y-8">
-              <div className="p-1 px-4 border-l-4 border-accent bg-secondary/10 backdrop-blur-sm rounded-r-xl">
-                <p className="text-2xl font-light text-slate-100 leading-relaxed italic">
+            <Heading
+              size="6xl"
+              fontWeight="black"
+              color="white"
+              mb={6}
+              letterSpacing="tighter"
+            >
+              Xanatz
+              <Text as="span" color="var(--color-accent)">
+                .
+              </Text>
+            </Heading>
+
+            <VStack align="stretch" gap={8}>
+              <Box
+                p={1}
+                px={4}
+                borderLeftWidth="4px"
+                borderLeftColor="var(--color-accent)"
+                bg="whiteAlpha.100"
+                backdropFilter="blur(8px)"
+                borderRadius="0 12px 12px 0"
+              >
+                <Text
+                  fontSize="2xl"
+                  fontWeight="light"
+                  color="slate.100"
+                  lineHeight="relaxed"
+                  fontStyle="italic"
+                >
                   "The bridge between talent and opportunity is built on
                   referrals."
-                </p>
-                <p className="text-accent font-semibold mt-4">
+                </Text>
+                <Text color="var(--color-accent)" fontWeight="semibold" mt={4}>
                   — Global Talent Network
-                </p>
-              </div>
+                </Text>
+              </Box>
 
-              <div className="grid grid-cols-2 gap-6 mt-12">
-                <div className="p-4 rounded-lg bg-secondary/20 border border-secondary/30">
-                  <h3 className="text-3xl font-bold text-white mb-1">50k+</h3>
-                  <p className="text-slate-400 text-sm">Active Professionals</p>
-                </div>
-                <div className="p-4 rounded-lg bg-secondary/20 border border-secondary/30">
-                  <h3 className="text-3xl font-bold text-white mb-1">12k+</h3>
-                  <p className="text-slate-400 text-sm">Successful Hires</p>
-                </div>
-              </div>
+              <HStack gap={6} mt={12}>
+                <Box
+                  p={4}
+                  borderRadius="lg"
+                  bg="whiteAlpha.200"
+                  border="1px solid"
+                  borderColor="whiteAlpha.300"
+                  flex="1"
+                >
+                  <Heading size="3xl" fontWeight="bold" color="white" mb={1}>
+                    50k+
+                  </Heading>
+                  <Text color="slate.400" fontSize="sm">
+                    Active Professionals
+                  </Text>
+                </Box>
+                <Box
+                  p={4}
+                  borderRadius="lg"
+                  bg="whiteAlpha.200"
+                  border="1px solid"
+                  borderColor="whiteAlpha.300"
+                  flex="1"
+                >
+                  <Heading size="3xl" fontWeight="bold" color="white" mb={1}>
+                    12k+
+                  </Heading>
+                  <Text color="slate.400" fontSize="sm">
+                    Successful Hires
+                  </Text>
+                </Box>
+              </HStack>
 
-              <div className="mt-12 flex items-center space-x-4">
-                <div className="flex -space-x-4 overflow-hidden">
+              <HStack gap={4} mt={12}>
+                <Flex direction="row-reverse" justify="flex-end">
                   {[1, 2, 3, 4].map((i) => (
-                    <div
+                    <Circle
                       key={i}
-                      className="inline-block h-10 w-10 rounded-full ring-2 ring-primary bg-secondary/50"
+                      size="10"
+                      bg="whiteAlpha.300"
+                      border="2px solid"
+                      borderColor="var(--color-primary)"
+                      ml="-4"
                     />
                   ))}
-                </div>
-                <p className="text-slate-300 text-sm font-medium">
+                </Flex>
+                <Text color="slate.300" fontSize="sm" fontWeight="medium">
                   Join 50,000+ experts today
-                </p>
-              </div>
-            </div>
+                </Text>
+              </HStack>
+            </VStack>
           </motion.div>
-        </div>
-      </div>
+        </Box>
+      </Flex>
 
       {/* Right Panel: Login Form */}
-      <div className="flex-1 flex items-center justify-center p-6 relative">
-        <div className="absolute inset-0 md:hidden bg-primary overflow-hidden">
-          <div className="absolute top-[-10%] left-[-10%] w-[80vw] h-[80vw] bg-accent/20 rounded-full blur-[100px] pointer-events-none" />
-        </div>
+      <Flex flex="1" align="center" justify="center" p={6} position="relative">
+        {/* Mobile Background Background blur */}
+        <Box
+          display={{ base: "block", md: "none" }}
+          position="absolute"
+          inset={0}
+          bg="var(--color-primary)"
+          overflow="hidden"
+        >
+          <Box
+            position="absolute"
+            top="-10%"
+            left="-10%"
+            w="80vw"
+            h="80vw"
+            bg="var(--color-accent)"
+            opacity="0.2"
+            borderRadius="full"
+            filter="blur(100px)"
+            pointerEvents="none"
+          />
+        </Box>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="w-full max-w-sm z-10 p-8 rounded-lg bg-secondary/5 border border-secondary/20 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] backdrop-blur-2xl"
+          style={{ width: "100%", maxWidth: "400px", zIndex: 10 }}
         >
-          <div className="text-center mb-8">
-            <div className="md:hidden mb-6">
-              <h1 className="text-4xl font-black text-white tracking-tighter">
-                Xanatz<span className="text-accent">.</span>
-              </h1>
-            </div>
-            <h2 className="text-2xl font-bold text-white mb-2 leading-tight">
-              Welcome Back
-            </h2>
-            <p className="text-slate-400 text-sm">
-              Access your referral dashboard
-            </p>
-          </div>
+          <Box
+            p={8}
+            borderRadius="lg"
+            bg="whiteAlpha.50"
+            border="1px solid"
+            borderColor="whiteAlpha.200"
+            boxShadow="dark-lg"
+            backdropFilter="blur(24px)"
+          >
+            <VStack gap={8} mb={8} textAlign="center">
+              <Box display={{ base: "block", md: "none" }} mb={6}>
+                <Heading
+                  size="4xl"
+                  fontWeight="black"
+                  color="white"
+                  letterSpacing="tighter"
+                >
+                  Xanatz
+                  <Text as="span" color="var(--color-accent)">
+                    .
+                  </Text>
+                </Heading>
+              </Box>
+              <Box>
+                <Heading size="2xl" color="white" mb={2} lineHeight="tight">
+                  Welcome Back
+                </Heading>
+                <Text color="slate.400" fontSize="sm">
+                  Access your referral dashboard
+                </Text>
+              </Box>
+            </VStack>
 
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="p-3 mb-6 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-[0.7rem] text-center font-medium uppercase tracking-wider"
-            >
-              {error}
-            </motion.div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="relative group">
-              <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500 group-focus-within:text-accent transition-all duration-300 w-4 h-4" />
-              <input
-                type="email"
-                name="email"
-                placeholder="Email Address"
-                required
-                className="w-full bg-secondary/10 border border-secondary/20 rounded-lg py-3.5 pl-11 pr-4 text-white placeholder-slate-600 text-sm focus:outline-none focus:border-accent/50 focus:ring-4 focus:ring-accent/5 transition-all duration-500"
-                onChange={handleChange}
-              />
-            </div>
-            <div className="relative group">
-              <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500 group-focus-within:text-accent transition-all duration-300 w-4 h-4" />
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                required
-                className="w-full bg-secondary/10 border border-secondary/20 rounded-lg py-3.5 pl-11 pr-4 text-white placeholder-slate-600 text-sm focus:outline-none focus:border-accent/50 focus:ring-4 focus:ring-accent/5 transition-all duration-500"
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="flex items-center justify-end px-1">
-              <a
-                href="#"
-                className="text-[0.7rem] font-bold text-slate-500 hover:text-accent transition-colors tracking-wide"
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
               >
-                FORGOT PASSWORD?
-              </a>
-            </div>
+                <Box
+                  p={3}
+                  mb={6}
+                  bg="red.500/10"
+                  border="1px solid"
+                  borderColor="red.500/20"
+                  borderRadius="lg"
+                  color="red.400"
+                  fontSize="0.7rem"
+                  textAlign="center"
+                  fontWeight="medium"
+                  textTransform="uppercase"
+                  letterSpacing="wider"
+                >
+                  {error}
+                </Box>
+              </motion.div>
+            )}
 
-            <motion.button
-              whileHover={{ scale: 1.01, translateY: -1 }}
-              whileTap={{ scale: 0.98 }}
-              type="submit"
-              className="w-full bg-accent hover:bg-accent/90 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-accent/20 flex items-center justify-center gap-2 text-sm"
-            >
-              Sign In
-            </motion.button>
-          </form>
+            <form onSubmit={handleSubmit}>
+              <VStack gap={4}>
+                <Box w="full" position="relative">
+                  <Box
+                    position="absolute"
+                    left="4"
+                    top="50%"
+                    transform="translateY(-50%)"
+                    zIndex={1}
+                    color="slate.500"
+                  >
+                    <Mail size={16} />
+                  </Box>
+                  <Input
+                    type="email"
+                    name="email"
+                    placeholder="Email Address"
+                    required
+                    bg="whiteAlpha.100"
+                    border="1px solid"
+                    borderColor="whiteAlpha.200"
+                    borderRadius="lg"
+                    py="6"
+                    pl="11"
+                    pr="4"
+                    color="white"
+                    fontSize="sm"
+                    _placeholder={{ color: "slate.600" }}
+                    _focus={{
+                      outline: "none",
+                      borderColor: "var(--color-accent)",
+                      boxShadow: "0 0 0 4px rgba(205, 36, 38, 0.05)",
+                    }}
+                    transition="all 0.5s"
+                    onChange={handleChange}
+                  />
+                </Box>
 
-          <div className="my-7 flex items-center gap-4">
-            <div className="flex-1 h-[1px] bg-secondary/20" />
-            <span className="text-slate-600 text-[10px] font-bold uppercase tracking-[0.2em]">
-              or
-            </span>
-            <div className="flex-1 h-[1px] bg-secondary/20" />
-          </div>
+                <Box w="full" position="relative">
+                  <Box
+                    position="absolute"
+                    left="4"
+                    top="50%"
+                    transform="translateY(-50%)"
+                    zIndex={1}
+                    color="slate.500"
+                  >
+                    <Lock size={16} />
+                  </Box>
+                  <Input
+                    type="password"
+                    name="password"
+                    placeholder="Password"
+                    required
+                    bg="whiteAlpha.100"
+                    border="1px solid"
+                    borderColor="whiteAlpha.200"
+                    borderRadius="lg"
+                    py="6"
+                    pl="11"
+                    pr="4"
+                    color="white"
+                    fontSize="sm"
+                    _placeholder={{ color: "slate.600" }}
+                    _focus={{
+                      outline: "none",
+                      borderColor: "var(--color-accent)",
+                      boxShadow: "0 0 0 4px rgba(205, 36, 38, 0.05)",
+                    }}
+                    transition="all 0.5s"
+                    onChange={handleChange}
+                  />
+                </Box>
 
-          <div className="flex justify-center px-2">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={() => setError("Google Login Failed")}
-              theme="outline"
-              shape="rectangular"
-              text="signin_with"
-              width="100%"
-            />
-          </div>
+                <Flex w="full" justify="flex-end" px={1}>
+                  <Link
+                    as={RouterLink}
+                    to="#"
+                    fontSize="0.7rem"
+                    fontWeight="bold"
+                    color="slate.500"
+                    _hover={{
+                      color: "var(--color-accent)",
+                      textDecoration: "none",
+                    }}
+                    transition="colors"
+                    letterSpacing="wide"
+                  >
+                    FORGOT PASSWORD?
+                  </Link>
+                </Flex>
 
-          <div className="mt-8 text-center">
-            <p className="text-slate-500 text-xs font-medium">
-              New to Xanatz?{" "}
-              <Link
-                to="/register"
-                className="text-accent hover:text-accent/80 font-bold ml-1 transition-colors"
+                <Button
+                  as={motion.button}
+                  whileHover={{ scale: 1.01, translateY: -1 }}
+                  whileTap={{ scale: 0.98 }}
+                  type="submit"
+                  w="full"
+                  bg="var(--color-accent)"
+                  _hover={{ bg: "var(--color-accent)", opacity: 0.9 }}
+                  color="white"
+                  fontWeight="bold"
+                  py="7"
+                  borderRadius="lg"
+                  boxShadow="0 10px 20px -5px rgba(205, 36, 38, 0.3)"
+                  fontSize="sm"
+                >
+                  Sign In
+                </Button>
+              </VStack>
+            </form>
+
+            <Flex my={7} align="center" gap={4}>
+              <Separator flex="1" borderColor="whiteAlpha.200" />
+              <Text
+                color="slate.600"
+                fontSize="10px"
+                fontWeight="bold"
+                textTransform="uppercase"
+                letterSpacing="0.2em"
               >
-                Create Account
-              </Link>
-            </p>
-          </div>
+                or
+              </Text>
+              <Separator flex="1" borderColor="whiteAlpha.200" />
+            </Flex>
+
+            <Box px={2}>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setError("Google Login Failed")}
+                theme="outline"
+                shape="rectangular"
+                text="signin_with"
+                width="300"
+              />
+            </Box>
+
+            <Box mt={8} textAlign="center">
+              <Text color="slate.500" fontSize="xs" fontWeight="medium">
+                New to Xanatz?{" "}
+                <Link
+                  as={RouterLink}
+                  to="/register"
+                  color="var(--color-accent)"
+                  _hover={{
+                    color: "var(--color-accent)",
+                    borderBottom: "1px solid",
+                  }}
+                  fontWeight="bold"
+                  ml={1}
+                  transition="colors"
+                >
+                  Create Account
+                </Link>
+              </Text>
+            </Box>
+          </Box>
         </motion.div>
-      </div>
-    </div>
+      </Flex>
+    </Flex>
   );
 };
 

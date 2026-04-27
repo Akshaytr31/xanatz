@@ -1,5 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
+import { ThemeProvider } from "next-themes";
 import "./index.css";
 import App from "./App.jsx";
 import { GoogleOAuthProvider } from "@react-oauth/google";
@@ -11,8 +13,12 @@ const clientId =
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <GoogleOAuthProvider clientId={clientId}>
-      <App />
-    </GoogleOAuthProvider>
+    <ChakraProvider value={defaultSystem}>
+      <ThemeProvider attribute="class" disableTransitionOnChange>
+        <GoogleOAuthProvider clientId={clientId}>
+          <App />
+        </GoogleOAuthProvider>
+      </ThemeProvider>
+    </ChakraProvider>
   </StrictMode>,
 );

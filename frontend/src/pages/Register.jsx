@@ -8,10 +8,23 @@ import {
   Phone,
   ShieldCheck,
   ArrowRight,
-  CheckCircle2,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
+import {
+  Box,
+  Flex,
+  Heading,
+  Text,
+  Input,
+  Button,
+  VStack,
+  HStack,
+  Link,
+  Separator,
+  Circle,
+  Checkbox,
+} from "@chakra-ui/react";
 import api from "../api";
 
 const slideVariants = {
@@ -135,390 +148,750 @@ const Register = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col md:flex-row bg-primary overflow-hidden">
+    <Flex
+      h="100vh"
+      direction={{ base: "column", md: "row" }}
+      bg="var(--color-primary)"
+      overflow="hidden"
+    >
       {/* Left Panel: Branding & Quotes */}
-      <div className="hidden md:flex md:w-1/2 bg-primary relative items-center justify-center p-12 overflow-hidden border-r border-secondary/20">
-        <div className="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-accent/20 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
+      <Flex
+        display={{ base: "none", md: "flex" }}
+        flex="1"
+        bg="var(--color-primary)"
+        position="relative"
+        align="center"
+        justify="center"
+        p={12}
+        overflow="hidden"
+        borderRight="1px solid"
+        borderColor="whiteAlpha.100"
+      >
+        <Box
+          position="absolute"
+          top="-10%"
+          left="-10%"
+          w="40vw"
+          h="40vw"
+          bg="var(--color-accent)"
+          opacity="0.2"
+          borderRadius="full"
+          filter="blur(120px)"
+          pointerEvents="none"
+        />
+        <Box
+          position="absolute"
+          bottom="-10%"
+          right="-10%"
+          w="50vw"
+          h="50vw"
+          bg="var(--color-accent)"
+          opacity="0.1"
+          borderRadius="full"
+          filter="blur(120px)"
+          pointerEvents="none"
+        />
 
-        <div className="relative z-10 max-w-lg">
+        <Box position="relative" zIndex={10} maxW="lg">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 1 }}
           >
-            <h1 className="text-6xl font-black text-white mb-6 tracking-tighter">
-              Xanatz<span className="text-accent">.</span>
-            </h1>
-            <div className="space-y-8">
-              <div className="p-1 px-4 border-l-4 border-accent bg-secondary/10 backdrop-blur-sm rounded-r-xl">
-                <p className="text-2xl font-light text-slate-100 leading-relaxed italic">
+            <Heading
+              size="6xl"
+              fontWeight="black"
+              color="white"
+              mb={6}
+              letterSpacing="tighter"
+            >
+              Xanatz
+              <Text as="span" color="var(--color-accent)">
+                .
+              </Text>
+            </Heading>
+
+            <VStack align="stretch" gap={8}>
+              <Box
+                p={1}
+                px={4}
+                borderLeftWidth="4px"
+                borderLeftColor="var(--color-accent)"
+                bg="whiteAlpha.100"
+                backdropFilter="blur(8px)"
+                borderRadius="0 12px 12px 0"
+              >
+                <Text
+                  fontSize="2xl"
+                  fontWeight="light"
+                  color="slate.100"
+                  lineHeight="relaxed"
+                  fontStyle="italic"
+                >
                   "Success is not just about who you know, it's about who trusts
                   you enough to refer you."
-                </p>
-                <p className="text-accent font-semibold mt-4">
+                </Text>
+                <Text color="var(--color-accent)" fontWeight="semibold" mt={4}>
                   — The Referral Economy
-                </p>
-              </div>
+                </Text>
+              </Box>
 
-              <div className="grid grid-cols-2 gap-6 mt-12">
-                <div className="p-4 rounded-lg bg-secondary/20 border border-secondary/30">
-                  <h3 className="text-3xl font-bold text-white mb-1">Verify</h3>
-                  <p className="text-slate-400 text-sm">Instant OTP Security</p>
-                </div>
-                <div className="p-4 rounded-lg bg-secondary/20 border border-secondary/30">
-                  <h3 className="text-3xl font-bold text-white mb-1">
+              <HStack gap={6} mt={12}>
+                <Box
+                  p={4}
+                  borderRadius="lg"
+                  bg="whiteAlpha.200"
+                  border="1px solid"
+                  borderColor="whiteAlpha.300"
+                  flex="1"
+                >
+                  <Heading size="3xl" fontWeight="bold" color="white" mb={1}>
+                    Verify
+                  </Heading>
+                  <Text color="slate.400" fontSize="sm">
+                    Instant OTP Security
+                  </Text>
+                </Box>
+                <Box
+                  p={4}
+                  borderRadius="lg"
+                  bg="whiteAlpha.200"
+                  border="1px solid"
+                  borderColor="whiteAlpha.300"
+                  flex="1"
+                >
+                  <Heading size="3xl" fontWeight="bold" color="white" mb={1}>
                     Connect
-                  </h3>
-                  <p className="text-slate-400 text-sm">
+                  </Heading>
+                  <Text color="slate.400" fontSize="sm">
                     Join the Elite Circle
-                  </p>
-                </div>
-              </div>
+                  </Text>
+                </Box>
+              </HStack>
 
-              <div className="mt-12 flex items-center space-x-4">
-                <div className="flex -space-x-4 overflow-hidden">
+              <HStack gap={4} mt={12}>
+                <Flex direction="row-reverse" justify="flex-end">
                   {[1, 2, 3, 4].map((i) => (
-                    <div
+                    <Circle
                       key={i}
-                      className="inline-block h-10 w-10 rounded-full ring-2 ring-primary bg-secondary/50"
+                      size="10"
+                      bg="whiteAlpha.300"
+                      border="2px solid"
+                      borderColor="var(--color-primary)"
+                      ml="-4"
                     />
                   ))}
-                </div>
-                <p className="text-slate-300 text-sm font-medium">
+                </Flex>
+                <Text color="slate.300" fontSize="sm" fontWeight="medium">
                   Be part of the next big thing.
-                </p>
-              </div>
-            </div>
+                </Text>
+              </HStack>
+            </VStack>
           </motion.div>
-        </div>
-      </div>
+        </Box>
+      </Flex>
 
       {/* Right Panel: Registration Form */}
-      <div className="flex-1 flex items-center justify-center p-6 relative">
-        <div className="absolute inset-0 md:hidden bg-primary overflow-hidden">
-          <div className="absolute top-[-10%] left-[-10%] w-[80vw] h-[80vw] bg-accent/20 rounded-full blur-[100px] pointer-events-none" />
-        </div>
+      <Flex flex="1" align="center" justify="center" p={6} position="relative">
+        <Box
+          display={{ base: "block", md: "none" }}
+          position="absolute"
+          inset={0}
+          bg="var(--color-primary)"
+          overflow="hidden"
+        >
+          <Box
+            position="absolute"
+            top="-10%"
+            left="-10%"
+            w="80vw"
+            h="80vw"
+            bg="var(--color-accent)"
+            opacity="0.2"
+            borderRadius="full"
+            filter="blur(100px)"
+            pointerEvents="none"
+          />
+        </Box>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="w-full max-w-sm z-10 p-8 rounded-lg bg-secondary/5 border border-secondary/20 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] backdrop-blur-2xl overflow-hidden relative"
+          style={{ width: "100%", maxWidth: "400px", zIndex: 10 }}
         >
-          {/* Progress Bar */}
-          <div className="flex gap-1.5 mb-8">
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className={`h-1 flex-1 rounded-full transition-all duration-500 ${step >= i ? "bg-accent shadow-[0_0_12px_rgba(205,36,38,0.4)]" : "bg-secondary/20"}`}
-              />
-            ))}
-          </div>
+          <Box
+            p={8}
+            borderRadius="lg"
+            bg="whiteAlpha.50"
+            border="1px solid"
+            borderColor="whiteAlpha.200"
+            boxShadow="dark-lg"
+            backdropFilter="blur(24px)"
+            overflow="hidden"
+            position="relative"
+          >
+            {/* Progress Bar */}
+            <HStack gap={1.5} mb={8}>
+              {[1, 2, 3, 4].map((i) => (
+                <Box
+                  key={i}
+                  h="1"
+                  flex="1"
+                  borderRadius="full"
+                  transition="all 0.5s"
+                  bg={step >= i ? "var(--color-accent)" : "whiteAlpha.200"}
+                  boxShadow={
+                    step >= i ? "0 0 12px rgba(205,36,38,0.4)" : "none"
+                  }
+                />
+              ))}
+            </HStack>
 
-          <div className="text-center mb-6">
-            <div className="md:hidden mb-4">
-              <h1 className="text-4xl font-black text-white tracking-tighter">
-                Xanatz<span className="text-accent">.</span>
-              </h1>
-            </div>
-            <h2 className="text-2xl font-bold text-white mb-1">
-              {step === 1 && "Start Journey"}
-              {step === 2 && "Verification"}
-              {step === 3 && "Security First"}
-              {step === 4 && "About You"}
-            </h2>
-            <p className="text-slate-400 text-xs tracking-wide">
-              Step {step} of 4
-            </p>
-          </div>
-
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="p-3 mb-6 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-[0.7rem] text-center font-medium uppercase tracking-wider"
-            >
-              {error}
-            </motion.div>
-          )}
-
-          <div className="relative min-h-[300px]">
-            <AnimatePresence custom={direction} mode="wait">
-              {step === 1 && (
-                <motion.form
-                  key="step1"
-                  custom={direction}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{ duration: 0.4 }}
-                  onSubmit={handleSendOTP}
-                  className="absolute w-full space-y-5"
+            <VStack gap={1} mb={6} textAlign="center">
+              <Box display={{ base: "block", md: "none" }} mb={4}>
+                <Heading
+                  size="4xl"
+                  fontWeight="black"
+                  color="white"
+                  letterSpacing="tighter"
                 >
-                  <p className="text-slate-400 text-xs text-center leading-relaxed">
-                    Enter your email. We'll send a <br /> one-time verification
-                    code.
-                  </p>
-                  <div className="relative group">
-                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500 group-focus-within:text-accent transition-all duration-300 w-4 h-4" />
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="Email Address"
-                      required
-                      className="w-full bg-secondary/10 border border-secondary/20 rounded-lg py-3.5 pl-11 pr-4 text-white placeholder-slate-600 text-sm focus:outline-none focus:border-accent/50 focus:ring-4 focus:ring-accent/5 transition-all duration-500"
-                    />
-                  </div>
-                  <motion.button
-                    whileHover={{ scale: 1.01, translateY: -1 }}
-                    whileTap={{ scale: 0.98 }}
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-accent hover:bg-accent/90 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-accent/20 flex justify-center items-center gap-2 text-sm"
-                  >
-                    {loading ? (
-                      "SENDING..."
-                    ) : (
-                      <>
-                        SEND CODE <ArrowRight className="w-4 h-4" />
-                      </>
-                    )}
-                  </motion.button>
+                  Xanatz
+                  <Text as="span" color="var(--color-accent)">
+                    .
+                  </Text>
+                </Heading>
+              </Box>
+              <Heading size="2xl" color="white" mb={1}>
+                {step === 1 && "Start Journey"}
+                {step === 2 && "Verification"}
+                {step === 3 && "Security First"}
+                {step === 4 && "About You"}
+              </Heading>
+              <Text color="slate.400" fontSize="xs" letterSpacing="wide">
+                Step {step} of 4
+              </Text>
+            </VStack>
 
-                  <div className="my-7 flex items-center gap-4">
-                    <div className="flex-1 h-[1px] bg-secondary/20" />
-                    <span className="text-slate-600 text-[10px] font-bold uppercase tracking-[0.2em]">
-                      OR
-                    </span>
-                    <div className="flex-1 h-[1px] bg-secondary/20" />
-                  </div>
-
-                  <div className="flex justify-center px-2">
-                    <GoogleLogin
-                      onSuccess={handleGoogleSuccess}
-                      onError={() => setError("Google Sign In failed")}
-                      theme="outline"
-                      shape="rectangular"
-                      text="continue_with"
-                      width="100%"
-                    />
-                  </div>
-                </motion.form>
-              )}
-
-              {step === 2 && (
-                <motion.form
-                  key="step2"
-                  custom={direction}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{ duration: 0.4 }}
-                  onSubmit={handleVerifyOTP}
-                  className="absolute w-full space-y-6"
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+              >
+                <Box
+                  p={3}
+                  mb={6}
+                  bg="red.500/10"
+                  border="1px solid"
+                  borderColor="red.500/20"
+                  borderRadius="lg"
+                  color="red.400"
+                  fontSize="0.7rem"
+                  textAlign="center"
+                  fontWeight="medium"
+                  textTransform="uppercase"
+                  letterSpacing="wider"
                 >
-                  <p className="text-slate-400 text-xs text-center leading-relaxed">
-                    Check your inbox at <br />
-                    <span className="text-accent font-bold">
-                      {formData.email}
-                    </span>
-                  </p>
-                  <div className="relative group">
-                    <KeyRound className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500 group-focus-within:text-accent transition-all duration-300 w-4 h-4" />
-                    <input
-                      type="text"
-                      name="otp"
-                      value={formData.otp}
-                      onChange={handleChange}
-                      placeholder="6-DIGIT CODE"
-                      maxLength={6}
-                      required
-                      className="w-full bg-secondary/10 border border-secondary/20 rounded-lg py-3.5 pl-11 pr-4 text-white text-center tracking-[1em] text-lg font-mono focus:outline-none focus:border-accent/50 focus:ring-4 focus:ring-accent/5 transition-all duration-500"
-                    />
-                  </div>
-                  <motion.button
-                    whileHover={{ scale: 1.01, translateY: -1 }}
-                    whileTap={{ scale: 0.98 }}
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-accent hover:bg-accent/90 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-accent/20 text-sm"
+                  {error}
+                </Box>
+              </motion.div>
+            )}
+
+            <Box position="relative" minH="300px">
+              <AnimatePresence custom={direction} mode="wait">
+                {step === 1 && (
+                  <motion.div
+                    key="step1"
+                    custom={direction}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ duration: 0.4 }}
+                    style={{ position: "absolute", width: "100%" }}
                   >
-                    {loading ? "VERIFYING..." : "VERIFY CODE"}
-                  </motion.button>
-                  <button
-                    type="button"
-                    onClick={prevStep}
-                    className="w-full text-slate-500 hover:text-accent transition-colors text-[0.7rem] font-bold uppercase tracking-tight"
+                    <form onSubmit={handleSendOTP}>
+                      <VStack gap={5}>
+                        <Text
+                          color="slate.400"
+                          fontSize="xs"
+                          textAlign="center"
+                          lineHeight="relaxed"
+                        >
+                          Enter your email. We'll send a <br /> one-time
+                          verification code.
+                        </Text>
+                        <Box w="full" position="relative">
+                          <Box
+                            position="absolute"
+                            left="4"
+                            top="50%"
+                            transform="translateY(-50%)"
+                            zIndex={1}
+                            color="slate.500"
+                          >
+                            <Mail size={16} />
+                          </Box>
+                          <Input
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            placeholder="Email Address"
+                            required
+                            bg="whiteAlpha.100"
+                            border="1px solid"
+                            borderColor="whiteAlpha.200"
+                            borderRadius="lg"
+                            py="6"
+                            pl="11"
+                            color="white"
+                            fontSize="sm"
+                            _placeholder={{ color: "slate.600" }}
+                            _focus={{
+                              borderColor: "var(--color-accent)",
+                              boxShadow: "0 0 0 4px rgba(205, 36, 38, 0.05)",
+                            }}
+                          />
+                        </Box>
+                        <Button
+                          as={motion.button}
+                          whileHover={{ scale: 1.01, translateY: -1 }}
+                          whileTap={{ scale: 0.98 }}
+                          type="submit"
+                          isLoading={loading}
+                          w="full"
+                          bg="var(--color-accent)"
+                          _hover={{ bg: "var(--color-accent)", opacity: 0.9 }}
+                          color="white"
+                          fontWeight="bold"
+                          py="6"
+                          borderRadius="lg"
+                          fontSize="sm"
+                          boxShadow="0 10px 20px -5px rgba(205, 36, 38, 0.3)"
+                        >
+                          SEND CODE{" "}
+                          <ArrowRight size={16} style={{ marginLeft: "8px" }} />
+                        </Button>
+
+                        <Flex w="full" align="center" gap={4} my={7}>
+                          <Separator flex="1" borderColor="whiteAlpha.200" />
+                          <Text
+                            color="slate.600"
+                            fontSize="10px"
+                            fontWeight="bold"
+                            textTransform="uppercase"
+                            letterSpacing="0.2em"
+                          >
+                            OR
+                          </Text>
+                          <Separator flex="1" borderColor="whiteAlpha.200" />
+                        </Flex>
+
+                        <Box px={2}>
+                          <GoogleLogin
+                            onSuccess={handleGoogleSuccess}
+                            onError={() => setError("Google Sign In failed")}
+                            theme="outline"
+                            shape="rectangular"
+                            text="continue_with"
+                            width="300"
+                          />
+                        </Box>
+                      </VStack>
+                    </form>
+                  </motion.div>
+                )}
+
+                {step === 2 && (
+                  <motion.div
+                    key="step2"
+                    custom={direction}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ duration: 0.4 }}
+                    style={{ position: "absolute", width: "100%" }}
                   >
-                    wrong email? go back
-                  </button>
-                </motion.form>
-              )}
+                    <form onSubmit={handleVerifyOTP}>
+                      <VStack gap={6}>
+                        <Text
+                          color="slate.400"
+                          fontSize="xs"
+                          textAlign="center"
+                          lineHeight="relaxed"
+                        >
+                          Check your inbox at <br />
+                          <Text
+                            as="span"
+                            color="var(--color-accent)"
+                            fontWeight="bold"
+                          >
+                            {formData.email}
+                          </Text>
+                        </Text>
+                        <Box w="full" position="relative">
+                          <Box
+                            position="absolute"
+                            left="4"
+                            top="50%"
+                            transform="translateY(-50%)"
+                            zIndex={1}
+                            color="slate.500"
+                          >
+                            <KeyRound size={16} />
+                          </Box>
+                          <Input
+                            type="text"
+                            name="otp"
+                            value={formData.otp}
+                            onChange={handleChange}
+                            placeholder="6-DIGIT CODE"
+                            maxLength={6}
+                            required
+                            bg="whiteAlpha.100"
+                            border="1px solid"
+                            borderColor="whiteAlpha.200"
+                            borderRadius="lg"
+                            py="6"
+                            pl="11"
+                            color="white"
+                            textAlign="center"
+                            letterSpacing="1em"
+                            fontWeight="mono"
+                            fontSize="lg"
+                            _focus={{
+                              borderColor: "var(--color-accent)",
+                              boxShadow: "0 0 0 4px rgba(205, 36, 38, 0.05)",
+                            }}
+                          />
+                        </Box>
+                        <Button
+                          as={motion.button}
+                          whileHover={{ scale: 1.01, translateY: -1 }}
+                          whileTap={{ scale: 0.98 }}
+                          type="submit"
+                          isLoading={loading}
+                          w="full"
+                          bg="var(--color-accent)"
+                          color="white"
+                          fontWeight="bold"
+                          py="6"
+                          borderRadius="lg"
+                          fontSize="sm"
+                        >
+                          VERIFY CODE
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          onClick={prevStep}
+                          w="full"
+                          color="slate.500"
+                          _hover={{
+                            color: "var(--color-accent)",
+                            bg: "transparent",
+                          }}
+                          fontSize="0.7rem"
+                          fontWeight="bold"
+                          textTransform="uppercase"
+                        >
+                          wrong email? go back
+                        </Button>
+                      </VStack>
+                    </form>
+                  </motion.div>
+                )}
 
-              {step === 3 && (
-                <motion.form
-                  key="step3"
-                  custom={direction}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{ duration: 0.4 }}
-                  onSubmit={handlePasswordSubmit}
-                  className="absolute w-full space-y-4"
-                >
-                  <div className="relative group">
-                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500 group-focus-within:text-accent transition-all duration-300 w-4 h-4" />
-                    <input
-                      type="password"
-                      name="password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      placeholder="NEW PASSWORD"
-                      required
-                      className="w-full bg-secondary/10 border border-secondary/20 rounded-lg py-3.5 pl-11 pr-4 text-white text-sm focus:outline-none focus:border-accent/50 focus:ring-4 focus:ring-accent/5 transition-all duration-500"
-                    />
-                  </div>
-                  <div className="relative group">
-                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500 group-focus-within:text-accent transition-all duration-300 w-4 h-4" />
-                    <input
-                      type="password"
-                      name="confirm_password"
-                      value={formData.confirm_password}
-                      onChange={handleChange}
-                      placeholder="CONFIRM PASSWORD"
-                      required
-                      className="w-full bg-secondary/10 border border-secondary/20 rounded-lg py-3.5 pl-11 pr-4 text-white text-sm focus:outline-none focus:border-accent/50 focus:ring-4 focus:ring-accent/5 transition-all duration-500"
-                    />
-                  </div>
-                  <motion.button
-                    whileHover={{ scale: 1.01, translateY: -1 }}
-                    whileTap={{ scale: 0.98 }}
-                    type="submit"
-                    className="w-full bg-accent hover:bg-accent/90 text-white font-bold py-3.5 rounded-lg transition-all duration-300 shadow-xl shadow-accent/20 text-sm mt-2"
+                {step === 3 && (
+                  <motion.div
+                    key="step3"
+                    custom={direction}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ duration: 0.4 }}
+                    style={{ position: "absolute", width: "100%" }}
                   >
-                    CONTINUE
-                  </motion.button>
-                </motion.form>
-              )}
+                    <form onSubmit={handlePasswordSubmit}>
+                      <VStack gap={4}>
+                        <Box w="full" position="relative">
+                          <Box
+                            position="absolute"
+                            left="4"
+                            top="50%"
+                            transform="translateY(-50%)"
+                            zIndex={1}
+                            color="slate.500"
+                          >
+                            <Lock size={16} />
+                          </Box>
+                          <Input
+                            type="password"
+                            name="password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            placeholder="NEW PASSWORD"
+                            required
+                            bg="whiteAlpha.100"
+                            border="1px solid"
+                            borderColor="whiteAlpha.200"
+                            borderRadius="lg"
+                            py="6"
+                            pl="11"
+                            color="white"
+                            fontSize="sm"
+                            _focus={{
+                              borderColor: "var(--color-accent)",
+                              boxShadow: "0 0 0 4px rgba(205, 36, 38, 0.05)",
+                            }}
+                          />
+                        </Box>
+                        <Box w="full" position="relative">
+                          <Box
+                            position="absolute"
+                            left="4"
+                            top="50%"
+                            transform="translateY(-50%)"
+                            zIndex={1}
+                            color="slate.500"
+                          >
+                            <Lock size={16} />
+                          </Box>
+                          <Input
+                            type="password"
+                            name="confirm_password"
+                            value={formData.confirm_password}
+                            onChange={handleChange}
+                            placeholder="CONFIRM PASSWORD"
+                            required
+                            bg="whiteAlpha.100"
+                            border="1px solid"
+                            borderColor="whiteAlpha.200"
+                            borderRadius="lg"
+                            py="6"
+                            pl="11"
+                            color="white"
+                            fontSize="sm"
+                            _focus={{
+                              borderColor: "var(--color-accent)",
+                              boxShadow: "0 0 0 4px rgba(205, 36, 38, 0.05)",
+                            }}
+                          />
+                        </Box>
+                        <Button
+                          as={motion.button}
+                          whileHover={{ scale: 1.01, translateY: -1 }}
+                          whileTap={{ scale: 0.98 }}
+                          type="submit"
+                          w="full"
+                          bg="var(--color-accent)"
+                          color="white"
+                          fontWeight="bold"
+                          py="6"
+                          borderRadius="lg"
+                          fontSize="sm"
+                          mt={2}
+                        >
+                          CONTINUE
+                        </Button>
+                      </VStack>
+                    </form>
+                  </motion.div>
+                )}
 
-              {step === 4 && (
-                <motion.form
-                  key="step4"
-                  custom={direction}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{ duration: 0.4 }}
-                  onSubmit={handleFinalSubmit}
-                  className="absolute w-full space-y-4"
-                >
-                  <div className="flex gap-3">
-                    <div className="relative flex-1 group">
-                      <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500 group-focus-within:text-accent transition-all duration-300 w-4 h-4" />
-                      <input
-                        type="text"
-                        name="first_name"
-                        value={formData.first_name}
-                        onChange={handleChange}
-                        placeholder="FIRST"
-                        required
-                        className="w-full bg-secondary/10 border border-secondary/20 rounded-lg py-3.5 pl-11 pr-4 text-white text-sm focus:outline-none focus:border-accent/50 focus:ring-4 focus:ring-accent/5"
-                      />
-                    </div>
-                    <div className="relative flex-1 group">
-                      <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500 group-focus-within:text-accent transition-all duration-300 w-4 h-4" />
-                      <input
-                        type="text"
-                        name="last_name"
-                        value={formData.last_name}
-                        onChange={handleChange}
-                        placeholder="LAST"
-                        required
-                        className="w-full bg-secondary/10 border border-secondary/20 rounded-lg py-3.5 pl-11 pr-4 text-white text-sm focus:outline-none focus:border-accent/50 focus:ring-4 focus:ring-accent/5"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="relative group">
-                    <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500 group-focus-within:text-accent transition-all duration-300 w-4 h-4" />
-                    <input
-                      type="tel"
-                      name="phone_number"
-                      value={formData.phone_number}
-                      onChange={handleChange}
-                      placeholder="PHONE NUMBER"
-                      className="w-full bg-secondary/10 border border-secondary/20 rounded-lg py-3.5 pl-11 pr-4 text-white text-sm focus:outline-none focus:border-accent/50 focus:ring-4 focus:ring-accent/5"
-                    />
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 bg-secondary/5 rounded-lg border border-secondary/10">
-                    <input
-                      type="checkbox"
-                      name="accepted_privacy_policy"
-                      checked={formData.accepted_privacy_policy}
-                      onChange={handleChange}
-                      required
-                      id="privacy"
-                      className="mt-0.5 w-3.5 h-3.5 rounded border-secondary/40 bg-primary checked:bg-accent focus:ring-accent"
-                    />
-                    <label
-                      htmlFor="privacy"
-                      className="text-[0.65rem] text-slate-500 leading-tight"
-                    >
-                      I agree to the{" "}
-                      <a
-                        href="#"
-                        className="text-slate-300 underline font-bold"
-                      >
-                        Privacy Policy
-                      </a>{" "}
-                      and network terms.
-                    </label>
-                  </div>
-
-                  <motion.button
-                    whileHover={{ scale: 1.01, translateY: -1 }}
-                    whileTap={{ scale: 0.98 }}
-                    type="submit"
-                    disabled={loading || !formData.accepted_privacy_policy}
-                    className="w-full bg-accent hover:bg-accent/90 text-white font-bold py-4 rounded-lg transition-all duration-300 shadow-xl shadow-accent/20 flex justify-center items-center gap-2 text-sm disabled:opacity-50"
+                {step === 4 && (
+                  <motion.div
+                    key="step4"
+                    custom={direction}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ duration: 0.4 }}
+                    style={{ position: "absolute", width: "100%" }}
                   >
-                    {loading ? (
-                      "CREATING..."
-                    ) : (
-                      <>
-                        <ShieldCheck className="w-5 h-5" /> JOIN XANATZ
-                      </>
-                    )}
-                  </motion.button>
-                </motion.form>
-              )}
-            </AnimatePresence>
-          </div>
+                    <form onSubmit={handleFinalSubmit}>
+                      <VStack gap={4}>
+                        <HStack gap={3} w="full">
+                          <Box flex="1" position="relative">
+                            <Box
+                              position="absolute"
+                              left="4"
+                              top="50%"
+                              transform="translateY(-50%)"
+                              zIndex={1}
+                              color="slate.500"
+                            >
+                              <User size={16} />
+                            </Box>
+                            <Input
+                              type="text"
+                              name="first_name"
+                              value={formData.first_name}
+                              onChange={handleChange}
+                              placeholder="FIRST"
+                              required
+                              bg="whiteAlpha.100"
+                              border="1px solid"
+                              borderColor="whiteAlpha.200"
+                              borderRadius="lg"
+                              py="6"
+                              pl="11"
+                              color="white"
+                              fontSize="sm"
+                              _focus={{ borderColor: "var(--color-accent)" }}
+                            />
+                          </Box>
+                          <Box flex="1" position="relative">
+                            <Box
+                              position="absolute"
+                              left="4"
+                              top="50%"
+                              transform="translateY(-50%)"
+                              zIndex={1}
+                              color="slate.500"
+                            >
+                              <User size={16} />
+                            </Box>
+                            <Input
+                              type="text"
+                              name="last_name"
+                              value={formData.last_name}
+                              onChange={handleChange}
+                              placeholder="LAST"
+                              required
+                              bg="whiteAlpha.100"
+                              border="1px solid"
+                              borderColor="whiteAlpha.200"
+                              borderRadius="lg"
+                              py="6"
+                              pl="11"
+                              color="white"
+                              fontSize="sm"
+                              _focus={{ borderColor: "var(--color-accent)" }}
+                            />
+                          </Box>
+                        </HStack>
 
-          {step === 1 && (
-            <div className="mt-8 text-center">
-              <p className="text-slate-500 text-xs font-medium">
-                Member already?{" "}
-                <Link
-                  to="/login"
-                  className="text-accent hover:text-accent/80 font-bold ml-1 transition-colors"
-                >
-                  Sign In
-                </Link>
-              </p>
-            </div>
-          )}
+                        <Box w="full" position="relative">
+                          <Box
+                            position="absolute"
+                            left="4"
+                            top="50%"
+                            transform="translateY(-50%)"
+                            zIndex={1}
+                            color="slate.500"
+                          >
+                            <Phone size={16} />
+                          </Box>
+                          <Input
+                            type="tel"
+                            name="phone_number"
+                            value={formData.phone_number}
+                            onChange={handleChange}
+                            placeholder="PHONE NUMBER"
+                            bg="whiteAlpha.100"
+                            border="1px solid"
+                            borderColor="whiteAlpha.200"
+                            borderRadius="lg"
+                            py="6"
+                            pl="11"
+                            color="white"
+                            fontSize="sm"
+                            _focus={{ borderColor: "var(--color-accent)" }}
+                          />
+                        </Box>
+
+                        <Box
+                          w="full"
+                          p={3}
+                          bg="whiteAlpha.50"
+                          borderRadius="lg"
+                          border="1px solid"
+                          borderColor="whiteAlpha.100"
+                        >
+                          <HStack align="start" gap={3}>
+                            <Checkbox
+                              name="accepted_privacy_policy"
+                              checked={formData.accepted_privacy_policy}
+                              onChange={handleChange}
+                              required
+                              colorPalette="red"
+                              size="sm"
+                              mt="0.5"
+                            />
+                            <Text
+                              fontSize="0.65rem"
+                              color="slate.500"
+                              lineHeight="tight"
+                            >
+                              I agree to the{" "}
+                              <Link
+                                as={RouterLink}
+                                to="#"
+                                color="slate.300"
+                                textDecoration="underline"
+                                fontWeight="bold"
+                              >
+                                Privacy Policy
+                              </Link>{" "}
+                              and network terms.
+                            </Text>
+                          </HStack>
+                        </Box>
+
+                        <Button
+                          as={motion.button}
+                          whileHover={{ scale: 1.01, translateY: -1 }}
+                          whileTap={{ scale: 0.98 }}
+                          type="submit"
+                          isLoading={loading}
+                          isDisabled={!formData.accepted_privacy_policy}
+                          w="full"
+                          bg="var(--color-accent)"
+                          color="white"
+                          fontWeight="bold"
+                          py="7"
+                          borderRadius="lg"
+                          fontSize="sm"
+                          boxShadow="0 10px 20px -5px rgba(205, 36, 38, 0.3)"
+                        >
+                          <ShieldCheck
+                            size={20}
+                            style={{ marginRight: "8px" }}
+                          />{" "}
+                          JOIN XANATZ
+                        </Button>
+                      </VStack>
+                    </form>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </Box>
+
+            {step === 1 && (
+              <Box mt={8} textAlign="center">
+                <Text color="slate.500" fontSize="xs" fontWeight="medium">
+                  Member already?{" "}
+                  <Link
+                    as={RouterLink}
+                    to="/login"
+                    color="var(--color-accent)"
+                    _hover={{ color: "var(--color-accent)", opacity: 0.8 }}
+                    fontWeight="bold"
+                    ml={1}
+                  >
+                    Sign In
+                  </Link>
+                </Text>
+              </Box>
+            )}
+          </Box>
         </motion.div>
-      </div>
-    </div>
+      </Flex>
+    </Flex>
   );
 };
 
