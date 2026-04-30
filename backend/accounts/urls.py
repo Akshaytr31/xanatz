@@ -1,6 +1,14 @@
-from django.urls import path
+from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .views import SendOTPView, VerifyOTPView, RegisterUserView, GoogleLoginView, PrivacyPolicyView, UserProfileView
+from rest_framework.routers import DefaultRouter
+from .views import (
+    SendOTPView, VerifyOTPView, RegisterUserView, GoogleLoginView, 
+    PrivacyPolicyView, UserProfileView, ExperienceViewSet, EducationViewSet
+)
+
+router = DefaultRouter()
+router.register(r'experience', ExperienceViewSet, basename='experience')
+router.register(r'education', EducationViewSet, basename='education')
 
 urlpatterns = [
     path('auth/send-otp/', SendOTPView.as_view(), name='send-otp'),
@@ -11,4 +19,5 @@ urlpatterns = [
     path('auth/google/', GoogleLoginView.as_view(), name='google_login'),
     path('privacy-policy/', PrivacyPolicyView.as_view(), name='privacy-policy'),
     path('me/', UserProfileView.as_view(), name='user_profile'),
+    path('', include(router.urls)),
 ]

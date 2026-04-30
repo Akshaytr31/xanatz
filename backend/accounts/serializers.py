@@ -33,7 +33,27 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
-from .models import PrivacyPolicy
+from .models import PrivacyPolicy, Profile, Experience, Education
+
+class ExperienceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Experience
+        fields = '__all__'
+        extra_kwargs = {'profile': {'required': False}}
+
+class EducationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Education
+        fields = '__all__'
+        extra_kwargs = {'profile': {'required': False}}
+
+class ProfileSerializer(serializers.ModelSerializer):
+    experiences = ExperienceSerializer(many=True, read_only=True)
+    educations = EducationSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Profile
+        fields = ['headline', 'about', 'location', 'profile_picture', 'cover_image', 'website', 'skills', 'experiences', 'educations']
 
 class PrivacyPolicySerializer(serializers.ModelSerializer):
     class Meta:
@@ -42,6 +62,9 @@ class PrivacyPolicySerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'updated_at', 'created_at']
 
 class UserSerializer(serializers.ModelSerializer):
+    profile = ProfileSerializer(read_only=True)
+    profile_completion_percentage = serializers.ReadOnlyField()
+
     class Meta:
         model = User
-        fields = ['id', 'email', 'first_name', 'last_name', 'is_staff', 'is_superuser']
+        fields = ['id', 'email', 'first_name', 'last_name', 'is_staff', 'is_superuser', 'profile', 'profile_completion_percentage']
