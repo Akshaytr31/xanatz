@@ -9,6 +9,8 @@ import {
   VStack,
   Image,
   Button,
+  IconButton,
+  Container,
 } from "@chakra-ui/react";
 import {
   Search,
@@ -23,30 +25,56 @@ import {
   HelpCircle,
   LogOut,
   LayoutDashboard,
+  Menu,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import api, { backendUrl } from "../api";
 
-const NavItem = ({ icon: Icon, label, to, active }) => (
-  <VStack
-    gap={0}
-    align="center"
+const NavItem = ({ icon: Icon, label, to, active, onClick }) => (
+  <Box
+    position="relative"
     cursor="pointer"
-    opacity={active ? 1 : 0.6}
-    _hover={{ opacity: 1 }}
-    transition="opacity 0.2s"
-    onClick={() => window.location.href = to}
+    onClick={onClick}
+    px={3}
+    py={1.5}
+    transition="all 0.3s"
+    role="group"
   >
-    <Icon size={24} color="white" />
-    <Text fontSize="xs" fontWeight="medium" color="white" display={{ base: "none", md: "block" }}>
-      {label}
-    </Text>
-  </VStack>
+    <VStack gap={0} align="center" opacity={active ? 1 : 0.6} _groupHover={{ opacity: 1 }}>
+      <Icon size={20} color="white" />
+      <Text 
+        fontSize="11px" 
+        fontWeight="medium" 
+        color="white" 
+        display={{ base: "none", md: "block" }}
+        mt={1}
+      >
+        {label}
+      </Text>
+    </VStack>
+    {active && (
+      <motion.div
+        layoutId="nav-active"
+        style={{
+          position: "absolute",
+          bottom: "-10px",
+          left: 0,
+          right: 0,
+          height: "2.5px",
+          background: "white",
+          borderRadius: "1.5px 1.5px 0 0",
+          boxShadow: "0 -1px 8px rgba(255,255,255,0.5)",
+        }}
+      />
+    )}
+  </Box>
 );
 
 const Navbar = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -75,202 +103,238 @@ const Navbar = () => {
 
   return (
     <Box
-      bg="var(--color-primary)"
+      bg="rgba(10, 10, 26, 0.85)"
+      backdropFilter="blur(16px)"
       borderBottom="1px solid"
       borderColor="whiteAlpha.100"
       position="sticky"
       top={0}
-      zIndex={100}
-      px={4}
+      zIndex={1000}
       h="64px"
+      transition="all 0.3s"
+      py={1}
     >
-      <Flex h="full" maxW="1200px" mx="auto" align="center" justify="space-between">
-        {/* Left: Logo & Search */}
-        <HStack gap={4} flex={1}>
-          <Box
-            bg="white"
-            p={1.5}
-            borderRadius="md"
-            cursor="pointer"
-            onClick={() => navigate("/dashboard")}
-          >
-            <Text color="var(--color-primary)" fontWeight="black" fontSize="xl" lineHeight={1}>
-              X
-            </Text>
-          </Box>
-
-          <Box position="relative" maxW="280px" display={{ base: "none", lg: "block" }} flex={1}>
-            <Box position="absolute" left="3" top="50%" transform="translateY(-50%)" zIndex={1} color="whiteAlpha.500">
-              <Search size={18} />
+      <Container maxW="1350px" h="full">
+        <Flex h="full" align="center" justify="space-between">
+          {/* Left: Logo & Search */}
+          <HStack gap={7} flex={1}>
+            <Box
+              bgGradient="linear(to-br, blue.400, purple.500)"
+              p={2}
+              borderRadius="lg"
+              cursor="pointer"
+              onClick={() => navigate("/dashboard")}
+              transition="all 0.2s"
+              _hover={{ transform: "scale(1.05)" }}
+            >
+              <Text color="white" fontWeight="900" fontSize="xl" lineHeight={1}>
+                X
+              </Text>
             </Box>
-            <Input
-              placeholder="Search"
-              bg="whiteAlpha.100"
-              border="none"
-              pl="10"
-              color="white"
-              _placeholder={{ color: "whiteAlpha.500" }}
-              _focus={{ bg: "whiteAlpha.200", boxShadow: "none" }}
-            />
-          </Box>
-        </HStack>
 
-        {/* Center: Navigation */}
-        <HStack gap={{ base: 4, md: 8 }} flex={2} justify="center">
-          <NavItem icon={Home} label="Home" to="/dashboard" active={location.pathname === "/dashboard"} />
-          <NavItem icon={Users} label="My Network" to="#" />
-          <NavItem icon={Briefcase} label="Jobs" to="#" />
-          <NavItem icon={MessageSquare} label="Messaging" to="#" />
-          <NavItem icon={Bell} label="Notifications" to="#" />
-        </HStack>
-
-        {/* Right: Profile */}
-        <Box position="relative" ml={4}>
-          <HStack
-            gap={1}
-            cursor="pointer"
-            onClick={() => setIsProfileOpen(!isProfileOpen)}
-            opacity={isProfileOpen ? 1 : 0.8}
-            transition="opacity 0.2s"
-            _hover={{ opacity: 1 }}
-          >
-            <VStack gap={0} align="center">
-              <Circle size="6" bg="blue.500" color="white" overflow="hidden">
-                {user?.profile?.profile_picture ? (
-                  <Image src={getImageUrl(user.profile.profile_picture)} w="full" h="full" objectFit="cover" />
-                ) : (
-                  <User size={16} />
-                )}
-              </Circle>
-              <HStack gap={1} display={{ base: "none", md: "flex" }}>
-                <Text fontSize="xs" fontWeight="medium" color="whiteAlpha.600">
-                  Me
-                </Text>
-                <ChevronDown size={14} color="rgba(255, 255, 255, 0.6)" />
-              </HStack>
-            </VStack>
+            <Box 
+              position="relative" 
+              maxW={isSearchFocused ? "360px" : "260px"}
+              transition="all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
+              display={{ base: "none", lg: "block" }} 
+              flex={1}
+            >
+              <Box 
+                position="absolute" 
+                left="3" 
+                top="50%" 
+                transform="translateY(-50%)" 
+                zIndex={1} 
+                color="whiteAlpha.500"
+              >
+                <Search size={16} />
+              </Box>
+              <Input
+                placeholder="Search..."
+                bg="whiteAlpha.100"
+                border="1px solid"
+                borderColor="whiteAlpha.100"
+                borderRadius="full"
+                pl="10"
+                h="38px"
+                fontSize="sm"
+                color="white"
+                _placeholder={{ color: "whiteAlpha.400" }}
+                _focus={{ 
+                  bg: "whiteAlpha.200", 
+                  borderColor: "blue.400",
+                }}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
+              />
+            </Box>
           </HStack>
 
-          {isProfileOpen && (
-            <Box
-              position="absolute"
-              top="120%"
-              right="0"
-              bg="var(--color-primary)"
-              border="1px solid"
-              borderColor="whiteAlpha.200"
-              borderRadius="lg"
-              boxShadow="2xl"
-              w="250px"
-              overflow="hidden"
-              zIndex={200}
-            >
-              <Box p={4} borderBottom="1px solid" borderColor="whiteAlpha.100">
-                <HStack gap={3}>
-                  <Circle size="12" bg="blue.500" color="white" overflow="hidden">
+          {/* Center: Navigation */}
+          <HStack gap={{ base: 2, md: 6 }} flex={2} justify="center">
+            <NavItem icon={Home} label="Home" active={location.pathname === "/dashboard"} onClick={() => navigate("/dashboard")} />
+            <NavItem icon={Users} label="Network" to="#" />
+            <NavItem icon={Briefcase} label="Jobs" to="#" />
+            <NavItem icon={MessageSquare} label="Messages" to="#" />
+            <NavItem icon={Bell} label="Notifs" to="#" />
+          </HStack>
+
+          {/* Right: Profile & Actions */}
+          <HStack flex={1} justify="flex-end" gap={4}>
+            <Box position="relative">
+              <HStack
+                gap={2.5}
+                cursor="pointer"
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                p={1.5}
+                pr={3}
+                borderRadius="full"
+                bg={isProfileOpen ? "whiteAlpha.200" : "transparent"}
+                _hover={{ bg: "whiteAlpha.100" }}
+              >
+                <Circle 
+                  size="36px" 
+                  p="2px"
+                  bgGradient="linear(to-tr, blue.400, purple.500)"
+                >
+                  <Circle size="full" bg="gray.900" overflow="hidden">
                     {user?.profile?.profile_picture ? (
                       <Image src={getImageUrl(user.profile.profile_picture)} w="full" h="full" objectFit="cover" />
                     ) : (
-                      <User size={24} />
+                      <User size={18} color="white" />
                     )}
                   </Circle>
-                  <VStack align="start" gap={0}>
-                    <Text color="white" fontWeight="bold" fontSize="sm">
-                      {user?.first_name} {user?.last_name}
-                    </Text>
-                    <Text color="whiteAlpha.600" fontSize="xs" noOfLines={1}>
-                      {user?.profile?.headline || "Professional at Xanatz"}
-                    </Text>
-                  </VStack>
-                </HStack>
-                <Box mt={3}>
-                  <Button
-                    w="full"
-                    size="sm"
-                    variant="outline"
-                    borderColor="blue.400"
-                    color="blue.400"
-                    borderRadius="full"
-                    _hover={{ bg: "blue.400", color: "white" }}
-                    onClick={() => {
-                      setIsProfileOpen(false);
-                      navigate("/profile");
+                </Circle>
+                <VStack gap={0} align="start" display={{ base: "none", xl: "flex" }}>
+                  <Text fontSize="xs" fontWeight="bold" color="white" lineHeight="1">
+                    Me
+                  </Text>
+                  <ChevronDown size={14} color="whiteAlpha.600" />
+                </VStack>
+              </HStack>
+
+              <AnimatePresence>
+                {isProfileOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                    transition={{ duration: 0.15 }}
+                    style={{
+                      position: "absolute",
+                      top: "125%",
+                      right: "0",
+                      width: "280px",
+                      zIndex: 2000,
                     }}
                   >
-                    View Profile
-                  </Button>
-                </Box>
-              </Box>
-
-              <VStack align="stretch" gap={0} p={1}>
-                {user?.is_staff && (
-                  <>
-                    <HStack
-                      p={2}
-                      gap={3}
-                      cursor="pointer"
-                      borderRadius="md"
-                      _hover={{ bg: "whiteAlpha.100" }}
-                      onClick={() => {
-                        setIsProfileOpen(false);
-                        navigate("/admin");
-                      }}
+                    <Box
+                      bg="rgba(20, 20, 40, 0.98)"
+                      backdropFilter="blur(30px)"
+                      border="1px solid"
+                      borderColor="whiteAlpha.200"
+                      borderRadius="xl"
+                      boxShadow="0 20px 40px -12px rgba(0, 0, 0, 0.6)"
+                      overflow="hidden"
                     >
-                      <LayoutDashboard size={16} color="rgba(255, 255, 255, 0.6)" />
-                      <Text fontSize="sm" color="white">
-                        Admin Dashboard
-                      </Text>
-                    </HStack>
-                    <Box h="1px" bg="whiteAlpha.100" my={1} />
-                  </>
+                      <Box p={5} borderBottom="1px solid" borderColor="whiteAlpha.100">
+                        <HStack gap={3}>
+                          <Circle size="54px" p="2px" bgGradient="linear(to-tr, blue.400, purple.500)">
+                            <Circle size="full" bg="gray.800" overflow="hidden">
+                              {user?.profile?.profile_picture ? (
+                                <Image src={getImageUrl(user.profile.profile_picture)} w="full" h="full" objectFit="cover" />
+                              ) : (
+                                <User size={26} color="white" />
+                              )}
+                            </Circle>
+                          </Circle>
+                          <VStack align="start" gap={0}>
+                            <Text color="white" fontWeight="bold" fontSize="md">
+                              {user?.first_name} {user?.last_name}
+                            </Text>
+                            <Text color="whiteAlpha.600" fontSize="xs" noOfLines={1}>
+                              {user?.profile?.headline || "Professional at Xanatz"}
+                            </Text>
+                          </VStack>
+                        </HStack>
+                        <Button
+                          mt={4}
+                          w="full"
+                          size="sm"
+                          variant="solid"
+                          bg="blue.600"
+                          color="white"
+                          borderRadius="xl"
+                          h="34px"
+                          _hover={{ bg: "blue.500" }}
+                          onClick={() => {
+                            setIsProfileOpen(false);
+                            navigate("/profile");
+                          }}
+                        >
+                          View Full Profile
+                        </Button>
+                      </Box>
+
+                      <VStack align="stretch" gap={0} p={1.5}>
+                        {user?.is_staff && (
+                          <MenuLink 
+                            icon={LayoutDashboard} 
+                            label="Admin Console" 
+                            onClick={() => {
+                              setIsProfileOpen(false);
+                              navigate("/admin");
+                            }}
+                          />
+                        )}
+                        <MenuLink icon={Settings} label="Settings & Privacy" />
+                        <MenuLink icon={HelpCircle} label="Help Center" />
+                        <Box h="1px" bg="whiteAlpha.100" my={1.5} mx={2} />
+                        <MenuLink 
+                          icon={LogOut} 
+                          label="Sign Out" 
+                          color="red.400"
+                          onClick={handleLogout}
+                        />
+                      </VStack>
+                    </Box>
+                  </motion.div>
                 )}
-                <HStack
-                  p={2}
-                  gap={3}
-                  cursor="pointer"
-                  borderRadius="md"
-                  _hover={{ bg: "whiteAlpha.100" }}
-                  onClick={() => setIsProfileOpen(false)}
-                >
-                  <Settings size={16} color="rgba(255, 255, 255, 0.6)" />
-                  <Text fontSize="sm" color="white">
-                    Settings & Privacy
-                  </Text>
-                </HStack>
-                <HStack
-                  p={2}
-                  gap={3}
-                  cursor="pointer"
-                  borderRadius="md"
-                  _hover={{ bg: "whiteAlpha.100" }}
-                  onClick={() => setIsProfileOpen(false)}
-                >
-                  <HelpCircle size={16} color="rgba(255, 255, 255, 0.6)" />
-                  <Text fontSize="sm" color="white">
-                    Help
-                  </Text>
-                </HStack>
-                <Box h="1px" bg="whiteAlpha.100" my={1} />
-                <HStack
-                  p={2}
-                  gap={3}
-                  cursor="pointer"
-                  borderRadius="md"
-                  _hover={{ bg: "whiteAlpha.100" }}
-                  onClick={handleLogout}
-                >
-                  <LogOut size={16} color="rgba(255, 255, 255, 0.6)" />
-                  <Text fontSize="sm" color="white">
-                    Sign Out
-                  </Text>
-                </HStack>
-              </VStack>
+              </AnimatePresence>
             </Box>
-          )}
-        </Box>
-      </Flex>
+            
+            <IconButton
+              display={{ base: "flex", lg: "none" }}
+              variant="ghost"
+              size="md"
+              color="white"
+              icon={<Menu size={22} />}
+              aria-label="Menu"
+            />
+          </HStack>
+        </Flex>
+      </Container>
     </Box>
   );
 };
+
+const MenuLink = ({ icon: Icon, label, onClick, color = "white" }) => (
+  <HStack
+    p={3}
+    gap={3.5}
+    cursor="pointer"
+    borderRadius="xl"
+    _hover={{ bg: "whiteAlpha.100" }}
+    onClick={onClick}
+    role="group"
+  >
+    <Box color="whiteAlpha.500" _groupHover={{ color: color }}>
+      <Icon size={16} />
+    </Box>
+    <Text fontSize="sm" fontWeight="medium" color={color}>
+      {label}
+    </Text>
+  </HStack>
+);
 
 export default Navbar;
