@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from django.db import models
 
 User = get_user_model()
 
@@ -33,7 +34,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
-from .models import PrivacyPolicy, Profile, Experience, Education
+from .models import PrivacyPolicy, Profile, Experience, Education, Company
 
 class ExperienceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -64,7 +65,20 @@ class PrivacyPolicySerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(read_only=True)
     profile_completion_percentage = serializers.ReadOnlyField()
+    companies = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'first_name', 'last_name', 'is_staff', 'is_superuser', 'profile', 'profile_completion_percentage']
+        fields = ['id', 'email', 'first_name', 'last_name', 'is_staff', 'is_superuser', 'profile', 'profile_completion_percentage', 'companies']
+
+    def get_companies(self, obj):
+        user_companies = Company.objects.filter(models.Q(members=obj) | models.Q(creator=obj)).distinct()
+        return [{"id": c.id, "name": c.name} for c in user_companies]
+
+class CompanySerializer(serializers.ModelSerializer):
+    members = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    creator = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = Company
+        fields = ['id', 'name', 'description', 'creator', 'members', 'created_at', 'updated_at']

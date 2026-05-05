@@ -3,12 +3,14 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.routers import DefaultRouter
 from .views import (
     SendOTPView, VerifyOTPView, RegisterUserView, GoogleLoginView, 
-    PrivacyPolicyView, UserProfileView, ExperienceViewSet, EducationViewSet
+    PrivacyPolicyView, UserProfileView, ExperienceViewSet, EducationViewSet,
+    CompanyViewSet
 )
 
 router = DefaultRouter()
 router.register(r'experience', ExperienceViewSet, basename='experience')
 router.register(r'education', EducationViewSet, basename='education')
+router.register(r'companies', CompanyViewSet, basename='company')
 
 urlpatterns = [
     path('auth/send-otp/', SendOTPView.as_view(), name='send-otp'),

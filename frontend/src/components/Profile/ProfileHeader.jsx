@@ -20,7 +20,7 @@ import {
   Portal,
   Input,
 } from "@chakra-ui/react";
-import { Camera, Edit2, MapPin, Globe } from "lucide-react";
+import { Camera, Edit2, MapPin, Globe, Briefcase } from "lucide-react";
 import api, { backendUrl } from "../../api";
 
 const ProfileHeader = ({ user, onUpdate }) => {
@@ -188,6 +188,14 @@ const ProfileHeader = ({ user, onUpdate }) => {
           <Text fontSize="md" color="whiteAlpha.800">
             {user?.profile?.headline || "Add a headline to your profile"}
           </Text>
+          {user?.companies?.length > 0 && (
+            <HStack color="white" mt={1} fontSize="sm">
+              <Briefcase size={14} />
+              <Text fontWeight="medium">
+                {user.companies.map((c) => c.name).join(", ")}
+              </Text>
+            </HStack>
+          )}
           <HStack gap={4} mt={2}>
             {user?.profile?.location && (
               <HStack color="whiteAlpha.600" fontSize="sm">

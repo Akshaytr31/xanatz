@@ -2,11 +2,11 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
-from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education
+from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company
 from .serializers import (
     SendOTPSerializer, VerifyOTPSerializer, RegisterUserSerializer, 
     PrivacyPolicySerializer, UserSerializer, ProfileSerializer,
-    ExperienceSerializer, EducationSerializer
+    ExperienceSerializer, EducationSerializer, CompanySerializer
 )
 
 class SendOTPView(APIView):
@@ -115,3 +115,41 @@ class EducationViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         profile, created = Profile.objects.get_or_create(user=self.request.user)
         serializer.save(profile=profile)
+
+from rest_framework.decorators import action
+
+class CompanyViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = CompanySerializer
+    queryset = Company.objects.all()
+
+    def perform_create(self, serializer):
+        company = serializer.save(creator=self.request.user)
+        company.members.add(self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def attach_user(self, request, pk=None):
+        company = self.get_object()
+        user_id = request.data.get('user_id')
+        if not user_id:
+            return Response({"error": "user_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user = User.objects.get(id=user_id)
+            company.members.add(user)
+            return Response({"message": "User attached successfully"}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=True, methods=['post'])
+    def detach_user(self, request, pk=None):
+        company = self.get_object()
+        user_id = request.data.get('user_id')
+        if not user_id:
+            return Response({"error": "user_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user = User.objects.get(id=user_id)
+            company.members.remove(user)
+            return Response({"message": "User detached successfully"}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
