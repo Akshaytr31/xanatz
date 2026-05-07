@@ -69,7 +69,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'first_name', 'last_name', 'is_staff', 'is_superuser', 'profile', 'profile_completion_percentage', 'companies']
+        fields = ['id', 'email', 'first_name', 'last_name', 'phone_number', 'is_staff', 'is_superuser', 'profile', 'profile_completion_percentage', 'companies']
 
     def get_companies(self, obj):
         user_companies = Company.objects.filter(models.Q(members=obj) | models.Q(creator=obj)).distinct()

@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Box, Container, VStack, Flex, Text, Spinner } from "@chakra-ui/react";
 import Navbar from "../components/Navbar";
-import ProfileHeader from "../components/Profile/ProfileHeader";
-import AboutSection from "../components/Profile/AboutSection";
-import ExperienceSection from "../components/Profile/ExperienceSection";
+import VisualHeader from "../components/Profile/VisualHeader";
+import CareerTimeline from "../components/Profile/CareerTimeline";
 import EducationSection from "../components/Profile/EducationSection";
 import SkillsSection from "../components/Profile/SkillsSection";
 import CompanySection from "../components/Profile/CompanySection";
@@ -65,9 +64,8 @@ const Profile = () => {
           <VStack flex={1} gap={6} align="stretch">
             {user ? (
               <>
-                <ProfileHeader user={user} onUpdate={fetchProfile} />
-                <AboutSection user={user} onUpdate={fetchProfile} />
-                <ExperienceSection user={user} onUpdate={fetchProfile} />
+                <VisualHeader user={user} onUpdate={fetchProfile} />
+                <CareerTimeline user={user} onUpdate={fetchProfile} />
                 <EducationSection user={user} onUpdate={fetchProfile} />
                 <SkillsSection user={user} onUpdate={fetchProfile} />
                 <CompanySection
@@ -97,7 +95,7 @@ const Profile = () => {
             height="fit-content"
           >
             <VStack gap={4} align="stretch" w="full">
-              <CreateCompanySection onCreated={handleCompanyChange} width="100%"/>
+              <CreateCompanySection onCreated={handleCompanyChange} width="100%" />
               <Box
                 bg="whiteAlpha.100"
                 backdropFilter="blur(10px)"
