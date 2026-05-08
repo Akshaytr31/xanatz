@@ -25,7 +25,7 @@ import { motion } from "framer-motion";
 import { Briefcase, Edit2, Plus, Trash2, Calendar, Target } from "lucide-react";
 import api from "../../api";
 
-const MotionBox = motion(Box);
+const MotionBox = motion.create(Box);
 
 const CareerTimeline = ({ user, onUpdate }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -36,6 +36,7 @@ const CareerTimeline = ({ user, onUpdate }) => {
     company: "",
     title: "",
     location: "",
+    company_website: "",
     start_date: "",
     end_date: "",
     current: false,
@@ -49,6 +50,7 @@ const CareerTimeline = ({ user, onUpdate }) => {
         company: item.company,
         title: item.title,
         location: item.location || "",
+        company_website: item.company_website || "",
         start_date: item.start_date,
         end_date: item.end_date || "",
         current: item.current,
@@ -60,6 +62,7 @@ const CareerTimeline = ({ user, onUpdate }) => {
         company: "",
         title: "",
         location: "",
+        company_website: "",
         start_date: "",
         end_date: "",
         current: false,
@@ -210,6 +213,10 @@ const CareerTimeline = ({ user, onUpdate }) => {
                   <Box w="full">
                     <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">ORGANIZATION *</Text>
                     <Input name="company" value={formData.company} onChange={handleChange} placeholder="Ex: Global Tech Corp" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" />
+                  </Box>
+                  <Box w="full">
+                    <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">COMPANY WEBSITE</Text>
+                    <Input name="company_website" value={formData.company_website} onChange={handleChange} placeholder="https://example.com" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" />
                   </Box>
                   <HStack w="full" gap={6}>
                     <Box flex="1">

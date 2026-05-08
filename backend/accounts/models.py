@@ -55,15 +55,20 @@ class User(AbstractUser):
         filled_fields = [f for f in fields_to_check if f]
         
         # Count experiences and education
-        has_experience = profile.experiences.exists()
+        experiences = profile.experiences.all()
+        has_experience = experiences.exists()
         has_education = profile.educations.exists()
         
+        # Check if any experience has a company website
+        has_company_website = experiences.filter(company_website__isnull=False).exclude(company_website="").exists()
+        
         # Define total "units" of completion
-        # Let's say 6 fields + experience + education = 8 units
-        total_units = 8
+        # 6 profile fields + experience + education + company website = 9 units
+        total_units = 9
         count = len(filled_fields)
         if has_experience: count += 1
         if has_education: count += 1
+        if has_company_website: count += 1
         
         return int((count / total_units) * 100)
 
@@ -91,6 +96,8 @@ class Experience(models.Model):
     end_date = models.DateField(blank=True, null=True)
     current = models.BooleanField(default=False)
     description = models.TextField(blank=True, null=True)
+    company_website = models.URLField(blank=True, null=True)
+
 
     def __str__(self):
         return f"{self.title} at {self.company}"
@@ -139,16 +146,14 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 @receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
+def handle_user_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.get_or_create(user=instance)
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    if hasattr(instance, 'profile'):
-        instance.profile.save()
     else:
-        Profile.objects.create(user=instance)
+        if hasattr(instance, 'profile'):
+            instance.profile.save()
+        else:
+            Profile.objects.get_or_create(user=instance)
 
 class Company(models.Model):
     name = models.CharField(max_length=255)

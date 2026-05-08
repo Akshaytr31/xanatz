@@ -20,7 +20,8 @@ import {
   Portal,
   Input,
 } from "@chakra-ui/react";
-import { Camera, Edit2, MapPin, Globe, Briefcase } from "lucide-react";
+import { Camera, Edit2, MapPin, Globe, Briefcase, Search, ChevronDown } from "lucide-react";
+import { Country, City } from "country-state-city";
 import api, { backendUrl } from "../../api";
 
 const ProfileHeader = ({ user, onUpdate }) => {
@@ -34,6 +35,33 @@ const ProfileHeader = ({ user, onUpdate }) => {
     location: user?.profile?.location || "",
     website: user?.profile?.website || "",
   });
+
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [selectedCity, setSelectedCity] = useState(null);
+  const [countrySearch, setCountrySearch] = useState("");
+  const [citySearch, setCitySearch] = useState("");
+  const [showCountryList, setShowCountryList] = useState(false);
+  const [showCityList, setShowCityList] = useState(false);
+
+  const countries = Country.getAllCountries().map(c => ({
+    label: c.name,
+    value: c.isoCode
+  }));
+
+  const cities = selectedCountry 
+    ? City.getCitiesOfCountry(selectedCountry.value).map(c => ({
+        label: c.name,
+        value: c.name
+      }))
+    : [];
+
+  const filteredCountries = countries.filter(c => 
+    c.label.toLowerCase().includes(countrySearch.toLowerCase())
+  );
+
+  const filteredCities = cities.filter(c => 
+    c.label.toLowerCase().includes(citySearch.toLowerCase())
+  );
 
   const getImageUrl = (path) => {
     if (!path) return null;
@@ -269,17 +297,163 @@ const ProfileHeader = ({ user, onUpdate }) => {
                       color="white"
                     />
                   </Box>
-                  <Box w="full">
-                    <Text mb={2} color="whiteAlpha.700" fontSize="sm">Location</Text>
-                    <Input
-                      name="location"
-                      value={formData.location}
-                      onChange={handleChange}
-                      placeholder="e.g. San Francisco, CA"
-                      bg="whiteAlpha.100"
-                      color="white"
-                    />
-                  </Box>
+                  <VStack w="full" gap={4} align="stretch">
+                    <Box w="full" position="relative">
+                      <Text mb={2} color="whiteAlpha.700" fontSize="sm">Country</Text>
+                      <Box
+                        bg="whiteAlpha.100"
+                        border="1px solid"
+                        borderColor="whiteAlpha.200"
+                        borderRadius="md"
+                        p={2.5}
+                        cursor="pointer"
+                        onClick={() => setShowCountryList(!showCountryList)}
+                        display="flex"
+                        justifyContent="space-between"
+                        alignItems="center"
+                      >
+                        <Text color={selectedCountry ? "white" : "whiteAlpha.500"}>
+                          {selectedCountry ? selectedCountry.label : "Select Country"}
+                        </Text>
+                        <ChevronDown size={16} color="gray" />
+                      </Box>
+                      
+                      {showCountryList && (
+                        <Box
+                          position="absolute"
+                          top="100%"
+                          left={0}
+                          right={0}
+                          bg="#1a1a1a"
+                          border="1px solid"
+                          borderColor="whiteAlpha.300"
+                          borderRadius="md"
+                          mt={1}
+                          zIndex={100001}
+                          maxH="200px"
+                          overflowY="auto"
+                          boxShadow="2xl"
+                        >
+                          <Box p={2} borderBottom="1px solid" borderColor="whiteAlpha.100" position="sticky" top={0} bg="#1a1a1a">
+                            <HStack>
+                              <Search size={14} color="gray" />
+                              <Input
+                                size="sm"
+                                variant="unstyled"
+                                placeholder="Search country..."
+                                value={countrySearch}
+                                onChange={(e) => setCountrySearch(e.target.value)}
+                                autoFocus
+                                color="white"
+                              />
+                            </HStack>
+                          </Box>
+                          {filteredCountries.length > 0 ? (
+                            filteredCountries.map(c => (
+                              <Box
+                                key={c.value}
+                                p={2.5}
+                                _hover={{ bg: "whiteAlpha.200" }}
+                                cursor="pointer"
+                                onClick={() => {
+                                  setSelectedCountry(c);
+                                  setSelectedCity(null);
+                                  setShowCountryList(false);
+                                  setCountrySearch("");
+                                }}
+                                color="white"
+                                fontSize="sm"
+                              >
+                                {c.label}
+                              </Box>
+                            ))
+                          ) : (
+                            <Box p={3} color="whiteAlpha.500" fontSize="xs">No countries found</Box>
+                          )}
+                        </Box>
+                      )}
+                    </Box>
+
+                    <Box w="full" position="relative">
+                      <Text mb={2} color="whiteAlpha.700" fontSize="sm">Town / City</Text>
+                      <Box
+                        bg="whiteAlpha.100"
+                        border="1px solid"
+                        borderColor="whiteAlpha.200"
+                        borderRadius="md"
+                        p={2.5}
+                        cursor={selectedCountry ? "pointer" : "not-allowed"}
+                        onClick={() => selectedCountry && setShowCityList(!showCityList)}
+                        display="flex"
+                        justifyContent="space-between"
+                        alignItems="center"
+                        opacity={selectedCountry ? 1 : 0.5}
+                      >
+                        <Text color={selectedCity ? "white" : "whiteAlpha.500"}>
+                          {selectedCity ? selectedCity.label : selectedCountry ? "Select City" : "Select Country first"}
+                        </Text>
+                        <ChevronDown size={16} color="gray" />
+                      </Box>
+                      
+                      {showCityList && selectedCountry && (
+                        <Box
+                          position="absolute"
+                          top="100%"
+                          left={0}
+                          right={0}
+                          bg="#1a1a1a"
+                          border="1px solid"
+                          borderColor="whiteAlpha.300"
+                          borderRadius="md"
+                          mt={1}
+                          zIndex={100001}
+                          maxH="200px"
+                          overflowY="auto"
+                          boxShadow="2xl"
+                        >
+                          <Box p={2} borderBottom="1px solid" borderColor="whiteAlpha.100" position="sticky" top={0} bg="#1a1a1a">
+                            <HStack>
+                              <Search size={14} color="gray" />
+                              <Input
+                                size="sm"
+                                variant="unstyled"
+                                placeholder="Search city..."
+                                value={citySearch}
+                                onChange={(e) => setCitySearch(e.target.value)}
+                                autoFocus
+                                color="white"
+                              />
+                            </HStack>
+                          </Box>
+                          {filteredCities.length > 0 ? (
+                            filteredCities.map(c => (
+                              <Box
+                                key={c.value + Math.random()}
+                                p={2.5}
+                                _hover={{ bg: "whiteAlpha.200" }}
+                                cursor="pointer"
+                                onClick={() => {
+                                  setSelectedCity(c);
+                                  setShowCityList(false);
+                                  setCitySearch("");
+                                  setFormData({
+                                    ...formData,
+                                    location: `${c.label}, ${selectedCountry.label}`
+                                  });
+                                }}
+                                color="white"
+                                fontSize="sm"
+                              >
+                                {c.label}
+                              </Box>
+                            ))
+                          ) : (
+                            <Box p={3} color="whiteAlpha.500" fontSize="xs">No cities found</Box>
+                          )}
+                        </Box>
+                      )}
+                    </Box>
+                  </VStack>
                   <Box w="full">
                     <Text mb={2} color="whiteAlpha.700" fontSize="sm">Website</Text>
                     <Input

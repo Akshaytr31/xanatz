@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Box, Container, VStack, Flex, Text, Spinner } from "@chakra-ui/react";
+import { Box, Container, VStack, Flex, Text, Spinner, Button } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "../components/Navbar";
 import VisualHeader from "../components/Profile/VisualHeader";
@@ -11,8 +11,8 @@ import CreateCompanySection from "../components/Profile/CreateCompanySection";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
 
-const MotionBox = motion(Box);
-const MotionVStack = motion(VStack);
+const MotionBox = motion.create(Box);
+const MotionVStack = motion.create(VStack);
 
 const Profile = () => {
   const [user, setUser] = useState(null);

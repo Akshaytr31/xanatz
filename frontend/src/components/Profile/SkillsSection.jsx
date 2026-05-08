@@ -13,8 +13,8 @@ import { Plus, X, Zap, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../api";
 
-const MotionBox = motion(Box);
-const MotionHStack = motion(HStack);
+const MotionBox = motion.create(Box);
+const MotionHStack = motion.create(HStack);
 
 const SkillsSection = ({ user, onUpdate }) => {
   const [newSkill, setNewSkill] = useState("");

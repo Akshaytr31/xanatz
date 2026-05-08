@@ -25,7 +25,7 @@ import { motion } from "framer-motion";
 import { Plus, Edit2, GraduationCap, Trash2, MapPin, Calendar, School } from "lucide-react";
 import api from "../../api";
 
-const MotionBox = motion(Box);
+const MotionBox = motion.create(Box);
 
 const EducationSection = ({ user, onUpdate }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);

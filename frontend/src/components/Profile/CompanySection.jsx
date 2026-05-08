@@ -15,7 +15,7 @@ import { Plus, Trash2, UserPlus, UserMinus, Building2, Search } from "lucide-rea
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../api";
 
-const MotionBox = motion(Box);
+const MotionBox = motion.create(Box);
 
 const CompanySection = ({ user, refreshTrigger, onCompanyChange }) => {
   const [companies, setCompanies] = useState([]);
