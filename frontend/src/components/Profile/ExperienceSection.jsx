@@ -19,9 +19,13 @@ import {
   Textarea,
   Separator,
   Flex,
+  Circle,
 } from "@chakra-ui/react";
-import { Plus, Edit2, Briefcase, Trash2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { Plus, Edit2, Briefcase, Trash2, MapPin, Calendar } from "lucide-react";
 import api from "../../api";
+
+const MotionBox = motion(Box);
 
 const ExperienceSection = ({ user, onUpdate }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -98,62 +102,75 @@ const ExperienceSection = ({ user, onUpdate }) => {
   };
 
   return (
-    <Box
-      bg="whiteAlpha.100"
-      backdropFilter="blur(10px)"
-      border="1px solid"
-      borderColor="whiteAlpha.200"
-      borderRadius="xl"
-      p={6}
-    >
-      <HStack justify="space-between" mb={4}>
-        <Text fontSize="xl" fontWeight="bold" color="white">
-          Experience
-        </Text>
+    <Box className="glass-card" p={{ base: 5, md: 6 }}>
+      <Flex justify="space-between" align="center" mb={6}>
+        <HStack gap={3}>
+          <Circle size="32px" bg="blue.500/10" color="blue.400">
+            <Briefcase size={16} />
+          </Circle>
+          <Text fontSize="md" fontWeight="black" color="white" letterSpacing="tight" fontFamily="var(--font-heading)">
+            EXPERIENCE
+          </Text>
+        </HStack>
         <IconButton
           aria-label="Add experience"
           variant="ghost"
-          color="whiteAlpha.700"
-          _hover={{ color: "white", bg: "whiteAlpha.100" }}
+          color="whiteAlpha.400"
+          _hover={{ color: "blue.400", bg: "blue.400/10" }}
           onClick={() => handleOpen()}
+          borderRadius="md"
+          size="sm"
         >
-          <Plus size={18} />
+          <Plus size={16} />
         </IconButton>
-      </HStack>
+      </Flex>
 
       <VStack align="stretch" gap={6}>
         {user?.profile?.experiences?.length > 0 ? (
           user.profile.experiences.map((exp, index) => (
-            <Box key={exp.id}>
-              <Flex justify="space-between">
-                <HStack align="start" gap={4}>
-                  <Box p={2} bg="whiteAlpha.200" borderRadius="md">
-                    <Briefcase size={24} color="white" />
-                  </Box>
-                  <VStack align="start" gap={0}>
-                    <Text fontWeight="bold" color="white">
+            <MotionBox 
+              key={exp.id}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <Flex justify="space-between" align="start">
+                <HStack align="start" gap={4} flex={1}>
+                  <VStack align="start" gap={1}>
+                    <Text fontSize="md" fontWeight="bold" color="white" lineHeight="1.2">
                       {exp.title}
                     </Text>
-                    <Text color="whiteAlpha.800">{exp.company}</Text>
-                    <Text color="whiteAlpha.600" fontSize="sm">
-                      {exp.start_date} - {exp.current ? "Present" : exp.end_date}
+                    <Text color="blue.400" fontWeight="bold" fontSize="10px" letterSpacing="widest">
+                      {exp.company.toUpperCase()}
                     </Text>
-                    <Text color="whiteAlpha.600" fontSize="sm">
-                      {exp.location}
-                    </Text>
+                    
+                    <Flex gap={3} wrap="wrap" mt={0.5}>
+                      <HStack color="whiteAlpha.500" fontSize="10px" fontWeight="medium">
+                        <Calendar size={10} />
+                        <Text>{exp.start_date} — {exp.current ? "PRESENT" : exp.end_date}</Text>
+                      </HStack>
+                      {exp.location && (
+                        <HStack color="whiteAlpha.500" fontSize="10px" fontWeight="medium">
+                          <MapPin size={10} />
+                          <Text>{exp.location.toUpperCase()}</Text>
+                        </HStack>
+                      )}
+                    </Flex>
+
                     {exp.description && (
-                      <Text mt={2} color="whiteAlpha.700" fontSize="sm">
+                      <Text mt={2} color="whiteAlpha.700" fontSize="xs" lineHeight="relaxed" borderLeft="2px solid" borderColor="whiteAlpha.100" pl={3}>
                         {exp.description}
                       </Text>
                     )}
                   </VStack>
                 </HStack>
-                <HStack>
+                
+                <HStack gap={2}>
                   <IconButton
                     aria-label="Edit experience"
                     size="sm"
                     variant="ghost"
-                    color="whiteAlpha.600"
+                    color="whiteAlpha.300"
                     _hover={{ color: "white", bg: "whiteAlpha.100" }}
                     onClick={() => handleOpen(exp)}
                   >
@@ -163,8 +180,8 @@ const ExperienceSection = ({ user, onUpdate }) => {
                     aria-label="Delete experience"
                     size="sm"
                     variant="ghost"
-                    color="red.400"
-                    _hover={{ bg: "red.400", color: "white" }}
+                    color="whiteAlpha.300"
+                    _hover={{ color: "red.400", bg: "red.400/10" }}
                     onClick={() => handleDelete(exp.id)}
                   >
                     <Trash2 size={16} />
@@ -172,67 +189,66 @@ const ExperienceSection = ({ user, onUpdate }) => {
                 </HStack>
               </Flex>
               {index < user.profile.experiences.length - 1 && (
-                <Separator mt={6} borderColor="whiteAlpha.200" />
+                <Separator mt={8} borderColor="whiteAlpha.100" />
               )}
-            </Box>
+            </MotionBox>
           ))
         ) : (
-          <Text color="whiteAlpha.600">No experience added yet.</Text>
+          <Flex direction="column" align="center" py={10} gap={4}>
+            <Briefcase size={40} className="text-white/5" />
+            <Text color="whiteAlpha.400" fontSize="sm" fontWeight="medium">Showcase your professional journey...</Text>
+          </Flex>
         )}
       </VStack>
 
-      <Dialog
-        open={isDialogOpen}
-        onOpenChange={(e) => setIsDialogOpen(e.open)}
-        size="md"
-      >
+      <Dialog open={isDialogOpen} onOpenChange={(e) => setIsDialogOpen(e.open)} size="md">
         <Portal>
-          <DialogBackdrop bg="blackAlpha.800" backdropFilter="blur(10px)" zIndex={99999} />
+          <DialogBackdrop bg="blackAlpha.900" backdropFilter="blur(10px)" zIndex={99999} />
           <DialogPositioner display="flex" alignItems="center" justifyContent="center" zIndex={100000}>
-            <DialogContent bg="var(--color-primary)" border="1px solid" borderColor="whiteAlpha.300" borderRadius="xl" maxW="500px" m="auto">
-              <DialogHeader color="white" py={5}>
-                {editingItem ? "Edit Experience" : "Add Experience"}
+            <DialogContent bg="var(--color-primary)" border="1px solid" borderColor="whiteAlpha.300" borderRadius="2xl" maxW="550px" m="auto" overflow="hidden">
+              <DialogHeader color="white" py={6} px={8} borderBottom="1px solid" borderColor="whiteAlpha.100">
+                {editingItem ? "Refine Experience" : "Add New Experience"}
               </DialogHeader>
-              <DialogCloseTrigger color="whiteAlpha.600" top={4} right={4} />
-              <DialogBody p={6}>
-                <VStack gap={4}>
+              <DialogCloseTrigger color="whiteAlpha.600" top={6} right={6} />
+              <DialogBody p={8}>
+                <VStack gap={6}>
                   <Box w="full">
-                    <Text mb={2} color="whiteAlpha.700" fontSize="sm">Title *</Text>
-                    <Input name="title" value={formData.title} onChange={handleChange} placeholder="Ex: Retail Sales Manager" bg="whiteAlpha.100" color="white" />
+                    <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">ROLE TITLE *</Text>
+                    <Input name="title" value={formData.title} onChange={handleChange} placeholder="Ex: Senior Project Manager" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" />
                   </Box>
                   <Box w="full">
-                    <Text mb={2} color="whiteAlpha.700" fontSize="sm">Company *</Text>
-                    <Input name="company" value={formData.company} onChange={handleChange} placeholder="Ex: Microsoft" bg="whiteAlpha.100" color="white" />
+                    <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">ORGANIZATION *</Text>
+                    <Input name="company" value={formData.company} onChange={handleChange} placeholder="Ex: Innovation Labs" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" />
                   </Box>
                   <Box w="full">
-                    <Text mb={2} color="whiteAlpha.700" fontSize="sm">Location</Text>
-                    <Input name="location" value={formData.location} onChange={handleChange} placeholder="Ex: London, United Kingdom" bg="whiteAlpha.100" color="white" />
+                    <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">LOCATION</Text>
+                    <Input name="location" value={formData.location} onChange={handleChange} placeholder="Ex: New York, NY" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" />
                   </Box>
-                  <HStack w="full">
+                  <HStack w="full" gap={6}>
                     <Box flex="1">
-                      <Text mb={2} color="whiteAlpha.700" fontSize="sm">Start Date *</Text>
-                      <Input name="start_date" type="date" value={formData.start_date} onChange={handleChange} bg="whiteAlpha.100" color="white" />
+                      <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">START DATE *</Text>
+                      <Input name="start_date" type="date" value={formData.start_date} onChange={handleChange} bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" />
                     </Box>
                     {!formData.current && (
                       <Box flex="1">
-                        <Text mb={2} color="whiteAlpha.700" fontSize="sm">End Date</Text>
-                        <Input name="end_date" type="date" value={formData.end_date} onChange={handleChange} bg="whiteAlpha.100" color="white" />
+                        <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">END DATE</Text>
+                        <Input name="end_date" type="date" value={formData.end_date} onChange={handleChange} bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" />
                       </Box>
                     )}
                   </HStack>
-                  <HStack w="full" px={1}>
-                    <input type="checkbox" name="current" checked={formData.current} onChange={handleChange} />
-                    <Text fontSize="sm" color="whiteAlpha.800">I am currently working in this role</Text>
+                  <HStack w="full" px={1} gap={3}>
+                    <input type="checkbox" name="current" checked={formData.current} onChange={handleChange} style={{ width: '18px', height: '18px' }} />
+                    <Text fontSize="sm" color="whiteAlpha.700" fontWeight="medium">I am currently navigating this role</Text>
                   </HStack>
                   <Box w="full">
-                    <Text mb={2} color="whiteAlpha.700" fontSize="sm">Description</Text>
-                    <Textarea name="description" value={formData.description} onChange={handleChange} minH="120px" bg="whiteAlpha.100" color="white" />
+                    <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">DESCRIPTION</Text>
+                    <Textarea name="description" value={formData.description} onChange={handleChange} minH="150px" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" placeholder="Outline your impact and achievements..." />
                   </Box>
                 </VStack>
               </DialogBody>
-              <DialogFooter p={6}>
-                <Button colorScheme="blue" bg="blue.600" color="white" w="full" onClick={handleSubmit} isLoading={loading}>
-                  {editingItem ? "Save Changes" : "Add Experience"}
+              <DialogFooter p={8} bg="whiteAlpha.50">
+                <Button bg="blue.500" color="white" w="full" size="lg" onClick={handleSubmit} isLoading={loading}>
+                  {editingItem ? "Update Experience" : "Add Experience"}
                 </Button>
               </DialogFooter>
             </DialogContent>

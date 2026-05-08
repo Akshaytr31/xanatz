@@ -7,10 +7,14 @@ import {
   IconButton,
   Input,
   Flex,
+  Circle,
 } from "@chakra-ui/react";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Zap, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../api";
+
+const MotionBox = motion(Box);
+const MotionHStack = motion(HStack);
 
 const SkillsSection = ({ user, onUpdate }) => {
   const [newSkill, setNewSkill] = useState("");
@@ -48,95 +52,121 @@ const SkillsSection = ({ user, onUpdate }) => {
   };
 
   return (
-    <Box
-      bg="whiteAlpha.100"
-      backdropFilter="blur(10px)"
-      border="1px solid"
-      borderColor="whiteAlpha.200"
-      borderRadius="xl"
-      p={6}
-    >
-      <HStack justify="space-between" mb={4}>
-        <Text fontSize="xl" fontWeight="bold" color="white">
-          Skills
-        </Text>
+    <Box className="glass-card" p={{ base: 5, md: 6 }}>
+      <Flex justify="space-between" align="center" mb={5}>
+        <HStack gap={3}>
+          <Circle size="32px" bg="yellow.500/10" color="yellow.400">
+            <Zap size={16} />
+          </Circle>
+          <Text fontSize="md" fontWeight="black" color="white" letterSpacing="tight" fontFamily="var(--font-heading)">
+            CORE COMPETENCIES
+          </Text>
+        </HStack>
         <IconButton
           aria-label="Toggle add skill"
           variant="ghost"
-          color="whiteAlpha.700"
-          _hover={{ color: "white", bg: "whiteAlpha.100" }}
+          color="whiteAlpha.400"
+          _hover={{ color: "yellow.400", bg: "yellow.400/10" }}
           onClick={() => setIsAdding(!isAdding)}
+          borderRadius="full"
+          size="sm"
         >
-          {isAdding ? <X size={18} /> : <Plus size={18} />}
+          {isAdding ? <X size={16} /> : <Plus size={16} />}
         </IconButton>
-      </HStack>
+      </Flex>
 
-      <VStack align="stretch" gap={4}>
+      <VStack align="stretch" gap={5}>
         <AnimatePresence>
           {isAdding && (
-            <motion.div
-              initial={{ height: 0, opacity: 0, marginBottom: 0 }}
-              animate={{ height: "auto", opacity: 1, marginBottom: 16 }}
-              exit={{ height: 0, opacity: 0, marginBottom: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              style={{ overflow: "hidden" }}
+            <MotionBox
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              overflow="hidden"
             >
-              <HStack>
+              <HStack gap={3} p={1}>
                 <Input
                   value={newSkill}
                   onChange={(e) => setNewSkill(e.target.value)}
-                  placeholder="Add a skill (e.g. React, Python)"
+                  placeholder="Master a new skill..."
                   bg="whiteAlpha.50"
                   border="1px solid"
                   borderColor="whiteAlpha.200"
                   color="white"
                   autoFocus
-                  _focus={{ borderColor: "blue.400" }}
+                  h="10"
+                  fontSize="sm"
+                  borderRadius="lg"
+                  _focus={{ borderColor: "yellow.400", boxShadow: "0 0 0 1px var(--chakra-colors-yellow-400)" }}
                   onKeyPress={(e) => e.key === "Enter" && handleAddSkill()}
                 />
-                <IconButton
-                  aria-label="Add skill"
-                  bg="blue.600"
-                  color="white"
-                  _hover={{ bg: "blue.700" }}
+                <Button
+                  bg="yellow.500"
+                  color="black"
+                  px={6}
+                  h="10"
+                  borderRadius="md"
+                  fontWeight="black"
+                  fontSize="xs"
+                  _hover={{ bg: "yellow.400", transform: "translateY(-1px)" }}
                   onClick={handleAddSkill}
                   isLoading={loading}
                 >
-                  <Plus size={18} />
-                </IconButton>
+                  ADD
+                </Button>
               </HStack>
-            </motion.div>
+            </MotionBox>
           )}
         </AnimatePresence>
 
-        <Flex wrap="wrap" gap={2}>
-          {skills.length > 0 ? (
-            skills.map((skill) => (
-              <HStack
-                key={skill}
-                bg="blue.500"
-                color="white"
-                px={3}
-                py={1}
-                borderRadius="full"
-                fontSize="sm"
-              >
-                <Text>{skill}</Text>
-                <Box
-                  as="span"
-                  cursor="pointer"
-                  onClick={() => handleRemoveSkill(skill)}
-                  display="flex"
-                  alignItems="center"
-                  _hover={{ color: "whiteAlpha.800" }}
+        <Flex wrap="wrap" gap={2.5}>
+          <AnimatePresence>
+            {skills.length > 0 ? (
+              skills.map((skill, index) => (
+                <MotionHStack
+                  key={skill}
+                  layout
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.2 }}
+                  bg="whiteAlpha.50"
+                  border="1px solid"
+                  borderColor="whiteAlpha.100"
+                  color="white"
+                  px={3}
+                  py={1.5}
+                  borderRadius="sm"
+                  fontSize="xs"
+                  fontWeight="bold"
+                  _hover={{ borderColor: "yellow.400/50", bg: "whiteAlpha.100" }}
+                  cursor="default"
                 >
-                  <X size={14} />
-                </Box>
-              </HStack>
-            ))
-          ) : (
-            !isAdding && <Text color="whiteAlpha.600">No skills added yet.</Text>
-          )}
+                  <Sparkles size={10} className="text-yellow-400" />
+                  <Text letterSpacing="wider">{skill.toUpperCase()}</Text>
+                  <Box
+                    as="span"
+                    cursor="pointer"
+                    onClick={() => handleRemoveSkill(skill)}
+                    p={0.5}
+                    borderRadius="full"
+                    _hover={{ bg: "whiteAlpha.200", color: "red.400" }}
+                    transition="all 0.2s"
+                  >
+                    <X size={10} />
+                  </Box>
+                </MotionHStack>
+              ))
+            ) : (
+              !isAdding && (
+                <Flex direction="column" align="center" w="full" py={8} gap={3}>
+                  <Zap size={32} className="text-white/5" />
+                  <Text color="whiteAlpha.400" fontSize="xs" fontWeight="medium">Quantify your unique skill set...</Text>
+                </Flex>
+              )
+            )}
+          </AnimatePresence>
         </Flex>
       </VStack>
     </Box>

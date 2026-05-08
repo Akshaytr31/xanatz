@@ -31,16 +31,16 @@ const NavItem = ({ icon: Icon, label, active, onClick }) => (
   <HStack
     onClick={onClick}
     cursor="pointer"
-    px={active ? 5 : 3}
-    py={2.5}
+    px={active ? 4 : 2.5}
+    py={2}
     borderRadius="full"
     bg={active ? "rgba(255, 255, 255, 0.12)" : "transparent"}
     color={active ? "white" : "whiteAlpha.600"}
     _hover={{ bg: active ? "rgba(255, 255, 255, 0.15)" : "whiteAlpha.100", color: "white" }}
     transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-    gap={2.5}
+    gap={2}
   >
-    <Icon size={18} strokeWidth={active ? 2.5 : 2} />
+    <Icon size={16} strokeWidth={active ? 2.5 : 2} />
     <AnimatePresence>
       {active && (
         <motion.div
@@ -117,7 +117,7 @@ const Navbar = () => {
 
   return (
     <Box
-      position="sticky"
+      position="fixed"
       top={0}
       zIndex={1000}
       paddingInline={"20px"}
@@ -126,18 +126,17 @@ const Navbar = () => {
       display="flex"
       justifyContent="center"
       pointerEvents="none"
-      bg="#131d5a"
     >
       <Flex
         pointerEvents="auto"
-        bg="rgba(15, 15, 30, 0.65)"
-        backdropFilter="blur(24px) saturate(180%)"
+        bg="rgba(2, 6, 23, 0.6)"
+        backdropFilter="blur(20px) saturate(180%)"
         border="1px solid"
-        borderColor="rgba(255, 255, 255, 0.08)"
-        borderRadius="full"
-        boxShadow="0 20px 40px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.1)"
-        h="68px"
-        px={3}
+        borderColor="whiteAlpha.100"
+        borderRadius="lg"
+        boxShadow="0 20px 50px -10px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(255,255,255,0.05)"
+        h="60px"
+        px={4}
         w="full"
         maxW="1400px"
         align="center"
@@ -146,7 +145,7 @@ const Navbar = () => {
         {/* Left: Logo */}
         <Flex flex={1} justify="flex-start">
           <Circle
-            size="44px"
+            size="36px"
             bgGradient="linear(to-br, blue.400, purple.500)"
             cursor="pointer"
             onClick={() => navigate("/dashboard")}
@@ -154,7 +153,7 @@ const Navbar = () => {
             _hover={{ transform: "rotate(90deg) scale(1.05)" }}
             boxShadow="0 4px 14px rgba(66, 153, 225, 0.4)"
           >
-            <Text color="white" fontWeight="900" fontSize="xl" lineHeight={1} transform="rotate(-90deg)">
+            <Text color="white" fontWeight="900" fontSize="lg" lineHeight={1} transform="rotate(-90deg)">
               X
             </Text>
           </Circle>
@@ -181,18 +180,18 @@ const Navbar = () => {
             border="1px solid"
             borderColor="whiteAlpha.100"
             transition="all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
-            w={isSearchExpanded ? "240px" : "44px"}
+            w={isSearchExpanded ? "220px" : "36px"}
             overflow="hidden"
           >
             <Circle
-              size="34px"
+              size="28px"
               cursor="pointer"
               onClick={toggleSearch}
               _hover={{ bg: "whiteAlpha.200" }}
               transition="all 0.2s"
               color="whiteAlpha.700"
             >
-              <Search size={16} />
+              <Search size={14} />
             </Circle>
             {isSearchExpanded && (
               <Input
@@ -211,8 +210,8 @@ const Navbar = () => {
 
           <Box position="relative">
             <Circle
-              size="44px"
-              p="2px"
+              size="36px"
+              p="1.5px"
               bgGradient="linear(to-tr, blue.400, purple.500)"
               cursor="pointer"
               onClick={() => setIsProfileOpen(!isProfileOpen)}

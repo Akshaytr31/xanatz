@@ -20,9 +20,13 @@ import {
   Portal,
   Input,
   Textarea,
+  Icon,
 } from "@chakra-ui/react";
-import { MapPin, Phone, Mail, Edit2, Camera, Briefcase, Building } from "lucide-react";
+import { motion } from "framer-motion";
+import { MapPin, Phone, Mail, Edit2, Camera, Briefcase, Building, Globe, ShieldCheck } from "lucide-react";
 import api, { backendUrl } from "../../api";
+
+const MotionBox = motion(Box);
 
 const VisualHeader = ({ user, onUpdate }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -81,41 +85,66 @@ const VisualHeader = ({ user, onUpdate }) => {
 
   return (
     <Box
-      borderRadius="xl"
+      className="glass-card"
       overflow="hidden"
       position="relative"
-      bg="whiteAlpha.100"
-      backdropFilter="blur(10px)"
-      border="1px solid"
-      borderColor="whiteAlpha.200"
+      p={0}
     >
       <IconButton
         aria-label="Edit Profile"
         variant="ghost"
-        color="whiteAlpha.600"
+        color="whiteAlpha.400"
         _hover={{ bg: "whiteAlpha.100", color: "white" }}
         position="absolute"
-        top={4}
-        right={4}
+        top={6}
+        right={6}
         zIndex={10}
         onClick={() => setIsDialogOpen(true)}
       >
-        <Edit2 size={18} />
+        <Edit2 size={20} />
       </IconButton>
 
       <Flex direction={{ base: "column", md: "row" }} align="stretch">
-        {/* Left Side (Gray Area + Avatar) */}
+        {/* Left Side (Avatar Section) */}
         <Box
           w={{ base: "full", md: "35%" }}
-          bg="whiteAlpha.200"
+          bgGradient="linear(to-br, whiteAlpha.100, transparent)"
           p={8}
           display="flex"
+          flexDirection="column"
           justifyContent="center"
           alignItems="center"
           position="relative"
+          borderRight={{ md: "1px solid" }}
+          borderColor="whiteAlpha.100"
         >
-          <Box position="relative">
-            <Circle size="200px" bg="whiteAlpha.300" p="4px" zIndex={2}>
+          <MotionBox
+            whileHover={{ scale: 1.02 }}
+            position="relative"
+          >
+            {/* Glowing Ring */}
+            <Box
+              position="absolute"
+              top="-6px"
+              left="-6px"
+              right="-6px"
+              bottom="-6px"
+              borderRadius="full"
+              bgGradient="linear(to-tr, blue.500, purple.500)"
+              filter="blur(10px)"
+              opacity={0.4}
+              zIndex={0}
+            />
+            
+            <Circle
+              size="150px"
+              bg="whiteAlpha.200"
+              p="4px"
+              zIndex={1}
+              position="relative"
+              border="1px solid"
+              borderColor="whiteAlpha.300"
+            >
               <Circle size="full" bg="var(--color-primary)" overflow="hidden">
                 {user?.profile?.profile_picture ? (
                   <Image
@@ -126,26 +155,29 @@ const VisualHeader = ({ user, onUpdate }) => {
                     objectFit="cover"
                   />
                 ) : (
-                  <Text fontSize="6xl" color="whiteAlpha.500" fontWeight="bold">
+                  <Text fontSize="5xl" color="whiteAlpha.400" fontWeight="black">
                     {user?.first_name?.[0] || "?"}
                   </Text>
                 )}
               </Circle>
             </Circle>
-            <Box position="absolute" bottom="2" right="6" zIndex={3}>
+            
+            <Box position="absolute" bottom="2" right="2" zIndex={3}>
               <IconButton
                 as="label"
                 htmlFor="profile-upload"
                 aria-label="Upload profile picture"
                 variant="solid"
-                bg="blue.600"
+                bg="blue.500"
                 color="white"
                 borderRadius="full"
                 cursor="pointer"
-                size="sm"
-                _hover={{ bg: "blue.700" }}
+                size="md"
+                _hover={{ bg: "blue.400", transform: "scale(1.1)" }}
+                transition="all 0.2s"
+                boxShadow="lg"
               >
-                <Camera size={16} />
+                <Camera size={18} />
               </IconButton>
               <input
                 type="file"
@@ -154,110 +186,116 @@ const VisualHeader = ({ user, onUpdate }) => {
                 onChange={(e) => handleImageUpload(e, "profile_picture")}
               />
             </Box>
-          </Box>
+          </MotionBox>
+          
+          <HStack mt={6} color="blue.400" fontWeight="bold" fontSize="sm" letterSpacing="widest">
+            <ShieldCheck size={16} />
+            <Text>VERIFIED PROFESSIONAL</Text>
+          </HStack>
         </Box>
 
-        {/* Right Side (Info) */}
+        {/* Right Side (Info Section) */}
         <Box
           w={{ base: "full", md: "65%" }}
-          p={8}
+          p={{ base: 6, md: 10 }}
           display="flex"
-          flexDirection={{ base: "column", xl: "row" }}
-          justifyContent="space-between"
-          alignItems="center"
+          flexDirection="column"
+          justifyContent="center"
           gap={6}
         >
-          {/* Name & About */}
-          <VStack align="start" flex={1} gap={2} maxW="500px">
-            <Text fontSize="4xl" fontWeight="black" color="white" lineHeight="1.1">
-              {user?.first_name} {user?.last_name}
+          {/* Name & Headline */}
+          <VStack align="start" gap={2}>
+            <HStack align="center" gap={3}>
+              <Text
+                fontSize={{ base: "3xl", md: "4xl" }}
+                fontWeight="black"
+                color="white"
+                lineHeight="0.9"
+                letterSpacing="tight"
+                fontFamily="var(--font-heading)"
+              >
+                {user?.first_name} {user?.last_name}
+              </Text>
+            </HStack>
+
+            <Text fontSize="md" fontWeight="bold" color="blue.400" letterSpacing="widest">
+              {user?.profile?.headline || "PROFESSIONAL SEEKER"}
             </Text>
 
             {currentExperience && (
-              <VStack align="start" gap={1} mt={1} mb={2}>
-                <HStack color="white" fontSize="md" fontWeight="bold">
-                  <Briefcase size={16} style={{ color: "var(--chakra-colors-blue-400)" }} />
-                  <Text>{currentExperience.title}</Text>
-                </HStack>
-                <HStack color="whiteAlpha.800" fontSize="sm" fontWeight="medium">
-                  <Building size={14} />
-                  <Text>{currentExperience.company}</Text>
-                </HStack>
-              </VStack>
+              <HStack bg="whiteAlpha.100" px={3} py={1.5} borderRadius="lg" border="1px solid" borderColor="whiteAlpha.100">
+                <Briefcase size={14} className="text-blue-400" />
+                <Text fontSize="xs" fontWeight="bold" color="whiteAlpha.900">
+                  {currentExperience.title} @ {currentExperience.company}
+                </Text>
+              </HStack>
             )}
-
-            <Text fontSize="lg" color="whiteAlpha.800" mt={2} whiteSpace="pre-wrap">
-              {user?.profile?.about || user?.profile?.headline || "Add an about section to tell people more about yourself."}
-            </Text>
           </VStack>
 
-          {/* Contact Info */}
-          <VStack align="start" gap={4} minW="250px">
-            <HStack color="whiteAlpha.800">
-              <Circle size="36px" bg="whiteAlpha.200" color="white">
-                <MapPin size={18} />
-              </Circle>
-              <Text fontSize="md" fontWeight="medium">
-                {user?.profile?.location || "Location not set"}
-              </Text>
+          {/* About Summary */}
+          <Text fontSize="sm" color="whiteAlpha.700" lineHeight="relaxed" maxW="600px">
+            {user?.profile?.about || "Elevate your professional journey with Xanatz. This user is currently crafting their unique story."}
+          </Text>
+
+          {/* Contact & Meta Info */}
+          <Flex wrap="wrap" gap={5} pt={4} borderTop="1px solid" borderColor="whiteAlpha.100">
+            <HStack color="whiteAlpha.600" fontSize="xs">
+              <MapPin size={14} />
+              <Text fontWeight="medium">{user?.profile?.location || "Remote"}</Text>
             </HStack>
-            <HStack color="whiteAlpha.800">
-              <Circle size="36px" bg="whiteAlpha.200" color="white">
-                <Phone size={18} />
-              </Circle>
-              <Text fontSize="md" fontWeight="medium">
-                {user?.phone_number || "Phone not set"}
-              </Text>
+            <HStack color="whiteAlpha.600" fontSize="xs">
+              <Mail size={14} />
+              <Text fontWeight="medium">{user?.email}</Text>
             </HStack>
-            <HStack color="whiteAlpha.800">
-              <Circle size="36px" bg="whiteAlpha.200" color="white">
-                <Mail size={18} />
-              </Circle>
-              <Text fontSize="md" fontWeight="medium">
-                {user?.email || "Email not set"}
-              </Text>
-            </HStack>
-          </VStack>
+            {user?.profile?.website && (
+              <HStack color="blue.400" fontSize="xs" cursor="pointer" as="a" href={user.profile.website} target="_blank">
+                <Globe size={14} />
+                <Text fontWeight="bold">PORTFOLIO</Text>
+              </HStack>
+            )}
+          </Flex>
         </Box>
       </Flex>
 
       {/* Edit Modal */}
       <Dialog open={isDialogOpen} onOpenChange={(e) => setIsDialogOpen(e.open)} size="md">
         <Portal>
-          <DialogBackdrop bg="blackAlpha.800" backdropFilter="blur(10px)" zIndex={99999} />
+          <DialogBackdrop bg="blackAlpha.900" backdropFilter="blur(10px)" zIndex={99999} />
           <DialogPositioner display="flex" alignItems="center" justifyContent="center" zIndex={100000}>
-            <DialogContent bg="var(--color-primary)" border="1px solid" borderColor="whiteAlpha.300" borderRadius="xl" maxW="500px" m="auto">
-              <DialogHeader color="white" py={5}>Edit Profile & About</DialogHeader>
-              <DialogCloseTrigger color="whiteAlpha.600" top={4} right={4} />
-              <DialogBody p={6}>
-                <VStack gap={4}>
-                  <HStack w="full" gap={4}>
+            <DialogContent bg="var(--color-primary)" border="1px solid" borderColor="whiteAlpha.300" borderRadius="lg" maxW="550px" m="auto" overflow="hidden">
+              <DialogHeader color="white" py={6} px={8} borderBottom="1px solid" borderColor="whiteAlpha.100">
+                Edit Professional Profile
+              </DialogHeader>
+              <DialogCloseTrigger color="whiteAlpha.600" top={6} right={6} />
+              <DialogBody p={8}>
+                <VStack gap={6}>
+                  <HStack w="full" gap={6}>
                     <Box flex="1">
-                      <Text mb={2} color="whiteAlpha.700" fontSize="sm">First Name</Text>
-                      <Input name="first_name" value={formData.first_name} onChange={handleChange} bg="whiteAlpha.100" color="white" />
+                      <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">FIRST NAME</Text>
+                      <Input name="first_name" value={formData.first_name} onChange={handleChange} bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" _focus={{ borderColor: "blue.500" }} color="white" />
                     </Box>
                     <Box flex="1">
-                      <Text mb={2} color="whiteAlpha.700" fontSize="sm">Last Name</Text>
-                      <Input name="last_name" value={formData.last_name} onChange={handleChange} bg="whiteAlpha.100" color="white" />
+                      <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">LAST NAME</Text>
+                      <Input name="last_name" value={formData.last_name} onChange={handleChange} bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" _focus={{ borderColor: "blue.500" }} color="white" />
                     </Box>
                   </HStack>
                   <Box w="full">
-                    <Text mb={2} color="whiteAlpha.700" fontSize="sm">Headline</Text>
-                    <Input name="headline" value={formData.headline} onChange={handleChange} bg="whiteAlpha.100" color="white" />
+                    <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">HEADLINE</Text>
+                    <Input name="headline" value={formData.headline} onChange={handleChange} bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" _focus={{ borderColor: "blue.500" }} color="white" placeholder="Ex: Senior Creative Designer" />
                   </Box>
                   <Box w="full">
-                    <Text mb={2} color="whiteAlpha.700" fontSize="sm">Location</Text>
-                    <Input name="location" value={formData.location} onChange={handleChange} bg="whiteAlpha.100" color="white" />
+                    <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">LOCATION</Text>
+                    <Input name="location" value={formData.location} onChange={handleChange} bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" _focus={{ borderColor: "blue.500" }} color="white" placeholder="City, Country" />
                   </Box>
                   <Box w="full">
-                    <Text mb={2} color="whiteAlpha.700" fontSize="sm">About Summary</Text>
-                    <Textarea name="about" value={formData.about} onChange={handleChange} minH="120px" bg="whiteAlpha.100" color="white" />
+                    <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">ABOUT SUMMARY</Text>
+                    <Textarea name="about" value={formData.about} onChange={handleChange} minH="150px" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" _focus={{ borderColor: "blue.500" }} color="white" placeholder="Tell your professional story..." />
                   </Box>
                 </VStack>
               </DialogBody>
-              <DialogFooter p={6}>
-                <Button bg="blue.600" color="white" w="full" onClick={handleSubmit} isLoading={loading}>
-                  Save Changes
+              <DialogFooter p={8} bg="whiteAlpha.50">
+                <Button bg="blue.500" color="white" w="full" size="lg" onClick={handleSubmit} isLoading={loading} _hover={{ bg: "blue.400" }} borderRadius="md">
+                  Update Profile
                 </Button>
               </DialogFooter>
             </DialogContent>

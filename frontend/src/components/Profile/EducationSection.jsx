@@ -19,9 +19,13 @@ import {
   Textarea,
   Separator,
   Flex,
+  Circle,
 } from "@chakra-ui/react";
-import { Plus, Edit2, GraduationCap, Trash2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { Plus, Edit2, GraduationCap, Trash2, MapPin, Calendar, School } from "lucide-react";
 import api from "../../api";
+
+const MotionBox = motion(Box);
 
 const EducationSection = ({ user, onUpdate }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -94,63 +98,70 @@ const EducationSection = ({ user, onUpdate }) => {
   };
 
   return (
-    <Box
-      bg="whiteAlpha.100"
-      backdropFilter="blur(10px)"
-      border="1px solid"
-      borderColor="whiteAlpha.200"
-      borderRadius="xl"
-      p={6}
-    >
-      <HStack justify="space-between" mb={4}>
-        <Text fontSize="xl" fontWeight="bold" color="white">
-          Education
-        </Text>
+    <Box className="glass-card" p={{ base: 5, md: 6 }}>
+      <Flex justify="space-between" align="center" mb={6}>
+        <HStack gap={3}>
+          <Circle size="32px" bg="purple.500/10" color="purple.400">
+            <GraduationCap size={16} />
+          </Circle>
+          <Text fontSize="md" fontWeight="black" color="white" letterSpacing="tight" fontFamily="var(--font-heading)">
+            ACADEMIC FOUNDATION
+          </Text>
+        </HStack>
         <IconButton
           aria-label="Add education"
           variant="ghost"
-          color="whiteAlpha.700"
-          _hover={{ color: "white", bg: "whiteAlpha.100" }}
+          color="whiteAlpha.400"
+          _hover={{ color: "purple.400", bg: "purple.400/10" }}
           onClick={() => handleOpen()}
+          borderRadius="md"
+          size="sm"
         >
-          <Plus size={18} />
+          <Plus size={16} />
         </IconButton>
-      </HStack>
+      </Flex>
 
       <VStack align="stretch" gap={6}>
         {user?.profile?.educations?.length > 0 ? (
           user.profile.educations.map((edu, index) => (
-            <Box key={edu.id}>
-              <Flex justify="space-between">
-                <HStack align="start" gap={4}>
-                  <Box p={2} bg="whiteAlpha.200" borderRadius="md">
-                    <GraduationCap size={24} color="white" />
-                  </Box>
-                  <VStack align="start" gap={0}>
-                    <Text fontWeight="bold" color="white">
+            <MotionBox 
+              key={edu.id}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <Flex justify="space-between" align="start">
+                <HStack align="start" gap={4} flex={1}>
+                  <VStack align="start" gap={1}>
+                    <Text fontSize="md" fontWeight="bold" color="white" lineHeight="1.2">
                       {edu.school}
                     </Text>
-                    <Text color="whiteAlpha.800">
-                      {edu.degree}{edu.field_of_study ? `, ${edu.field_of_study}` : ""}
+                    <Text color="purple.400" fontWeight="bold" fontSize="10px" letterSpacing="widest">
+                      {edu.degree.toUpperCase()}{edu.field_of_study ? ` IN ${edu.field_of_study.toUpperCase()}` : ""}
                     </Text>
-                    <Text color="whiteAlpha.600" fontSize="sm">
-                      {edu.start_date} - {edu.end_date || "Present"}
-                    </Text>
+                    
+                    <HStack color="whiteAlpha.500" fontSize="10px" fontWeight="medium" mt={0.5}>
+                      <Calendar size={10} />
+                      <Text>{edu.start_date} — {edu.end_date || "PRESENT"}</Text>
+                    </HStack>
+
                     {edu.description && (
-                      <Text mt={2} color="whiteAlpha.700" fontSize="sm">
+                      <Text mt={2} color="whiteAlpha.700" fontSize="xs" lineHeight="relaxed" borderLeft="2px solid" borderColor="whiteAlpha.100" pl={3}>
                         {edu.description}
                       </Text>
                     )}
                   </VStack>
                 </HStack>
-                <HStack>
+                
+                <HStack gap={2}>
                   <IconButton
                     aria-label="Edit education"
                     size="sm"
                     variant="ghost"
-                    color="whiteAlpha.600"
+                    color="whiteAlpha.300"
                     _hover={{ color: "white", bg: "whiteAlpha.100" }}
                     onClick={() => handleOpen(edu)}
+                    borderRadius="md"
                   >
                     <Edit2 size={16} />
                   </IconButton>
@@ -158,70 +169,72 @@ const EducationSection = ({ user, onUpdate }) => {
                     aria-label="Delete education"
                     size="sm"
                     variant="ghost"
-                    color="red.400"
-                    _hover={{ bg: "red.400", color: "white" }}
+                    color="whiteAlpha.300"
+                    _hover={{ color: "red.400", bg: "red.400/10" }}
                     onClick={() => handleDelete(edu.id)}
+                    borderRadius="md"
                   >
                     <Trash2 size={16} />
                   </IconButton>
                 </HStack>
               </Flex>
               {index < user.profile.educations.length - 1 && (
-                <Separator mt={6} borderColor="whiteAlpha.200" />
+                <Separator mt={8} borderColor="whiteAlpha.100" />
               )}
-            </Box>
+            </MotionBox>
           ))
         ) : (
-          <Text color="whiteAlpha.600">No education added yet.</Text>
+          <Flex direction="column" align="center" py={10} gap={4}>
+            <GraduationCap size={40} className="text-white/5" />
+            <Text color="whiteAlpha.400" fontSize="sm" fontWeight="medium">Add your educational milestones...</Text>
+          </Flex>
         )}
       </VStack>
 
-      <Dialog
-        open={isDialogOpen}
-        onOpenChange={(e) => setIsDialogOpen(e.open)}
-        size="md"
-      >
+      <Dialog open={isDialogOpen} onOpenChange={(e) => setIsDialogOpen(e.open)} size="md">
         <Portal>
-          <DialogBackdrop bg="blackAlpha.800" backdropFilter="blur(10px)" zIndex={99999} />
+          <DialogBackdrop bg="blackAlpha.900" backdropFilter="blur(10px)" zIndex={99999} />
           <DialogPositioner display="flex" alignItems="center" justifyContent="center" zIndex={100000}>
-            <DialogContent bg="var(--color-primary)" border="1px solid" borderColor="whiteAlpha.300" borderRadius="xl" maxW="500px" m="auto">
-              <DialogHeader color="white" py={5}>
-                {editingItem ? "Edit Education" : "Add Education"}
+            <DialogContent bg="var(--color-primary)" border="1px solid" borderColor="whiteAlpha.300" borderRadius="2xl" maxW="550px" m="auto" overflow="hidden">
+              <DialogHeader color="white" py={6} px={8} borderBottom="1px solid" borderColor="whiteAlpha.100">
+                {editingItem ? "Refine Education" : "Add New Academic Milestone"}
               </DialogHeader>
-              <DialogCloseTrigger color="whiteAlpha.600" top={4} right={4} />
-              <DialogBody p={6}>
-                <VStack gap={4}>
+              <DialogCloseTrigger color="whiteAlpha.600" top={6} right={6} />
+              <DialogBody p={8}>
+                <VStack gap={6}>
                   <Box w="full">
-                    <Text mb={2} color="whiteAlpha.700" fontSize="sm">School *</Text>
-                    <Input name="school" value={formData.school} onChange={handleChange} placeholder="Ex: Boston University" bg="whiteAlpha.100" color="white" />
+                    <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">INSTITUTION *</Text>
+                    <Input name="school" value={formData.school} onChange={handleChange} placeholder="Ex: Stanford University" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" />
                   </Box>
-                  <Box w="full">
-                    <Text mb={2} color="whiteAlpha.700" fontSize="sm">Degree</Text>
-                    <Input name="degree" value={formData.degree} onChange={handleChange} placeholder="Ex: Bachelor's" bg="whiteAlpha.100" color="white" />
-                  </Box>
-                  <Box w="full">
-                    <Text mb={2} color="whiteAlpha.700" fontSize="sm">Field of study</Text>
-                    <Input name="field_of_study" value={formData.field_of_study} onChange={handleChange} placeholder="Ex: Business" bg="whiteAlpha.100" color="white" />
-                  </Box>
-                  <HStack w="full">
+                  <HStack w="full" gap={6}>
                     <Box flex="1">
-                      <Text mb={2} color="whiteAlpha.700" fontSize="sm">Start Date *</Text>
-                      <Input name="start_date" type="date" value={formData.start_date} onChange={handleChange} bg="whiteAlpha.100" color="white" />
+                      <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">DEGREE</Text>
+                      <Input name="degree" value={formData.degree} onChange={handleChange} placeholder="Ex: Master of Science" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" />
                     </Box>
                     <Box flex="1">
-                      <Text mb={2} color="whiteAlpha.700" fontSize="sm">End Date</Text>
-                      <Input name="end_date" type="date" value={formData.end_date} onChange={handleChange} bg="whiteAlpha.100" color="white" />
+                      <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">FIELD OF STUDY</Text>
+                      <Input name="field_of_study" value={formData.field_of_study} onChange={handleChange} placeholder="Ex: Computer Science" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" />
+                    </Box>
+                  </HStack>
+                  <HStack w="full" gap={6}>
+                    <Box flex="1">
+                      <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">START DATE *</Text>
+                      <Input name="start_date" type="date" value={formData.start_date} onChange={handleChange} bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" />
+                    </Box>
+                    <Box flex="1">
+                      <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">END DATE (OR EXPECTED)</Text>
+                      <Input name="end_date" type="date" value={formData.end_date} onChange={handleChange} bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" />
                     </Box>
                   </HStack>
                   <Box w="full">
-                    <Text mb={2} color="whiteAlpha.700" fontSize="sm">Description</Text>
-                    <Textarea name="description" value={formData.description} onChange={handleChange} minH="120px" bg="whiteAlpha.100" color="white" />
+                    <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">ACTIVITIES & SOCIETIES</Text>
+                    <Textarea name="description" value={formData.description} onChange={handleChange} minH="150px" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" placeholder="Outline your academic achievements..." />
                   </Box>
                 </VStack>
               </DialogBody>
-              <DialogFooter p={6}>
-                <Button bg="blue.600" color="white" w="full" onClick={handleSubmit} isLoading={loading}>
-                  {editingItem ? "Save Changes" : "Add Education"}
+              <DialogFooter p={8} bg="whiteAlpha.50">
+                <Button bg="blue.500" color="white" w="full" size="lg" onClick={handleSubmit} isLoading={loading}>
+                  {editingItem ? "Update Education" : "Add Education"}
                 </Button>
               </DialogFooter>
             </DialogContent>
