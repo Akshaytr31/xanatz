@@ -170,7 +170,7 @@ const EducationSection = ({ user, onUpdate }) => {
                     size="sm"
                     variant="ghost"
                     color="whiteAlpha.300"
-                    _hover={{ color: "red.400", bg: "red.400/10" }}
+                    _hover={{ color: "var(--color-accent)", bg: "rgba(var(--color-accent-rgb), 0.1)" }}
                     onClick={() => handleDelete(edu.id)}
                     borderRadius="md"
                   >
@@ -233,7 +233,7 @@ const EducationSection = ({ user, onUpdate }) => {
                 </VStack>
               </DialogBody>
               <DialogFooter p={8} bg="whiteAlpha.50">
-                <Button bg="blue.500" color="white" w="full" size="lg" onClick={handleSubmit} isLoading={loading}>
+                <Button bg="var(--color-accent)" color="white" w="full" size="lg" onClick={handleSubmit} isLoading={loading}>
                   {editingItem ? "Update Education" : "Add Education"}
                 </Button>
               </DialogFooter>

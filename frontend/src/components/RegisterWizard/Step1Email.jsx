@@ -61,7 +61,7 @@ const Step1Email = ({
             _placeholder={{ color: "slate.600" }}
             _focus={{
               borderColor: "var(--color-accent)",
-              boxShadow: "0 0 0 4px rgba(205, 36, 38, 0.05)",
+              boxShadow: "0 0 0 4px rgba(var(--color-accent-rgb), 0.05)",
             }}
           />
         </Box>
@@ -79,7 +79,7 @@ const Step1Email = ({
           py="6"
           borderRadius="lg"
           fontSize="sm"
-          boxShadow="0 10px 20px -5px rgba(205, 36, 38, 0.3)"
+          boxShadow="0 10px 20px -5px rgba(var(--color-accent-rgb), 0.3)"
         >
           SEND CODE <ArrowRight size={16} style={{ marginLeft: "8px" }} />
         </Button>

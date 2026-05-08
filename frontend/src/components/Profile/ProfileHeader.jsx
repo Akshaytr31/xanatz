@@ -124,7 +124,7 @@ const ProfileHeader = ({ user, onUpdate }) => {
             objectFit="cover"
           />
         ) : (
-          <Box w="full" h="full" bgGradient="linear(to-r, blue.600, purple.600)" />
+          <Box w="full" h="full" bgGradient="linear(to-r, var(--color-accent), purple.600)" />
         )}
         <Box position="absolute" top="4" right="4">
           <IconButton
@@ -180,12 +180,12 @@ const ProfileHeader = ({ user, onUpdate }) => {
                   htmlFor="profile-upload"
                   aria-label="Upload profile picture"
                   variant="solid"
-                  bg="blue.600"
+                  bg="var(--color-accent)"
                   color="white"
                   borderRadius="full"
                   cursor="pointer"
                   size="sm"
-                  _hover={{ bg: "blue.700" }}
+                  _hover={{ bg: "var(--color-accent)" }}
                 >
                   <Camera size={16} />
                 </IconButton>
@@ -232,7 +232,7 @@ const ProfileHeader = ({ user, onUpdate }) => {
               </HStack>
             )}
             {user?.profile?.website && (
-              <HStack color="blue.400" fontSize="sm" cursor="pointer" as="a" href={user.profile.website} target="_blank">
+              <HStack color="var(--color-accent)" fontSize="sm" cursor="pointer" as="a" href={user.profile.website} target="_blank">
                 <Globe size={14} />
                 <Text>Website</Text>
               </HStack>
@@ -240,10 +240,10 @@ const ProfileHeader = ({ user, onUpdate }) => {
           </HStack>
           
           <HStack mt={4} gap={3}>
-            <Button bg="blue.600" color="white" borderRadius="full" size="sm" _hover={{ bg: "blue.700" }}>
+            <Button bg="var(--color-accent)" color="white" borderRadius="full" size="sm" _hover={{ bg: "var(--color-accent)" }}>
               Open to
             </Button>
-            <Button variant="outline" borderColor="blue.600" color="blue.600" borderRadius="full" size="sm" _hover={{ bg: "blue.600", color: "white" }}>
+            <Button variant="outline" borderColor="var(--color-accent)" color="var(--color-accent)" borderRadius="full" size="sm" _hover={{ bg: "var(--color-accent)", color: "white" }}>
               Add profile section
             </Button>
           </HStack>
@@ -469,7 +469,7 @@ const ProfileHeader = ({ user, onUpdate }) => {
               </DialogBody>
               <DialogFooter p={6}>
                 <Button
-                  bg="blue.600"
+                  bg="var(--color-accent)"
                   color="white"
                   w="full"
                   onClick={handleSubmit}

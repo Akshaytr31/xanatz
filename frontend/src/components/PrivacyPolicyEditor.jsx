@@ -74,7 +74,7 @@ const PrivacyPolicyEditor = () => {
         {message && (
           <Text
             fontSize="xs"
-            color={message.includes("success") ? "green.400" : "red.400"}
+            color={message.includes("success") ? "green.400" : "var(--color-accent)"}
             fontWeight="bold"
           >
             {message}

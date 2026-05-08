@@ -133,13 +133,13 @@ const CompanySection = ({ user, refreshTrigger, onCompanyChange }) => {
                     {!isMember ? (
                       <Button 
                         size="sm" 
-                        bg="blue.500" 
+                        bg="var(--color-accent)" 
                         color="white"
                         px={6}
                         borderRadius="md"
                         fontWeight="black"
                         fontSize="xs"
-                        _hover={{ bg: "blue.400", transform: "translateY(-2px)" }}
+                        _hover={{ bg: "var(--color-accent)", transform: "translateY(-2px)" }}
                         onClick={() => handleAttachUser(company.id, user.id)}
                       >
                         JOIN
@@ -148,12 +148,12 @@ const CompanySection = ({ user, refreshTrigger, onCompanyChange }) => {
                       <Button 
                         size="sm" 
                         variant="ghost"
-                        color="red.400"
+                        color="var(--color-accent)"
                         px={6}
                         borderRadius="md"
                         fontWeight="black"
                         fontSize="xs"
-                        _hover={{ bg: "red.400/10" }}
+                        _hover={{ bg: "rgba(var(--color-accent-rgb), 0.1)" }}
                         onClick={() => handleDetachUser(company.id, user.id)}
                       >
                         LEAVE

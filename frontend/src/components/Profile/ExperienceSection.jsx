@@ -175,7 +175,7 @@ const ExperienceSection = ({ user, onUpdate }) => {
     <Box className="glass-card" p={{ base: 5, md: 6 }}>
       <Flex justify="space-between" align="center" mb={6}>
         <HStack gap={3}>
-          <Circle size="32px" bg="blue.500/10" color="blue.400">
+          <Circle size="32px" bg="rgba(var(--color-accent-rgb), 0.1)" color="var(--color-accent)">
             <Briefcase size={16} />
           </Circle>
           <Text
@@ -192,7 +192,7 @@ const ExperienceSection = ({ user, onUpdate }) => {
           aria-label="Add experience"
           variant="ghost"
           color="whiteAlpha.400"
-          _hover={{ color: "blue.400", bg: "blue.400/10" }}
+          _hover={{ color: "var(--color-accent)", bg: "rgba(var(--color-accent-rgb), 0.1)" }}
           onClick={() => handleOpen()}
           borderRadius="md"
           size="sm"
@@ -222,7 +222,7 @@ const ExperienceSection = ({ user, onUpdate }) => {
                       {exp.title}
                     </Text>
                     <Text
-                      color="blue.400"
+                      color="var(--color-accent)"
                       fontWeight="bold"
                       fontSize="10px"
                       letterSpacing="widest"
@@ -254,7 +254,7 @@ const ExperienceSection = ({ user, onUpdate }) => {
                       )}
                       {exp.company_website && (
                         <HStack
-                          color="blue.400"
+                          color="var(--color-accent)"
                           fontSize="10px"
                           fontWeight="medium"
                           as="a"
@@ -301,7 +301,7 @@ const ExperienceSection = ({ user, onUpdate }) => {
                     size="sm"
                     variant="ghost"
                     color="whiteAlpha.300"
-                    _hover={{ color: "red.400", bg: "red.400/10" }}
+                    _hover={{ color: "var(--color-accent)", bg: "rgba(var(--color-accent-rgb), 0.1)" }}
                     onClick={() => handleDelete(exp.id)}
                   >
                     <Trash2 size={16} />
@@ -721,7 +721,7 @@ const ExperienceSection = ({ user, onUpdate }) => {
               </DialogBody>
               <DialogFooter p={8} bg="whiteAlpha.50">
                 <Button
-                  bg="blue.500"
+                  bg="var(--color-accent)"
                   color="white"
                   w="full"
                   size="lg"

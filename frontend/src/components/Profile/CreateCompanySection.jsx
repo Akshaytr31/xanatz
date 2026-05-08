@@ -44,21 +44,21 @@ const CreateCompanySection = ({ onCreated }) => {
       p={5}
       w="full"
       border="1px solid"
-      borderColor="blue.500/30"
+      borderColor="var(--color-accent)/30"
     >
       <Text color="whiteAlpha.500" fontSize="10px" fontWeight="black" letterSpacing="widest" mb={4}>
         GOVERNANCE
       </Text>
       <Button 
         w="full" 
-        bg="blue.500" 
+        bg="var(--color-accent)" 
         color="white" 
         h="10"
         borderRadius="md"
         fontWeight="black"
         fontSize="xs"
         letterSpacing="widest"
-        _hover={{ bg: "blue.400", transform: "translateY(-1px)", boxShadow: "0 4px 12px rgba(59, 130, 246, 0.4)" }}
+        _hover={{ bg: "var(--color-accent)", transform: "translateY(-1px)", boxShadow: "0 4px 12px rgba(59, 130, 246, 0.4)" }}
         onClick={() => setIsDialogOpen(true)}
       >
         <Plus size={14} style={{ marginRight: '6px' }} /> CREATE ORGANIZATION
@@ -91,7 +91,7 @@ const CreateCompanySection = ({ onCreated }) => {
                       borderRadius="xl"
                       border="1px solid"
                       borderColor="whiteAlpha.200"
-                      _focus={{ borderColor: "blue.500" }}
+                      _focus={{ borderColor: "var(--color-accent)" }}
                     />
                   </Box>
                   <Box w="full">
@@ -106,7 +106,7 @@ const CreateCompanySection = ({ onCreated }) => {
                       borderRadius="xl"
                       border="1px solid"
                       borderColor="whiteAlpha.200"
-                      _focus={{ borderColor: "blue.500" }}
+                      _focus={{ borderColor: "var(--color-accent)" }}
                     />
                   </Box>
                 </VStack>
@@ -115,7 +115,7 @@ const CreateCompanySection = ({ onCreated }) => {
                 <Button variant="ghost" mr={4} onClick={() => setIsDialogOpen(false)} color="whiteAlpha.600" fontWeight="bold" fontSize="xs">
                   CANCEL
                 </Button>
-                <Button bg="blue.500" color="white" px={8} h="10" borderRadius="md" fontWeight="black" fontSize="xs" onClick={handleCreateCompany} isLoading={isLoading} _hover={{ bg: "blue.400" }}>
+                <Button bg="var(--color-accent)" color="white" px={8} h="10" borderRadius="md" fontWeight="black" fontSize="xs" onClick={handleCreateCompany} isLoading={isLoading} _hover={{ bg: "var(--color-accent)" }}>
                   ESTABLISH
                 </Button>
               </DialogFooter>

@@ -8,6 +8,7 @@ import {
   Input,
   Flex,
   Circle,
+  Button,
 } from "@chakra-ui/react";
 import { Plus, X, Zap, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -151,7 +152,7 @@ const SkillsSection = ({ user, onUpdate }) => {
                     onClick={() => handleRemoveSkill(skill)}
                     p={0.5}
                     borderRadius="full"
-                    _hover={{ bg: "whiteAlpha.200", color: "red.400" }}
+                    _hover={{ bg: "whiteAlpha.200", color: "var(--color-accent)" }}
                     transition="all 0.2s"
                   >
                     <X size={10} />

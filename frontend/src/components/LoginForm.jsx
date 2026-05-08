@@ -106,11 +106,11 @@ const LoginForm = () => {
           <Box
             p={3}
             mb={6}
-            bg="red.500/10"
+            bg="rgba(var(--color-accent-rgb), 0.1)"
             border="1px solid"
-            borderColor="red.500/20"
+            borderColor="var(--color-accent)/20"
             borderRadius="lg"
-            color="red.400"
+            color="var(--color-accent)"
             fontSize="0.7rem"
             textAlign="center"
             fontWeight="medium"
@@ -153,7 +153,7 @@ const LoginForm = () => {
               _focus={{
                 outline: "none",
                 borderColor: "var(--color-accent)",
-                boxShadow: "0 0 0 4px rgba(205, 36, 38, 0.05)",
+                boxShadow: "0 0 0 4px rgba(var(--color-accent-rgb), 0.05)",
               }}
               transition="all 0.5s"
               onChange={handleChange}
@@ -189,7 +189,7 @@ const LoginForm = () => {
               _focus={{
                 outline: "none",
                 borderColor: "var(--color-accent)",
-                boxShadow: "0 0 0 4px rgba(205, 36, 38, 0.05)",
+                boxShadow: "0 0 0 4px rgba(var(--color-accent-rgb), 0.05)",
               }}
               transition="all 0.5s"
               onChange={handleChange}
@@ -226,7 +226,7 @@ const LoginForm = () => {
             fontWeight="bold"
             py="7"
             borderRadius="lg"
-            boxShadow="0 10px 20px -5px rgba(205, 36, 38, 0.3)"
+            boxShadow="0 10px 20px -5px rgba(var(--color-accent-rgb), 0.3)"
             fontSize="sm"
           >
             Sign In

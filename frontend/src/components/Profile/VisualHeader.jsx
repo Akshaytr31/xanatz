@@ -183,7 +183,7 @@ const VisualHeader = ({ user, onUpdate }) => {
               right="-6px"
               bottom="-6px"
               borderRadius="full"
-              bgGradient="linear(to-tr, blue.500, purple.500)"
+              bgGradient="linear(to-tr, var(--color-accent), purple.500)"
               filter="blur(10px)"
               opacity={0.4}
               zIndex={0}
@@ -221,12 +221,12 @@ const VisualHeader = ({ user, onUpdate }) => {
                 htmlFor="profile-upload"
                 aria-label="Upload profile picture"
                 variant="solid"
-                bg="blue.500"
+                bg="var(--color-accent)"
                 color="white"
                 borderRadius="full"
                 cursor="pointer"
                 size="md"
-                _hover={{ bg: "blue.400", transform: "scale(1.1)" }}
+                _hover={{ bg: "var(--color-accent)", transform: "scale(1.1)" }}
                 transition="all 0.2s"
                 boxShadow="lg"
               >
@@ -241,7 +241,7 @@ const VisualHeader = ({ user, onUpdate }) => {
             </Box>
           </MotionBox>
           
-          <HStack mt={6} color="blue.400" fontWeight="bold" fontSize="sm" letterSpacing="widest">
+          <HStack mt={6} color="var(--color-accent)" fontWeight="bold" fontSize="sm" letterSpacing="widest">
             <ShieldCheck size={16} />
             <Text>VERIFIED PROFESSIONAL</Text>
           </HStack>
@@ -271,13 +271,13 @@ const VisualHeader = ({ user, onUpdate }) => {
               </Text>
             </HStack>
 
-            <Text fontSize="md" fontWeight="bold" color="blue.400" letterSpacing="widest">
+            <Text fontSize="md" fontWeight="bold" color="var(--color-accent)" letterSpacing="widest">
               {user?.profile?.headline || "PROFESSIONAL SEEKER"}
             </Text>
 
             {currentExperience && (
               <HStack bg="whiteAlpha.100" px={3} py={1.5} borderRadius="lg" border="1px solid" borderColor="whiteAlpha.100">
-                <Briefcase size={14} className="text-blue-400" />
+                <Briefcase size={14} className="var(--color-accent)" />
                 <Text fontSize="xs" fontWeight="bold" color="whiteAlpha.900">
                   {currentExperience.title} @ {currentExperience.company}
                 </Text>
@@ -301,7 +301,7 @@ const VisualHeader = ({ user, onUpdate }) => {
               <Text fontWeight="medium">{user?.email}</Text>
             </HStack>
             {user?.profile?.website && (
-              <HStack color="blue.400" fontSize="xs" cursor="pointer" as="a" href={user.profile.website} target="_blank">
+              <HStack color="var(--color-accent)" fontSize="xs" cursor="pointer" as="a" href={user.profile.website} target="_blank">
                 <Globe size={14} />
                 <Text fontWeight="bold">PORTFOLIO</Text>
               </HStack>
@@ -325,16 +325,16 @@ const VisualHeader = ({ user, onUpdate }) => {
                   <HStack w="full" gap={6}>
                     <Box flex="1">
                       <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">FIRST NAME</Text>
-                      <Input name="first_name" value={formData.first_name} onChange={handleChange} bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" _focus={{ borderColor: "blue.500" }} color="white" />
+                      <Input name="first_name" value={formData.first_name} onChange={handleChange} bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" _focus={{ borderColor: "var(--color-accent)" }} color="white" />
                     </Box>
                     <Box flex="1">
                       <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">LAST NAME</Text>
-                      <Input name="last_name" value={formData.last_name} onChange={handleChange} bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" _focus={{ borderColor: "blue.500" }} color="white" />
+                      <Input name="last_name" value={formData.last_name} onChange={handleChange} bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" _focus={{ borderColor: "var(--color-accent)" }} color="white" />
                     </Box>
                   </HStack>
                   <Box w="full">
                     <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">HEADLINE</Text>
-                    <Input name="headline" value={formData.headline} onChange={handleChange} bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" _focus={{ borderColor: "blue.500" }} color="white" placeholder="Ex: Senior Creative Designer" />
+                    <Input name="headline" value={formData.headline} onChange={handleChange} bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" _focus={{ borderColor: "var(--color-accent)" }} color="white" placeholder="Ex: Senior Creative Designer" />
                   </Box>
                   <VStack w="full" gap={4} align="stretch">
                     <Box w="full" position="relative">
@@ -580,7 +580,7 @@ const VisualHeader = ({ user, onUpdate }) => {
                                   location: `${customCity}, ${selectedState.label}, ${selectedCountry.label}`
                                 });
                               }}
-                              color="blue.400"
+                              color="var(--color-accent)"
                               fontSize="sm"
                               borderTop="1px solid"
                               borderColor="whiteAlpha.100"
@@ -601,12 +601,12 @@ const VisualHeader = ({ user, onUpdate }) => {
                   </VStack>
                   <Box w="full">
                     <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">ABOUT SUMMARY</Text>
-                    <Textarea name="about" value={formData.about} onChange={handleChange} minH="150px" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" _focus={{ borderColor: "blue.500" }} color="white" placeholder="Tell your professional story..." />
+                    <Textarea name="about" value={formData.about} onChange={handleChange} minH="150px" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" _focus={{ borderColor: "var(--color-accent)" }} color="white" placeholder="Tell your professional story..." />
                   </Box>
                 </VStack>
               </DialogBody>
               <DialogFooter p={8} bg="whiteAlpha.50">
-                <Button bg="blue.500" color="white" w="full" size="lg" onClick={handleSubmit} isLoading={loading} _hover={{ bg: "blue.400" }} borderRadius="md">
+                <Button bg="var(--color-accent)" color="white" w="full" size="lg" onClick={handleSubmit} isLoading={loading} _hover={{ bg: "var(--color-accent)" }} borderRadius="md">
                   Update Profile
                 </Button>
               </DialogFooter>

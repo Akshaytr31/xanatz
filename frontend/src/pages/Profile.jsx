@@ -55,7 +55,7 @@ const Profile = () => {
             exit={{ opacity: 0, scale: 1.1 }}
             gap={4}
           >
-            <Spinner size="xl" thickness="4px" speed="0.65s" color="blue.500" />
+            <Spinner size="xl" thickness="4px" speed="0.65s" color="var(--color-accent)" />
             <Text
               color="whiteAlpha.700"
               fontWeight="medium"
@@ -209,7 +209,7 @@ const Profile = () => {
                     bg="whiteAlpha.50"
                   />
                   <MotionBox
-                    bg="blue.400"
+                    bg="var(--color-accent)"
                     animate={{
                       width: `${Math.max(user?.profile_completion_percentage || 0, 2)}%`,
                     }}
@@ -245,17 +245,17 @@ const Profile = () => {
                     <Button
                       size="xs"
                       variant="outline"
-                      borderColor="blue.500/30"
-                      color="blue.400"
+                      borderColor="var(--color-accent)/30"
+                      color="var(--color-accent)"
                       fontSize="8px"
                       fontWeight="black"
                       px={2}
                       h="6"
                       borderRadius="md"
                       _hover={{
-                        bg: "blue.500",
+                        bg: "var(--color-accent)",
                         color: "white",
-                        borderColor: "blue.500",
+                        borderColor: "var(--color-accent)",
                       }}
                     >
                       ENHANCE

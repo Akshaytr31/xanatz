@@ -79,7 +79,7 @@ const Step4Details = ({
               fontSize="sm"
               _focus={{
                 borderColor: "var(--color-accent)",
-                boxShadow: "0 0 0 4px rgba(205, 36, 38, 0.05)",
+                boxShadow: "0 0 0 4px rgba(var(--color-accent-rgb), 0.05)",
               }}
             />
           </Box>
@@ -111,7 +111,7 @@ const Step4Details = ({
               fontSize="sm"
               _focus={{
                 borderColor: "var(--color-accent)",
-                boxShadow: "0 0 0 4px rgba(205, 36, 38, 0.05)",
+                boxShadow: "0 0 0 4px rgba(var(--color-accent-rgb), 0.05)",
               }}
             />
           </Box>
@@ -145,7 +145,7 @@ const Step4Details = ({
             fontSize="sm"
             _focus={{
               borderColor: "var(--color-accent)",
-              boxShadow: "0 0 0 4px rgba(205, 36, 38, 0.05)",
+              boxShadow: "0 0 0 4px rgba(var(--color-accent-rgb), 0.05)",
             }}
           />
         </Box>
@@ -167,22 +167,22 @@ const Step4Details = ({
           <Text color="whiteAlpha.800" fontSize="sm" lineHeight="tall">
             I have read and agree to the{" "}
             <Link
-              color="blue.400"
+              color="var(--color-accent)"
               fontWeight="bold"
               textDecoration="underline"
-              _hover={{ color: "blue.300" }}
+              _hover={{ color: "var(--color-accent)" }}
             >
               Terms of Service
             </Link>{" "}
             and the dynamic{" "}
             <Text
               as="span"
-              color="blue.400"
+              color="var(--color-accent)"
               fontWeight="bold"
               textDecoration="underline"
               cursor="pointer"
               onClick={() => setIsDialogOpen(true)}
-              _hover={{ color: "blue.300" }}
+              _hover={{ color: "var(--color-accent)" }}
             >
               Privacy Policy
             </Text>

@@ -201,11 +201,11 @@ const RegisterWizard = () => {
           <Box
             p={3}
             mb={6}
-            bg="red.500/10"
+            bg="rgba(var(--color-accent-rgb), 0.1)"
             border="1px solid"
-            borderColor="red.500/20"
+            borderColor="var(--color-accent)/20"
             borderRadius="lg"
-            color="red.400"
+            color="var(--color-accent)"
             fontSize="0.7rem"
             textAlign="center"
             fontWeight="medium"

@@ -178,8 +178,8 @@ const AdminNavbar = ({ handleLogout }) => {
                         handleLogout();
                       }}
                     >
-                      <LogOut size={14} color="red.400" />
-                      <Text fontSize="xs" color="red.400">
+                      <LogOut size={14} color="var(--color-accent)" />
+                      <Text fontSize="xs" color="var(--color-accent)">
                         Log Out
                       </Text>
                     </HStack>

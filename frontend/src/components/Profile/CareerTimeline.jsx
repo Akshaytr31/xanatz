@@ -150,7 +150,7 @@ const CareerTimeline = ({ user, onUpdate }) => {
     >
       <Flex justify="space-between" align="center" mb={8}>
         <HStack gap={3}>
-          <Box p={2} bgGradient="linear(to-br, blue.500, purple.500)" borderRadius="md" color="white" boxShadow="0 0 15px rgba(59, 130, 246, 0.3)">
+          <Box p={2} bgGradient="linear(to-br, var(--color-accent), purple.500)" borderRadius="md" color="white" boxShadow="0 0 15px rgba(59, 130, 246, 0.3)">
             <Target size={20} />
           </Box>
           <VStack align="start" gap={0}>
@@ -164,14 +164,14 @@ const CareerTimeline = ({ user, onUpdate }) => {
         </HStack>
 
         <Button
-          bg="blue.500"
+          bg="var(--color-accent)"
           color="white"
           size="xs"
           borderRadius="md"
           px={4}
           h="8"
           onClick={() => handleOpen()}
-          _hover={{ bg: "blue.400", transform: "translateY(-1px)" }}
+          _hover={{ bg: "var(--color-accent)", transform: "translateY(-1px)" }}
           transition="all 0.2s"
           fontSize="10px"
           fontWeight="black"
@@ -253,14 +253,14 @@ const CareerTimeline = ({ user, onUpdate }) => {
                     <Textarea name="description" value={formData.description} onChange={handleChange} minH="120px" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" placeholder="Describe your key achievements..." />
                   </Box>
                   {editingItem && (
-                    <Button mt={2} w="full" colorPalette="red" variant="ghost" onClick={() => handleDelete(editingItem.id)} _hover={{ bg: "red.500/10" }}>
+                    <Button mt={2} w="full" colorPalette="red" variant="ghost" onClick={() => handleDelete(editingItem.id)} _hover={{ bg: "rgba(var(--color-accent-rgb), 0.1)" }}>
                       Remove Milestone
                     </Button>
                   )}
                 </VStack>
               </DialogBody>
               <DialogFooter p={8} bg="whiteAlpha.50">
-                <Button bg="blue.500" color="white" w="full" size="lg" onClick={handleSubmit} isLoading={loading}>
+                <Button bg="var(--color-accent)" color="white" w="full" size="lg" onClick={handleSubmit} isLoading={loading}>
                   {editingItem ? "Save Refinements" : "Launch Milestone"}
                 </Button>
               </DialogFooter>
@@ -297,7 +297,7 @@ const TimelineChart = ({ experiences, handleOpen }) => {
 
   // Premium palette
   const colors = [
-    "linear-gradient(90deg, #3b82f6, #60a5fa)",
+    "linear-gradient(90deg, var(--color-accent), #60a5fa)",
     "linear-gradient(90deg, #8b5cf6, #a78bfa)",
     "linear-gradient(90deg, #06b6d4, #22d3ee)",
     "linear-gradient(90deg, #10b981, #34d399)",
@@ -344,7 +344,7 @@ const TimelineChart = ({ experiences, handleOpen }) => {
                     <Edit2 size={10} />
                   </IconButton>
                 </HStack>
-                <Text color="blue.400" fontSize="9px" fontWeight="bold" lineHeight="1.1">{exp.title}</Text>
+                <Text color="var(--color-accent)" fontSize="9px" fontWeight="bold" lineHeight="1.1">{exp.title}</Text>
               </VStack>
             </MotionBox>
 
@@ -364,7 +364,7 @@ const TimelineChart = ({ experiences, handleOpen }) => {
                 width: '6px',
                 height: '6px',
                 borderRadius: 'full',
-                bg: 'blue.400'
+                bg: 'var(--color-accent)'
               }}
             />
             

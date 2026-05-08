@@ -88,14 +88,14 @@ const AboutSection = ({ user, onUpdate }) => {
                       bg="whiteAlpha.100"
                       color="white"
                       borderColor="whiteAlpha.200"
-                      _focus={{ borderColor: "blue.400" }}
+                      _focus={{ borderColor: "var(--color-accent)" }}
                     />
                   </Box>
                 </VStack>
               </DialogBody>
               <DialogFooter p={6}>
                 <Button
-                  bg="blue.600"
+                  bg="var(--color-accent)"
                   color="white"
                   w="full"
                   onClick={handleSubmit}

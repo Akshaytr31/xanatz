@@ -56,7 +56,7 @@ const Step2OTP = ({
             fontSize="lg"
             _focus={{
               borderColor: "var(--color-accent)",
-              boxShadow: "0 0 0 4px rgba(205, 36, 38, 0.05)",
+              boxShadow: "0 0 0 4px rgba(var(--color-accent-rgb), 0.05)",
             }}
           />
         </Box>

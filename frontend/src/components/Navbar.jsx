@@ -146,7 +146,7 @@ const Navbar = () => {
         <Flex flex={1} justify="flex-start">
           <Circle
             size="36px"
-            bgGradient="linear(to-br, blue.400, purple.500)"
+            bgGradient="linear(to-br, var(--color-accent), purple.500)"
             cursor="pointer"
             onClick={() => navigate("/dashboard")}
             transition="all 0.3s"
@@ -212,7 +212,7 @@ const Navbar = () => {
             <Circle
               size="36px"
               p="1.5px"
-              bgGradient="linear(to-tr, blue.400, purple.500)"
+              bgGradient="linear(to-tr, var(--color-accent), purple.500)"
               cursor="pointer"
               onClick={() => setIsProfileOpen(!isProfileOpen)}
               transition="transform 0.2s"
@@ -256,7 +256,7 @@ const Navbar = () => {
                       <Box position="absolute" top="-20px" right="-20px" w="100px" h="100px" bg="purple.500" filter="blur(50px)" opacity={0.3} borderRadius="full" />
                       
                       <HStack gap={4} position="relative" zIndex={1}>
-                        <Circle size="60px" p="2px" bgGradient="linear(to-tr, blue.400, purple.500)">
+                        <Circle size="60px" p="2px" bgGradient="linear(to-tr, var(--color-accent), purple.500)">
                           <Circle size="full" bg="gray.800" overflow="hidden">
                             {user?.profile?.profile_picture ? (
                               <Image src={getImageUrl(user.profile.profile_picture)} w="full" h="full" objectFit="cover" />
@@ -269,7 +269,7 @@ const Navbar = () => {
                           <Text color="white" fontWeight="bold" fontSize="lg" lineHeight="1.2">
                             {user?.first_name} {user?.last_name}
                           </Text>
-                          <Text color="blue.300" fontSize="sm" mt={1} noOfLines={1} fontWeight="medium">
+                          <Text color="var(--color-accent)" fontSize="sm" mt={1} noOfLines={1} fontWeight="medium">
                             {user?.profile?.headline || "Professional at Xanatz"}
                           </Text>
                         </VStack>
@@ -313,7 +313,7 @@ const Navbar = () => {
                       <MenuLink 
                         icon={LogOut} 
                         label="Sign Out" 
-                        color="red.400"
+                        color="var(--color-accent)"
                         onClick={handleLogout}
                       />
                     </Box>

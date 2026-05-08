@@ -58,7 +58,7 @@ const GoogleLoginButton = ({
               isGoogleHovered ? "var(--color-accent)" : "whiteAlpha.200"
             }
             boxShadow={
-              isGoogleHovered ? "0 0 20px rgba(205, 36, 38, 0.15)" : "none"
+              isGoogleHovered ? "0 0 20px rgba(var(--color-accent-rgb), 0.15)" : "none"
             }
             position="relative"
             zIndex={10}
