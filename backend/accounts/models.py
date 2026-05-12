@@ -73,8 +73,11 @@ class User(AbstractUser):
         return int((count / total_units) * 100)
 
 
+import uuid
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    public_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     headline = models.CharField(max_length=255, blank=True, null=True)
     about = models.TextField(blank=True, null=True)
     location = models.CharField(max_length=255, blank=True, null=True)

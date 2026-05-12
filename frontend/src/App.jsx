@@ -6,6 +6,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 import Profile from "./pages/Profile";
+import PublicProfile from "./pages/PublicProfile";
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/p/:publicId" element={<PublicProfile />} />
         <Route
           path="/admin"
           element={

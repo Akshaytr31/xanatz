@@ -23,7 +23,7 @@ import {
   Icon,
 } from "@chakra-ui/react";
 import { motion } from "framer-motion";
-import { MapPin, Phone, Mail, Edit2, Camera, Briefcase, Building, Globe, ShieldCheck, Search, ChevronDown, Plus } from "lucide-react";
+import { MapPin, Phone, Mail, Edit2, Camera, Briefcase, Building, Globe, ShieldCheck, Search, ChevronDown, Plus, Share2 } from "lucide-react";
 import { Country, State, City } from "country-state-city";
 import api, { backendUrl } from "../../api";
 
@@ -32,8 +32,16 @@ const MotionBox = motion.create(Box);
 const VisualHeader = ({ user, onUpdate }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
   
   const currentExperience = user?.profile?.experiences?.find(exp => exp.current);
+
+  const handleShare = () => {
+    const publicLink = `${window.location.origin}/p/${user.profile.public_id}`;
+    navigator.clipboard.writeText(publicLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const [formData, setFormData] = useState({
     first_name: user?.first_name || "",
@@ -143,19 +151,38 @@ const VisualHeader = ({ user, onUpdate }) => {
       position="relative"
       p={0}
     >
-      <IconButton
-        aria-label="Edit Profile"
-        variant="ghost"
-        color="whiteAlpha.400"
-        _hover={{ bg: "whiteAlpha.100", color: "white" }}
+      <HStack
         position="absolute"
         top={6}
         right={6}
         zIndex={10}
-        onClick={() => setIsDialogOpen(true)}
+        gap={2}
       >
-        <Edit2 size={20} />
-      </IconButton>
+        <Button
+          size="sm"
+          variant="outline"
+          borderColor="whiteAlpha.200"
+          bg="whiteAlpha.50"
+          color="whiteAlpha.800"
+          _hover={{ bg: "whiteAlpha.100", borderColor: "whiteAlpha.400", color: "white" }}
+          leftIcon={<Share2 size={16} />}
+          onClick={handleShare}
+          fontSize="xs"
+          fontWeight="bold"
+          borderRadius="md"
+        >
+          {copied ? "COPIED!" : "SHARE"}
+        </Button>
+        <IconButton
+          aria-label="Edit Profile"
+          variant="ghost"
+          color="whiteAlpha.400"
+          _hover={{ bg: "whiteAlpha.100", color: "white" }}
+          onClick={() => setIsDialogOpen(true)}
+        >
+          <Edit2 size={20} />
+        </IconButton>
+      </HStack>
 
       <Flex direction={{ base: "column", md: "row" }} align="stretch">
         {/* Left Side (Avatar Section) */}

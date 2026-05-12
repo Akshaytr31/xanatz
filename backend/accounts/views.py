@@ -153,3 +153,15 @@ class CompanyViewSet(viewsets.ModelViewSet):
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
+
+class PublicProfileView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, public_id):
+        try:
+            profile = Profile.objects.get(public_id=public_id)
+            user = profile.user
+            serializer = UserSerializer(user)
+            return Response(serializer.data)
+        except (Profile.DoesNotExist, ValueError):
+            return Response({"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)

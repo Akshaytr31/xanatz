@@ -54,7 +54,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Profile
-        fields = ['headline', 'about', 'location', 'profile_picture', 'cover_image', 'website', 'skills', 'experiences', 'educations']
+        fields = ['public_id', 'headline', 'about', 'location', 'profile_picture', 'cover_image', 'website', 'skills', 'experiences', 'educations']
 
 class PrivacyPolicySerializer(serializers.ModelSerializer):
     class Meta:

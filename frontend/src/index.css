@@ -10,6 +10,7 @@
 }
 
 :root {
+  /* --color-accent: #CD2426; */
   --font-heading: 'Outfit', 'Inter', system-ui, sans-serif;
   --color-accent: #3b82f6;
   --color-accent-rgb: 59, 130, 246;
@@ -90,3 +91,45 @@ body {
   0% { transform: translate(0, 0); }
   100% { transform: translate(100px, 100px); }
 }
+
+/* ─── Public Profile Layout ─────────────────────────────────────────────────
+   These classes are used by all landing_profile components.
+   Using plain CSS (not Tailwind) to guarantee reliable padding.
+   clamp(min, preferred, max)  ─────────────────────────────────────────── */
+
+.pub-section {
+  padding-left:  clamp(1.25rem, 5vw, 5rem);
+  padding-right: clamp(1.25rem, 5vw, 5rem);
+  padding-top:    4rem;
+  padding-bottom: 4rem;
+  position: relative;
+  z-index: 20;
+}
+
+@media (min-width: 768px) {
+  .pub-section {
+    padding-top:    6rem;
+    padding-bottom: 6rem;
+  }
+}
+
+.pub-inner {
+  max-width: 900px;
+  margin-left:  auto;
+  margin-right: auto;
+  width: 100%;
+}
+
+/* Hero section gets more top padding because of fixed header */
+.pub-section-hero {
+  padding-left:  clamp(1.25rem, 5vw, 5rem);
+  padding-right: clamp(1.25rem, 5vw, 5rem);
+  padding-top:   6.5rem;
+  padding-bottom: 4rem;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
