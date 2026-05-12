@@ -34,6 +34,7 @@ const Dashboard = () => {
       bg="var(--color-primary)"
       position="relative"
       overflow="hidden"
+      marginTop={'50px'}
     >
       <Navbar handleLogout={handleLogout} />
 

@@ -12,8 +12,8 @@ const PublicFooter = ({ fullName, handleShare }) => {
       style={{
         position: "relative", zIndex: 20,
         borderTop: "1px solid rgba(255,255,255,0.06)",
-        paddingLeft: "clamp(1.25rem, 5vw, 5rem)",
-        paddingRight: "clamp(1.25rem, 5vw, 5rem)",
+        paddingLeft: "clamp(1.5rem, 5vw, 5rem)",
+        paddingRight: "clamp(1.5rem, 5vw, 5rem)",
         paddingTop: "2.5rem", paddingBottom: "2.5rem",
         background: "rgba(2,6,23,0.85)",
         backdropFilter: "blur(20px)",
@@ -28,9 +28,9 @@ const PublicFooter = ({ fullName, handleShare }) => {
           </span>
 
           {/* Attribution */}
-          <p style={{ fontSize: "0.7rem", color: "#374151", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+          {/* <p style={{ fontSize: "0.7rem", color: "#374151", display: "flex", alignItems: "center", gap: "0.3rem" }}>
             Crafted with <Heart size={10} style={{ color: "#ef4444", fill: "#ef4444" }} /> in {year}
-          </p>
+          </p> */}
 
           {/* Actions */}
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
