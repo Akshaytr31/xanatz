@@ -295,6 +295,25 @@ const TimelineChart = ({ experiences, handleOpen }) => {
 
   const years = Array.from({ length: totalYears }, (_, i) => startAxis + i);
 
+  // Dynamic Level calculation to prevent overlap
+  const labelWidthPercent = 18; // Estimate based on minW=140px on minW=800px chart
+  const occupiedUntil = []; // Tracks the right-most edge of labels per level
+
+  const experiencesWithLevels = parsedExps.map((exp) => {
+    const leftPercent = ((exp.startFraction - startAxis) / totalYears) * 100;
+    
+    let level = 0;
+    // Find the first level where this label won't overlap with others
+    while (occupiedUntil[level] !== undefined && leftPercent < occupiedUntil[level]) {
+      level++;
+    }
+    occupiedUntil[level] = leftPercent + labelWidthPercent;
+    
+    return { ...exp, leftPercent, level };
+  });
+
+  const maxLevel = Math.max(...experiencesWithLevels.map(e => e.level), 1);
+
   // Premium palette
   const colors = [
     "linear-gradient(90deg, var(--color-accent), #60a5fa)",
@@ -304,9 +323,9 @@ const TimelineChart = ({ experiences, handleOpen }) => {
   ];
 
   return (
-    <Box position="relative" minW="800px" minH="280px" mt={4}>
-      {parsedExps.map((exp, index) => {
-        const leftPercent = ((exp.startFraction - startAxis) / totalYears) * 100;
+    <Box position="relative" minW="800px" minH={`${220 + maxLevel * 70}px`} mt={4}>
+      {experiencesWithLevels.map((exp, index) => {
+        const leftPercent = exp.leftPercent;
         let widthPercent = ((exp.endFraction - exp.startFraction) / totalYears) * 100;
         
         if (widthPercent < (1.5 / 12 / totalYears) * 100) {
@@ -314,13 +333,13 @@ const TimelineChart = ({ experiences, handleOpen }) => {
         }
         
         const color = colors[index % colors.length];
-        const isHigh = index % 2 === 0;
+        const level = exp.level;
 
         return (
           <Box key={exp.id} position="absolute" left={`${leftPercent}%`} bottom="50px" width={`${widthPercent}%`} h="100%">
             <MotionBox 
               position="absolute" 
-              bottom={isHigh ? "160px" : "80px"} 
+              bottom={`${80 + level * 70}px`} 
               left="0" 
               zIndex={10}
               initial={{ opacity: 0, y: 10 }}
@@ -353,7 +372,7 @@ const TimelineChart = ({ experiences, handleOpen }) => {
               position="absolute" 
               left="0" 
               bottom="20px" 
-              height={isHigh ? "145px" : "65px"} 
+              height={`${65 + level * 70}px`} 
               borderLeft="2px solid" 
               borderColor="whiteAlpha.200"
               _after={{
