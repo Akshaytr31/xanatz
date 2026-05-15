@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import CompanyProfileModal from "../components/company/CompanyProfileModal";
+import CompanyMembersList from "../components/company/CompanyMembersList";
 import api from "../api";
 
 const MotionBox = motion.create(Box);
@@ -31,25 +32,34 @@ const StatCard = ({ icon: Icon, label, value, color = "rgba(66,153,225,0.8)", de
   <MotionBox
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.4, delay }}
+    transition={{ duration: 0.5, delay, type: "spring", stiffness: 100 }}
     flex={1}
-    p={5}
+    p={6}
     borderRadius="2xl"
-    border="1px solid rgba(255,255,255,0.07)"
-    style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(10px)" }}
-    _hover={{ borderColor: "rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.05)" }}
-    transition="all 0.2s"
+    border="1px solid rgba(255,255,255,0.04)"
+    position="relative"
+    overflow="hidden"
+    style={{ background: "rgba(255,255,255,0.02)", backdropFilter: "blur(20px)" }}
+    _hover={{ 
+      borderColor: "rgba(255,255,255,0.1)", 
+      background: "rgba(255,255,255,0.04)",
+      transform: "translateY(-4px)"
+    }}
     textAlign="center"
   >
+    {/* Subtle glow behind the icon */}
+    <Box position="absolute" top="10%" left="50%" transform="translateX(-50%)" w="50px" h="50px" borderRadius="full"
+      style={{ background: color, filter: "blur(30px)", opacity: 0.15 }} pointerEvents="none" />
+      
     <Flex
-      w="40px" h="40px" borderRadius="xl" align="center" justify="center"
-      mx="auto" mb={3}
-      style={{ background: `${color}18`, border: `1px solid ${color}30` }}
+      w="44px" h="44px" borderRadius="xl" align="center" justify="center"
+      mx="auto" mb={4} position="relative" zIndex={1}
+      style={{ background: `linear-gradient(135deg, ${color}20, ${color}05)`, border: `1px solid ${color}30` }}
     >
-      <Icon size={18} color={color} />
+      <Icon size={20} color={color} />
     </Flex>
-    <Text color="white" fontWeight="black" fontSize="xl" lineHeight="1">{value || "—"}</Text>
-    <Text color="rgba(255,255,255,0.35)" fontSize="9px" fontWeight="black" letterSpacing="widest" mt={1}>{label}</Text>
+    <Text color="white" fontWeight="900" fontSize="2xl" lineHeight="1" letterSpacing="tight" position="relative" zIndex={1}>{value || "—"}</Text>
+    <Text color="rgba(255,255,255,0.4)" fontSize="10px" fontWeight="bold" letterSpacing="widest" mt={2} position="relative" zIndex={1}>{label}</Text>
   </MotionBox>
 );
 
@@ -74,6 +84,9 @@ const CompanyDashboard = () => {
 
   const handleLogout = () => { localStorage.clear(); navigate("/login"); };
   const isOwner = currentUser && company && company.creator === currentUser.id;
+  const currentUserMemberInfo = company?.members_details?.find(m => m.id === currentUser?.id);
+  const isAdmin = currentUserMemberInfo?.access_role === 'admin';
+  const hasAccess = isOwner || isAdmin;
   const accentColor = INDUSTRY_COLORS[company?.industry] || "#3b82f6";
 
   if (loading) return (
@@ -182,6 +195,12 @@ const CompanyDashboard = () => {
                         OWNER
                       </Badge>
                     )}
+                    {isAdmin && !isOwner && (
+                      <Badge px={2} py={0.5} fontSize="2xs" fontWeight="black" borderRadius="full"
+                        style={{ background: `rgba(239,68,68,0.2)`, color: "#ef4444", border: `1px solid rgba(239,68,68,0.4)` }}>
+                        ADMIN
+                      </Badge>
+                    )}
                     {company.industry && (
                       <Badge px={2} py={0.5} fontSize="2xs" fontWeight="black" borderRadius="full"
                         style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.12)" }}>
@@ -204,30 +223,30 @@ const CompanyDashboard = () => {
               <HStack gap={3} pb={2}>
                 {company.website && (
                   <Box as="a" href={company.website} target="_blank" rel="noopener noreferrer"
-                    px={4} py={2} borderRadius="xl" border="1px solid rgba(255,255,255,0.12)"
-                    style={{ background: "rgba(255,255,255,0.06)", cursor: "pointer" }}
-                    _hover={{ borderColor: "rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.1)" }}
-                    transition="all 0.2s"
+                    w="42px" h="42px" borderRadius="full" display="flex" alignItems="center" justifyContent="center"
+                    border="1px solid rgba(255,255,255,0.08)"
+                    style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(10px)", cursor: "pointer", transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" }}
+                    _hover={{ borderColor: "rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.1)", transform: "translateY(-3px)" }}
+                    title="Visit Website"
                   >
-                    <HStack gap={2}>
-                      <ExternalLink size={13} color="rgba(255,255,255,0.6)" />
-                      <Text fontSize="10px" fontWeight="black" letterSpacing="widest" color="rgba(255,255,255,0.6)">WEBSITE</Text>
-                    </HStack>
+                    <Globe size={18} color="rgba(255,255,255,0.8)" />
                   </Box>
                 )}
                 {isOwner && (
-                  <Button h="9" px={5} borderRadius="xl" fontWeight="black" fontSize="xs" letterSpacing="widest" color="white"
-                    onClick={() => setIsModalOpen(true)}
-                    style={{
-                      background: `linear-gradient(135deg, ${accentColor}, rgba(139,92,246,0.9))`,
-                      boxShadow: `0 4px 20px ${accentColor}40`,
+                  <Box as="button" onClick={() => setIsModalOpen(true)}
+                    w="42px" h="42px" borderRadius="full" display="flex" alignItems="center" justifyContent="center"
+                    border="1px solid rgba(255,255,255,0.08)"
+                    style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(10px)", cursor: "pointer", transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" }}
+                    _hover={{ 
+                      borderColor: accentColor, 
+                      background: `${accentColor}25`, 
+                      transform: "translateY(-3px)",
+                      boxShadow: `0 8px 25px ${accentColor}40`
                     }}
-                    _hover={{ transform: "translateY(-2px)", boxShadow: `0 8px 30px ${accentColor}60` }}
-                    transition="all 0.2s"
+                    title="Edit Profile"
                   >
-                    <Settings2 size={13} style={{ marginRight: "6px" }} />
-                    EDIT PROFILE
-                  </Button>
+                    <Settings2 size={18} color="rgba(255,255,255,0.9)" />
+                  </Box>
                 )}
               </HStack>
             </Flex>
@@ -270,49 +289,7 @@ const CompanyDashboard = () => {
               )}
 
               {/* Members */}
-              <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.25 }}
-                p={7} borderRadius="2xl" border="1px solid rgba(255,255,255,0.07)"
-                style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(10px)" }}
-              >
-                <HStack gap={3} mb={5} justify="space-between">
-                  <HStack gap={3}>
-                    <Box w="3px" h="20px" borderRadius="full" style={{ background: `linear-gradient(to bottom, ${accentColor}, transparent)` }} />
-                    <Text color="rgba(255,255,255,0.4)" fontSize="10px" fontWeight="black" letterSpacing="widest">MEMBERS</Text>
-                  </HStack>
-                  <Box px={2} py={0.5} borderRadius="full" style={{ background: `${accentColor}20`, border: `1px solid ${accentColor}30` }}>
-                    <Text fontSize="10px" fontWeight="black" style={{ color: accentColor }}>{company.members.length}</Text>
-                  </Box>
-                </HStack>
-
-                {company.members.length === 0 ? (
-                  <Flex direction="column" align="center" py={8} gap={3}>
-                    <Box w="60px" h="60px" borderRadius="2xl" display="flex" alignItems="center" justifyContent="center"
-                      style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                      <Users size={24} color="rgba(255,255,255,0.1)" />
-                    </Box>
-                    <Text color="rgba(255,255,255,0.25)" fontSize="sm">No members yet</Text>
-                  </Flex>
-                ) : (
-                  <Flex gap={3} flexWrap="wrap">
-                    {company.members.map((memberId, i) => (
-                      <Box key={memberId} px={4} py={2} borderRadius="xl"
-                        border="1px solid rgba(255,255,255,0.08)"
-                        style={{ background: "rgba(255,255,255,0.04)" }}
-                        _hover={{ borderColor: `${accentColor}40`, background: `${accentColor}0a` }}
-                        transition="all 0.2s"
-                      >
-                        <HStack gap={2}>
-                          <Box w="22px" h="22px" borderRadius="full" display="flex" alignItems="center" justifyContent="center"
-                            style={{ background: `${accentColor}20` }}>
-                            <Text fontSize="9px" fontWeight="black" style={{ color: accentColor }}>{String(memberId).slice(-2)}</Text>
-                          </Box>
-                          <Text color="rgba(255,255,255,0.55)" fontSize="xs" fontWeight="bold">Member</Text>
-                        </HStack>
-                      </Box>
-                    ))}
-                  </Flex>
-                )}
-              </MotionBox>
+              <CompanyMembersList members={company.members_details || []} accentColor={accentColor} companyId={company.id} isOwner={hasAccess} />
             </VStack>
 
             {/* Right sidebar */}

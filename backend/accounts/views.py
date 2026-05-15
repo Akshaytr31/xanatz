@@ -2,11 +2,12 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
-from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company
+from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember
 from .serializers import (
     SendOTPSerializer, VerifyOTPSerializer, RegisterUserSerializer, 
     PrivacyPolicySerializer, UserSerializer, ProfileSerializer,
-    ExperienceSerializer, EducationSerializer, CompanySerializer
+    ExperienceSerializer, EducationSerializer, CompanySerializer,
+    UserSearchSerializer
 )
 
 class SendOTPView(APIView):
@@ -143,11 +144,17 @@ class CompanyViewSet(viewsets.ModelViewSet):
     def attach_user(self, request, pk=None):
         company = self.get_object()
         user_id = request.data.get('user_id')
+        access_role = request.data.get('access_role', 'user')
+        position = request.data.get('position', '')
+        
         if not user_id:
             return Response({"error": "user_id is required"}, status=status.HTTP_400_BAD_REQUEST)
         try:
             user = User.objects.get(id=user_id)
-            company.members.add(user)
+            CompanyMember.objects.update_or_create(
+                company=company, user=user,
+                defaults={'access_role': access_role, 'position': position}
+            )
             return Response({"message": "User attached successfully"}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -160,10 +167,28 @@ class CompanyViewSet(viewsets.ModelViewSet):
             return Response({"error": "user_id is required"}, status=status.HTTP_400_BAD_REQUEST)
         try:
             user = User.objects.get(id=user_id)
-            company.members.remove(user)
+            CompanyMember.objects.filter(company=company, user=user).delete()
             return Response({"message": "User detached successfully"}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=True, methods=['patch'])
+    def update_member(self, request, pk=None):
+        company = self.get_object()
+        user_id = request.data.get('user_id')
+        if not user_id:
+            return Response({"error": "user_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        try:
+            member = CompanyMember.objects.get(company=company, user_id=user_id)
+            if 'access_role' in request.data:
+                member.access_role = request.data['access_role']
+            if 'position' in request.data:
+                member.position = request.data['position']
+            member.save()
+            return Response({"message": "Member updated successfully"}, status=status.HTTP_200_OK)
+        except CompanyMember.DoesNotExist:
+            return Response({"error": "Member not found in company"}, status=status.HTTP_404_NOT_FOUND)
 
 
 class PublicProfileView(APIView):
@@ -177,3 +202,20 @@ class PublicProfileView(APIView):
             return Response(serializer.data)
         except (Profile.DoesNotExist, ValueError):
             return Response({"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class UserSearchView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        query = request.query_params.get('q', '').strip()
+        if not query:
+            return Response([])
+            
+        users = User.objects.filter(
+            Q(email__icontains=query) | 
+            Q(first_name__icontains=query) | 
+            Q(last_name__icontains=query)
+        ).exclude(id=request.user.id)[:10]
+        
+        serializer = UserSearchSerializer(users, many=True, context={'request': request})
+        return Response(serializer.data)

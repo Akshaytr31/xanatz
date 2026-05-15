@@ -4,7 +4,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     SendOTPView, VerifyOTPView, RegisterUserView, GoogleLoginView, 
     PrivacyPolicyView, UserProfileView, ExperienceViewSet, EducationViewSet,
-    CompanyViewSet, PublicProfileView
+    CompanyViewSet, PublicProfileView, UserSearchView
 )
 
 router = DefaultRouter()
@@ -22,5 +22,6 @@ urlpatterns = [
     path('privacy-policy/', PrivacyPolicyView.as_view(), name='privacy-policy'),
     path('me/', UserProfileView.as_view(), name='user_profile'),
     path('public-profile/<uuid:public_id>/', PublicProfileView.as_view(), name='public_profile'),
+    path('users/search/', UserSearchView.as_view(), name='user_search'),
     path('', include(router.urls)),
 ]

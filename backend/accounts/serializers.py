@@ -62,6 +62,27 @@ class PrivacyPolicySerializer(serializers.ModelSerializer):
         fields = ['id', 'content', 'updated_at', 'created_at']
         read_only_fields = ['id', 'updated_at', 'created_at']
 
+class UserSearchSerializer(serializers.ModelSerializer):
+    profile_picture = serializers.SerializerMethodField()
+    headline = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'first_name', 'last_name', 'profile_picture', 'headline']
+
+    def get_profile_picture(self, obj):
+        request = self.context.get('request')
+        if hasattr(obj, 'profile') and obj.profile.profile_picture:
+            if request:
+                return request.build_absolute_uri(obj.profile.profile_picture.url)
+            return obj.profile.profile_picture.url
+        return None
+
+    def get_headline(self, obj):
+        if hasattr(obj, 'profile'):
+            return obj.profile.headline
+        return None
+
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(read_only=True)
     profile_completion_percentage = serializers.ReadOnlyField()
@@ -77,6 +98,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class CompanySerializer(serializers.ModelSerializer):
     members = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    members_details = serializers.SerializerMethodField()
     creator = serializers.PrimaryKeyRelatedField(read_only=True)
     creator_name = serializers.SerializerMethodField()
     logo_url = serializers.SerializerMethodField()
@@ -87,8 +109,32 @@ class CompanySerializer(serializers.ModelSerializer):
             'id', 'name', 'tagline', 'description', 'logo', 'logo_url',
             'website', 'industry', 'company_size', 'location', 'founded_year',
             'linkedin_url', 'twitter_url', 'is_active',
-            'creator', 'creator_name', 'members', 'created_at', 'updated_at',
+            'creator', 'creator_name', 'members', 'members_details', 'created_at', 'updated_at',
         ]
+
+    def get_members_details(self, obj):
+        request = self.context.get('request')
+        details = []
+        for company_member in obj.company_members.select_related('user', 'user__profile').all():
+            member = company_member.user
+            profile_pic = None
+            if hasattr(member, 'profile') and member.profile.profile_picture:
+                if request:
+                    profile_pic = request.build_absolute_uri(member.profile.profile_picture.url)
+                else:
+                    profile_pic = member.profile.profile_picture.url
+            details.append({
+                'id': member.id,
+                'first_name': member.first_name,
+                'last_name': member.last_name,
+                'email': member.email,
+                'profile_picture': profile_pic,
+                'public_id': str(member.profile.public_id) if hasattr(member, 'profile') else None,
+                'headline': member.profile.headline if hasattr(member, 'profile') else None,
+                'access_role': company_member.access_role,
+                'position': company_member.position
+            })
+        return details
 
     def get_creator_name(self, obj):
         if obj.creator:

@@ -12,13 +12,11 @@ const clientId =
   "470572371858-2uktu4o3905om6tqsabv1gn35i3t4m4v.apps.googleusercontent.com";
 
 createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    <ChakraProvider value={defaultSystem}>
-      <ThemeProvider attribute="class" disableTransitionOnChange>
-        <GoogleOAuthProvider clientId={clientId}>
-          <App />
-        </GoogleOAuthProvider>
-      </ThemeProvider>
-    </ChakraProvider>
-  </StrictMode>,
+  <ChakraProvider value={defaultSystem}>
+    <ThemeProvider attribute="class" disableTransitionOnChange>
+      <GoogleOAuthProvider clientId={clientId}>
+        <App />
+      </GoogleOAuthProvider>
+    </ThemeProvider>
+  </ChakraProvider>
 );

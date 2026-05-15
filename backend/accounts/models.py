@@ -158,6 +158,23 @@ def handle_user_profile(sender, instance, created, **kwargs):
         else:
             Profile.objects.get_or_create(user=instance)
 
+class CompanyMember(models.Model):
+    ROLE_CHOICES = [
+        ('admin', 'Admin'),
+        ('user', 'User'),
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='company_memberships')
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='company_members')
+    access_role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='user')
+    position = models.CharField(max_length=255, blank=True, null=True)
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'company')
+
+    def __str__(self):
+        return f"{self.user.email} - {self.company.name} ({self.access_role})"
+
 class Company(models.Model):
     INDUSTRY_CHOICES = [
         ('technology', 'Technology'),
@@ -197,7 +214,7 @@ class Company(models.Model):
     twitter_url = models.URLField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
     creator = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_companies')
-    members = models.ManyToManyField(User, related_name='companies', blank=True)
+    members = models.ManyToManyField(User, through='CompanyMember', related_name='companies', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
