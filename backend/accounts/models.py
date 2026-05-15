@@ -159,8 +159,43 @@ def handle_user_profile(sender, instance, created, **kwargs):
             Profile.objects.get_or_create(user=instance)
 
 class Company(models.Model):
+    INDUSTRY_CHOICES = [
+        ('technology', 'Technology'),
+        ('finance', 'Finance'),
+        ('healthcare', 'Healthcare'),
+        ('education', 'Education'),
+        ('retail', 'Retail & E-commerce'),
+        ('manufacturing', 'Manufacturing'),
+        ('media', 'Media & Entertainment'),
+        ('real_estate', 'Real Estate'),
+        ('consulting', 'Consulting'),
+        ('logistics', 'Logistics & Supply Chain'),
+        ('hospitality', 'Hospitality & Tourism'),
+        ('energy', 'Energy & Utilities'),
+        ('other', 'Other'),
+    ]
+
+    SIZE_CHOICES = [
+        ('1-10', '1–10 employees'),
+        ('11-50', '11–50 employees'),
+        ('51-200', '51–200 employees'),
+        ('201-500', '201–500 employees'),
+        ('501-1000', '501–1000 employees'),
+        ('1001+', '1001+ employees'),
+    ]
+
     name = models.CharField(max_length=255)
+    tagline = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
+    logo = models.ImageField(upload_to='company_logos/', blank=True, null=True)
+    website = models.URLField(blank=True, null=True)
+    industry = models.CharField(max_length=50, choices=INDUSTRY_CHOICES, blank=True, null=True)
+    company_size = models.CharField(max_length=20, choices=SIZE_CHOICES, blank=True, null=True)
+    location = models.CharField(max_length=255, blank=True, null=True)
+    founded_year = models.PositiveIntegerField(blank=True, null=True)
+    linkedin_url = models.URLField(blank=True, null=True)
+    twitter_url = models.URLField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
     creator = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_companies')
     members = models.ManyToManyField(User, related_name='companies', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

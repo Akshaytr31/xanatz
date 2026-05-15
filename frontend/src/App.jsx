@@ -7,6 +7,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 import Profile from "./pages/Profile";
 import PublicProfile from "./pages/PublicProfile";
+import CompanyDashboard from "./pages/CompanyDashboard";
 
 function App() {
   return (
@@ -31,6 +32,14 @@ function App() {
           }
         />
         <Route path="/p/:publicId" element={<PublicProfile />} />
+        <Route
+          path="/company/:id"
+          element={
+            <ProtectedRoute>
+              <CompanyDashboard />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/admin"
           element={

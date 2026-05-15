@@ -73,12 +73,30 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_companies(self, obj):
         user_companies = Company.objects.filter(models.Q(members=obj) | models.Q(creator=obj)).distinct()
-        return [{"id": c.id, "name": c.name} for c in user_companies]
+        return [{"id": c.id, "name": c.name, "is_owner": c.creator_id == obj.id} for c in user_companies]
 
 class CompanySerializer(serializers.ModelSerializer):
     members = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     creator = serializers.PrimaryKeyRelatedField(read_only=True)
+    creator_name = serializers.SerializerMethodField()
+    logo_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Company
-        fields = ['id', 'name', 'description', 'creator', 'members', 'created_at', 'updated_at']
+        fields = [
+            'id', 'name', 'tagline', 'description', 'logo', 'logo_url',
+            'website', 'industry', 'company_size', 'location', 'founded_year',
+            'linkedin_url', 'twitter_url', 'is_active',
+            'creator', 'creator_name', 'members', 'created_at', 'updated_at',
+        ]
+
+    def get_creator_name(self, obj):
+        if obj.creator:
+            return f"{obj.creator.first_name} {obj.creator.last_name}".strip() or obj.creator.email
+        return None
+
+    def get_logo_url(self, obj):
+        request = self.context.get('request')
+        if obj.logo and request:
+            return request.build_absolute_uri(obj.logo.url)
+        return None

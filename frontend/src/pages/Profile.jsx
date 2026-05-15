@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Box, Container, VStack, Flex, Text, Spinner, Button } from "@chakra-ui/react";
+import { Box, Container, VStack, Flex, Text, Spinner, Button, HStack, Badge } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "../components/Navbar";
 import VisualHeader from "../components/Profile/VisualHeader";
 import CareerTimeline from "../components/Profile/CareerTimeline";
 import EducationSection from "../components/Profile/EducationSection";
 import SkillsSection from "../components/Profile/SkillsSection";
-import CompanySection from "../components/Profile/CompanySection";
-import CreateCompanySection from "../components/Profile/CreateCompanySection";
+import CompanySection from "../components/company/CompanySection";
+import CreateCompanySection from "../components/company/CreateCompanySection";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
+import { Building2, ChevronDown, ArrowRightLeft } from "lucide-react";
 
 const MotionBox = motion.create(Box);
 const MotionVStack = motion.create(VStack);
@@ -18,6 +19,7 @@ const Profile = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [companyRefreshTrigger, setCompanyRefreshTrigger] = useState(0);
+  const [showCompanyPicker, setShowCompanyPicker] = useState(false);
   const navigate = useNavigate();
 
   const handleCompanyChange = () => {
@@ -171,6 +173,161 @@ const Profile = () => {
                   width="100%"
                 />
               </MotionBox>
+
+              {/* ── Switch to Company Account ── */}
+              {(() => {
+                const ownedCompanies = (user?.companies || []).filter((c) => c.is_owner);
+                if (ownedCompanies.length === 0) return null;
+                return (
+                <MotionBox
+                  initial={{ opacity: 0, x: 15 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4, delay: 0.25 }}
+                  position="relative"
+                >
+                  <Box
+                    className="glass-card"
+                    p={5}
+                    border="1px solid"
+                    borderColor="rgba(66,153,225,0.3)"
+                    style={{
+                      background: "linear-gradient(135deg, rgba(66,153,225,0.08) 0%, rgba(15,23,42,0.6) 100%)",
+                    }}
+                  >
+                    <Text
+                      color="rgba(255,255,255,0.4)"
+                      fontSize="10px"
+                      fontWeight="black"
+                      letterSpacing="widest"
+                      mb={3}
+                    >
+                      COMPANY ACCOUNT
+                    </Text>
+
+                    {ownedCompanies.length === 1 ? (
+                      // Single company — direct switch
+                      <Button
+                        w="full"
+                        h="10"
+                        borderRadius="lg"
+                        fontWeight="black"
+                        fontSize="xs"
+                        letterSpacing="widest"
+                        color="white"
+                        onClick={() => navigate(`/company/${ownedCompanies[0].id}`)}
+                        style={{
+                          background:
+                            "linear-gradient(135deg, var(--color-accent) 0%, rgba(100,150,255,0.9) 100%)",
+                          boxShadow: "0 4px 20px rgba(66,153,225,0.3)",
+                        }}
+                        _hover={{
+                          transform: "translateY(-1px)",
+                          boxShadow: "0 6px 25px rgba(66,153,225,0.5)",
+                        }}
+                        transition="all 0.2s"
+                      >
+                        <Building2 size={14} style={{ marginRight: "8px" }} />
+                        SWITCH TO COMPANY
+                      </Button>
+                    ) : (
+                      // Multiple companies — show picker
+                      <Box position="relative">
+                        <Button
+                          w="full"
+                          h="10"
+                          borderRadius="lg"
+                          fontWeight="black"
+                          fontSize="xs"
+                          letterSpacing="widest"
+                          color="white"
+                          onClick={() => setShowCompanyPicker((v) => !v)}
+                          style={{
+                            background:
+                              "linear-gradient(135deg, var(--color-accent) 0%, rgba(100,150,255,0.9) 100%)",
+                            boxShadow: "0 4px 20px rgba(66,153,225,0.3)",
+                          }}
+                          _hover={{
+                            transform: "translateY(-1px)",
+                            boxShadow: "0 6px 25px rgba(66,153,225,0.5)",
+                          }}
+                          transition="all 0.2s"
+                        >
+                          <Building2 size={14} style={{ marginRight: "8px" }} />
+                          SWITCH TO COMPANY
+                          <ChevronDown size={13} style={{ marginLeft: "auto" }} />
+                        </Button>
+
+                        {/* Dropdown */}
+                        {showCompanyPicker && (
+                          <Box
+                            position="absolute"
+                            top="calc(100% + 8px)"
+                            left={0}
+                            right={0}
+                            borderRadius="xl"
+                            border="1px solid rgba(66,153,225,0.25)"
+                            overflow="hidden"
+                            zIndex={10}
+                            style={{
+                              background: "rgba(15,23,42,0.97)",
+                              backdropFilter: "blur(16px)",
+                              boxShadow: "0 20px 50px rgba(0,0,0,0.6)",
+                            }}
+                          >
+                            {ownedCompanies.map((company) => (
+                              <Box
+                                key={company.id}
+                                as="button"
+                                w="full"
+                                px={4}
+                                py={3}
+                                textAlign="left"
+                                borderBottom="1px solid rgba(255,255,255,0.06)"
+                                _hover={{ bg: "rgba(66,153,225,0.1)" }}
+                                transition="all 0.15s"
+                                onClick={() => {
+                                  setShowCompanyPicker(false);
+                                  navigate(`/company/${company.id}`);
+                                }}
+                              >
+                                <HStack gap={3}>
+                                  <Box
+                                    w="7"
+                                    h="7"
+                                    borderRadius="lg"
+                                    style={{ background: "rgba(66,153,225,0.15)" }}
+                                    display="flex"
+                                    alignItems="center"
+                                    justifyContent="center"
+                                    flexShrink={0}
+                                  >
+                                    <Text
+                                      color="rgba(66,153,225,0.9)"
+                                      fontWeight="black"
+                                      fontSize="sm"
+                                    >
+                                      {company.name.charAt(0).toUpperCase()}
+                                    </Text>
+                                  </Box>
+                                  <Text
+                                    color="white"
+                                    fontWeight="bold"
+                                    fontSize="xs"
+                                    letterSpacing="tight"
+                                  >
+                                    {company.name}
+                                  </Text>
+                                </HStack>
+                              </Box>
+                            ))}
+                          </Box>
+                        )}
+                      </Box>
+                    )}
+                  </Box>
+                </MotionBox>
+                );
+              })()}
 
               <MotionBox
                 initial={{ opacity: 0, x: 15 }}

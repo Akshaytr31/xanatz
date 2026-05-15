@@ -123,9 +123,21 @@ class CompanyViewSet(viewsets.ModelViewSet):
     serializer_class = CompanySerializer
     queryset = Company.objects.all()
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
     def perform_create(self, serializer):
         company = serializer.save(creator=self.request.user)
         company.members.add(self.request.user)
+
+    @action(detail=False, methods=['get'], url_path='my-companies')
+    def my_companies(self, request):
+        """Returns only companies created by the current user."""
+        companies = Company.objects.filter(creator=request.user)
+        serializer = self.get_serializer(companies, many=True)
+        return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
     def attach_user(self, request, pk=None):
