@@ -167,7 +167,7 @@ const CompanySection = ({ user, refreshTrigger, onCompanyChange }) => {
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.2, delay: index * 0.05 }}
                   p={5}
-                  borderRadius="2xl"
+                  borderRadius="lg"
                   border="1px solid"
                   borderColor={isCreator ? "rgba(66,153,225,0.2)" : "whiteAlpha.100"}
                   style={{
@@ -186,7 +186,7 @@ const CompanySection = ({ user, refreshTrigger, onCompanyChange }) => {
                         w="48px"
                         h="48px"
                         flexShrink={0}
-                        borderRadius="xl"
+                        borderRadius="lg"
                         overflow="hidden"
                         border="1px solid rgba(255,255,255,0.1)"
                         style={{ background: "rgba(255,255,255,0.05)" }}

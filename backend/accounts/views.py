@@ -38,9 +38,68 @@ class RegisterUserView(APIView):
 
 class GoogleLoginView(APIView):
     permission_classes = [permissions.AllowAny]
+
     def post(self, request):
-        # Implementation for Google Login
-        return Response({"message": "Google login successful"}, status=status.HTTP_200_OK)
+        from google.oauth2 import id_token
+        from google.auth.transport import requests as google_requests
+        from rest_framework_simplejwt.tokens import RefreshToken
+        import os
+
+        credential = request.data.get('credential')
+        if not credential:
+            return Response({"error": "Google credential is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            client_id = os.environ.get('GOOGLE_CLIENT_ID', '')
+            id_info = id_token.verify_oauth2_token(
+                credential,
+                google_requests.Request(),
+                client_id
+            )
+        except ValueError as e:
+            return Response({"error": f"Invalid Google token: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        email = id_info.get('email')
+        first_name = id_info.get('given_name', '')
+        last_name = id_info.get('family_name', '')
+
+        if not email:
+            return Response({"error": "Google account has no email"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get or create user
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={
+                'first_name': first_name,
+                'last_name': last_name,
+                'accepted_privacy_policy': True,
+            }
+        )
+
+        # Ensure profile exists (signal handles it on create, but be safe)
+        Profile.objects.get_or_create(user=user)
+
+        # Update name if user already existed and name was empty
+        if not created and (not user.first_name or not user.last_name):
+            user.first_name = user.first_name or first_name
+            user.last_name = user.last_name or last_name
+            user.save()
+
+        # Issue JWT tokens
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            "tokens": {
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+            },
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+            }
+        }, status=status.HTTP_200_OK)
+
 
 class PrivacyPolicyView(APIView):
     permission_classes = [permissions.AllowAny]

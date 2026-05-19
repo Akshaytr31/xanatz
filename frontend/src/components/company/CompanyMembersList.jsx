@@ -17,7 +17,7 @@ const CompanyMembersList = ({ members, accentColor, companyId, isOwner }) => {
 
   return (
     <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.25 }}
-      p={7} borderRadius="2xl" border="1px solid rgba(255,255,255,0.07)"
+      p={7} borderRadius="lg" border="1px solid rgba(255,255,255,0.07)"
       style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(10px)" }}
     >
       <HStack gap={3} mb={5} justify="space-between">
@@ -46,7 +46,7 @@ const CompanyMembersList = ({ members, accentColor, companyId, isOwner }) => {
 
       {safeMembers.length === 0 ? (
         <Flex direction="column" align="center" py={8} gap={3}>
-          <Box w="60px" h="60px" borderRadius="2xl" display="flex" alignItems="center" justifyContent="center"
+          <Box w="60px" h="60px" borderRadius="lg" display="flex" alignItems="center" justifyContent="center"
             style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
             <Users size={24} color="rgba(255,255,255,0.1)" />
           </Box>
@@ -64,7 +64,7 @@ const CompanyMembersList = ({ members, accentColor, companyId, isOwner }) => {
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Flex p={4} borderRadius="xl"
+                  <Flex p={4} borderRadius="lg"
                     border="1px solid rgba(255,255,255,0.08)"
                     style={{ background: "rgba(255,255,255,0.02)", backdropFilter: "blur(10px)" }}
                     _hover={{ borderColor: `${accentColor}40`, background: `${accentColor}0f`, transform: "translateY(-2px)" }}
@@ -112,7 +112,7 @@ const CompanyMembersList = ({ members, accentColor, companyId, isOwner }) => {
               fontWeight="bold"
               letterSpacing="widest"
               _hover={{ color: "white", bg: "rgba(255,255,255,0.05)" }}
-              borderRadius="xl"
+              borderRadius="lg"
               h="40px"
               rightIcon={isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             >

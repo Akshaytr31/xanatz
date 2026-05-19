@@ -40,7 +40,7 @@ const CompanyMemberSearch = ({ company, openAddModal, accentColor }) => {
   return (
     <VStack align="stretch" gap={6} position="sticky" top="100px">
       <MotionBox initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}
-        p={7} borderRadius="3xl" border="1px solid rgba(255,255,255,0.08)"
+        p={7} borderRadius="lg" border="1px solid rgba(255,255,255,0.08)"
         style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(20px)" }}
         boxShadow="0 25px 50px -12px rgba(0, 0, 0, 0.5)"
       >
@@ -54,7 +54,7 @@ const CompanyMemberSearch = ({ company, openAddModal, accentColor }) => {
           align="center" 
           bg="rgba(0,0,0,0.2)" 
           border="1px solid rgba(255,255,255,0.1)" 
-          borderRadius="xl" 
+          borderRadius="lg" 
           px={4} py={1}
           _focusWithin={{ borderColor: accentColor, boxShadow: `0 0 0 1px ${accentColor}`, bg: "rgba(0,0,0,0.4)" }}
           transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
@@ -96,7 +96,7 @@ const CompanyMemberSearch = ({ company, openAddModal, accentColor }) => {
               <VStack align="stretch" gap={3} mt={5} maxH="400px" overflowY="auto"
                 css={{ '&::-webkit-scrollbar': { width: '4px' }, '&::-webkit-scrollbar-thumb': { background: 'rgba(255,255,255,0.2)', borderRadius: '4px' } }}>
                 {filteredSearchResults.map(user => (
-                  <Flex key={user.id} p={3} borderRadius="2xl" border="1px solid rgba(255,255,255,0.03)"
+                  <Flex key={user.id} p={3} borderRadius="lg" border="1px solid rgba(255,255,255,0.03)"
                     bg="rgba(255,255,255,0.02)" align="center" justify="space-between"
                     _hover={{ bg: "rgba(255,255,255,0.05)", transform: "translateY(-2px)", borderColor: "rgba(255,255,255,0.1)" }}
                     transition="all 0.2s"

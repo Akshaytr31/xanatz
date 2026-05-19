@@ -62,7 +62,7 @@ const fieldStyle = {
   bg: "rgba(255,255,255,0.05)",
   color: "white",
   h: "11",
-  borderRadius: "xl",
+  borderRadius: "lg",
   border: "1px solid",
   borderColor: "rgba(255,255,255,0.12)",
   _focus: { borderColor: "var(--color-accent)", boxShadow: "0 0 0 2px rgba(66,153,225,0.25)" },
@@ -88,7 +88,7 @@ const SelectField = ({ value, onChange, options, placeholder }) => (
       background: "rgba(255,255,255,0.05)",
       color: value ? "white" : "rgba(255,255,255,0.25)",
       height: "44px",
-      borderRadius: "12px",
+      borderRadius: "lg",
       border: "1px solid rgba(255,255,255,0.12)",
       fontSize: "14px",
       padding: "0 16px",
@@ -238,7 +238,7 @@ const CreateCompanySection = ({ onCreated }) => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 20, scale: 0.97 }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
-                borderRadius="2xl"
+                borderRadius="lg"
                 overflow="hidden"
                 border="1px solid rgba(255,255,255,0.1)"
                 style={{
@@ -262,7 +262,7 @@ const CreateCompanySection = ({ onCreated }) => {
                         <Box
                           w="56px"
                           h="56px"
-                          borderRadius="xl"
+                          borderRadius="lg"
                           border="2px dashed rgba(255,255,255,0.2)"
                           overflow="hidden"
                           cursor="pointer"
@@ -409,7 +409,7 @@ const CreateCompanySection = ({ onCreated }) => {
                               style={{
                                 background: "rgba(255,255,255,0.05)",
                                 color: "white",
-                                borderRadius: "12px",
+                                borderRadius: "lg",
                                 border: "1px solid rgba(255,255,255,0.12)",
                                 fontSize: "14px",
                                 padding: "12px 16px",
@@ -511,7 +511,7 @@ const CreateCompanySection = ({ onCreated }) => {
                         <VStack gap={6} align="stretch">
                           <Box
                             p={4}
-                            borderRadius="xl"
+                            borderRadius="lg"
                             border="1px solid rgba(255,255,255,0.06)"
                             style={{ background: "rgba(255,255,255,0.03)" }}
                           >

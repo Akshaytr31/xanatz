@@ -176,8 +176,10 @@ const Profile = () => {
 
               {/* ── Switch to Company Account ── */}
               {(() => {
-                const ownedCompanies = (user?.companies || []).filter((c) => c.is_owner);
-                if (ownedCompanies.length === 0) return null;
+                const accessibleCompanies = (user?.companies || []).filter(
+                  (c) => c.is_owner || c.access_role === 'admin'
+                );
+                if (accessibleCompanies.length === 0) return null;
                 return (
                 <MotionBox
                   initial={{ opacity: 0, x: 15 }}
@@ -204,7 +206,7 @@ const Profile = () => {
                       COMPANY ACCOUNT
                     </Text>
 
-                    {ownedCompanies.length === 1 ? (
+                    {accessibleCompanies.length === 1 ? (
                       // Single company — direct switch
                       <Button
                         w="full"
@@ -214,7 +216,7 @@ const Profile = () => {
                         fontSize="xs"
                         letterSpacing="widest"
                         color="white"
-                        onClick={() => navigate(`/company/${ownedCompanies[0].id}`)}
+                        onClick={() => navigate(`/company/${accessibleCompanies[0].id}`)}
                         style={{
                           background:
                             "linear-gradient(135deg, var(--color-accent) 0%, rgba(100,150,255,0.9) 100%)",
@@ -274,7 +276,7 @@ const Profile = () => {
                               boxShadow: "0 20px 50px rgba(0,0,0,0.6)",
                             }}
                           >
-                            {ownedCompanies.map((company) => (
+                            {accessibleCompanies.map((company) => (
                               <Box
                                 key={company.id}
                                 as="button"
@@ -290,33 +292,50 @@ const Profile = () => {
                                   navigate(`/company/${company.id}`);
                                 }}
                               >
-                                <HStack gap={3}>
-                                  <Box
-                                    w="7"
-                                    h="7"
-                                    borderRadius="lg"
-                                    style={{ background: "rgba(66,153,225,0.15)" }}
-                                    display="flex"
-                                    alignItems="center"
-                                    justifyContent="center"
-                                    flexShrink={0}
-                                  >
-                                    <Text
-                                      color="rgba(66,153,225,0.9)"
-                                      fontWeight="black"
-                                      fontSize="sm"
+                                <HStack gap={3} justify="space-between">
+                                  <HStack gap={3}>
+                                    <Box
+                                      w="7"
+                                      h="7"
+                                      borderRadius="lg"
+                                      style={{
+                                        background: company.is_owner
+                                          ? "rgba(66,153,225,0.15)"
+                                          : "rgba(239,68,68,0.15)",
+                                      }}
+                                      display="flex"
+                                      alignItems="center"
+                                      justifyContent="center"
+                                      flexShrink={0}
                                     >
-                                      {company.name.charAt(0).toUpperCase()}
+                                      <Text
+                                        color={company.is_owner ? "rgba(66,153,225,0.9)" : "rgba(239,68,68,0.9)"}
+                                        fontWeight="black"
+                                        fontSize="sm"
+                                      >
+                                        {company.name.charAt(0).toUpperCase()}
+                                      </Text>
+                                    </Box>
+                                    <Text
+                                      color="white"
+                                      fontWeight="bold"
+                                      fontSize="xs"
+                                      letterSpacing="tight"
+                                    >
+                                      {company.name}
                                     </Text>
-                                  </Box>
-                                  <Text
-                                    color="white"
-                                    fontWeight="bold"
-                                    fontSize="xs"
-                                    letterSpacing="tight"
-                                  >
-                                    {company.name}
-                                  </Text>
+                                  </HStack>
+                                  {!company.is_owner && (
+                                    <Box
+                                      px={1.5} py={0.5} borderRadius="md"
+                                      bg="rgba(239,68,68,0.2)" border="1px solid rgba(239,68,68,0.4)"
+                                      flexShrink={0}
+                                    >
+                                      <Text fontSize="8px" fontWeight="black" color="#ef4444" letterSpacing="widest">
+                                        ADMIN
+                                      </Text>
+                                    </Box>
+                                  )}
                                 </HStack>
                               </Box>
                             ))}

@@ -87,7 +87,7 @@ const CompanyDashboard = () => {
   const currentUserMemberInfo = company?.members_details?.find(m => m.id === currentUser?.id);
   const isAdmin = currentUserMemberInfo?.access_role === 'admin';
   const hasAccess = isOwner || isAdmin;
-  const accentColor = INDUSTRY_COLORS[company?.industry] || "#3b82f6";
+  const accentColor = "#CD2426"; // Red accent from index.css
 
   if (loading) return (
     <Flex h="100vh" align="center" justify="center" bg="var(--color-primary)">

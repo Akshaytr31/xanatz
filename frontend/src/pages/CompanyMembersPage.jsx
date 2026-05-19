@@ -130,7 +130,7 @@ const CompanyMembersPage = () => {
   const currentUserMemberInfo = company?.members_details?.find(m => m.id === currentUser?.id);
   const isAdmin = currentUserMemberInfo?.access_role === 'admin';
   const hasAccess = isOwner || isAdmin;
-  const accentColor = "#3b82f6"; // Default accent
+  const accentColor = "#CD2426"; // Red accent from index.css
 
   if (!hasAccess) {
     return (
@@ -227,7 +227,32 @@ const CompanyMembersPage = () => {
                       _hover={{ borderColor: "rgba(255,255,255,0.15)", bg: "rgba(255,255,255,0.04)", transform: "translateY(-4px)", boxShadow: "0 20px 40px -10px rgba(0,0,0,0.4)" }}
                       transition="all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)" position="relative" group
                       align="center" justify="space-between" minH="120px" gap={4}
+                      cursor={member.public_id ? "pointer" : "default"}
+                      onClick={() => member.public_id && navigate(`/p/${member.public_id}`)}
                     >
+                      {/* Top Role Tag */}
+                      {member.id === company.creator ? (
+                        <Box
+                          position="absolute" top="-1px" left="50%" transform="translateX(-50%)"
+                          px={3} py={0.5} borderRadius="0 0 10px 10px"
+                          bg={`linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`}
+                          boxShadow={`0 4px 15px ${accentColor}60`}
+                          zIndex={2}
+                        >
+                          <Text fontSize="9px" fontWeight="black" color="white" letterSpacing="widest">OWNER</Text>
+                        </Box>
+                      ) : member.access_role === 'admin' ? (
+                        <Box
+                          position="absolute" top="1px" right="1px" transform="translateX(-50%)"
+                          px={3} py={0.5} borderRadius="0 0 10px 10px"
+                          bg="linear-gradient(135deg, #ef4444, #dc2626)"
+                          boxShadow="0 4px 15px rgba(239,68,68,0.5)"
+                          zIndex={2}
+                        >
+                          <Text fontSize="9px" fontWeight="black" color="white" letterSpacing="widest">ADMIN</Text>
+                        </Box>
+                      ) : null}
+
                       <Flex align="center" gap={4} flex={1} overflow="hidden">
                         <Box w="60px" h="60px" borderRadius="full" overflow="hidden" border={`2px solid rgba(255,255,255,0.1)`}
                           p={0.5} bg="rgba(0,0,0,0.2)" flexShrink={0}
@@ -259,35 +284,21 @@ const CompanyMembersPage = () => {
                         </VStack>
                       </Flex>
 
-                      {/* Badges and Actions */}
-                      <Flex align="center" gap={2} minW="80px" justify="flex-end">
-                        {member.id === company.creator ? (
-                          <Box px={3} py={1} borderRadius="full" 
-                            bg={`linear-gradient(135deg, ${accentColor}30, transparent)`} border={`1px solid ${accentColor}50`}>
-                            <Text fontSize="10px" fontWeight="black" color={accentColor} letterSpacing="widest">OWNER</Text>
-                          </Box>
-                        ) : member.access_role === 'admin' ? (
-                          <Box px={3} py={1} borderRadius="full" 
-                            bg={`rgba(239,68,68,0.2)`} border={`1px solid rgba(239,68,68,0.4)`}>
-                            <Text fontSize="10px" fontWeight="black" color="#ef4444" letterSpacing="widest">ADMIN</Text>
-                          </Box>
-                        ) : null}
-
-                        {member.id !== company.creator && hasAccess && (
-                          <Flex opacity={0.3} _hover={{ opacity: 1 }} transition="all 0.2s" gap={1}>
-                            <IconButton aria-label="Edit member" size="sm" borderRadius="full"
-                              bg="rgba(255,255,255,0.1)" color="white" _hover={{ bg: "rgba(255,255,255,0.2)" }} 
-                              onClick={() => openEditModal(member)}>
-                              <Settings2 size={14} />
-                            </IconButton>
-                            <IconButton aria-label="Remove member" size="sm" borderRadius="full"
-                              bg="#ef4444" color="white" _hover={{ bg: "#dc2626" }} 
-                              onClick={() => handleRemoveMember(member.id)}>
-                              <UserMinus size={14} />
-                            </IconButton>
-                          </Flex>
-                        )}
-                      </Flex>
+                      {/* Actions */}
+                      {member.id !== company.creator && hasAccess && (
+                        <Flex opacity={0.3} _hover={{ opacity: 1 }} transition="all 0.2s" gap={1}>
+                          <IconButton aria-label="Edit member" size="sm" borderRadius="full"
+                            bg="rgba(255,255,255,0.1)" color="white" _hover={{ bg: "rgba(255,255,255,0.2)" }} 
+                            onClick={(e) => { e.stopPropagation(); openEditModal(member); }}>
+                            <Settings2 size={14} />
+                          </IconButton>
+                          <IconButton aria-label="Remove member" size="sm" borderRadius="full"
+                            bg="#ef4444" color="white" _hover={{ bg: "#dc2626" }} 
+                            onClick={(e) => { e.stopPropagation(); handleRemoveMember(member.id); }}>
+                            <UserMinus size={14} />
+                          </IconButton>
+                        </Flex>
+                      )}
                     </Flex>
                   </MotionBox>
                 ))}
@@ -340,10 +351,10 @@ const CompanyMembersPage = () => {
                   <Text color="rgba(255,255,255,0.6)" fontSize="xs" fontWeight="bold" mb={2} letterSpacing="widest">ACCESS ROLE</Text>
                   <Flex gap={2}>
                     <Button flex={1} 
-                      bg={role === "user" ? "#3b82f6" : "transparent"} 
+                      bg={role === "user" ? accentColor : "transparent"} 
                       color={role === "user" ? "white" : "rgba(255,255,255,0.5)"}
-                      border="1px solid" borderColor={role === "user" ? "#3b82f6" : "rgba(255,255,255,0.2)"}
-                      _hover={{ bg: role === "user" ? "#2563eb" : "rgba(255,255,255,0.05)" }}
+                      border="1px solid" borderColor={role === "user" ? accentColor : "rgba(255,255,255,0.2)"}
+                      _hover={{ filter: role === "user" ? "brightness(1.1)" : "none", bg: role !== "user" ? "rgba(255,255,255,0.05)" : accentColor }}
                       onClick={() => setRole("user")}>
                       User
                     </Button>

@@ -248,12 +248,10 @@ const LoginForm = () => {
         <Separator flex="1" borderColor="whiteAlpha.200" />
       </Flex>
 
-      {/* 
       <GoogleLoginButton
         onSuccess={handleGoogleSuccess}
         onError={() => setError("Google Login Failed")}
       />
-      */}
 
       <Box mt={8} textAlign="center">
         <Text color="slate.500" fontSize="xs" fontWeight="medium">
