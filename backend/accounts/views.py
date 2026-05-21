@@ -341,7 +341,13 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
 
         queryset = JobApplication.objects.all()
 
-        if job_id:
+        if self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
+            # For detail actions, allow access if the user is the applicant or is the company owner/admin
+            queryset = queryset.filter(
+                Q(applicant=user) | 
+                Q(job_opening__company_id__in=all_my_company_ids)
+            )
+        elif job_id:
             queryset = queryset.filter(job_opening_id=job_id)
             if not queryset.filter(job_opening__company_id__in=all_my_company_ids).exists():
                 queryset = queryset.filter(applicant=user)
@@ -351,15 +357,13 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
             else:
                 queryset = queryset.none()
         else:
-            queryset = queryset.filter(
-                Q(applicant=user) | 
-                Q(job_opening__company_id__in=all_my_company_ids)
-            )
+            # Only return applications submitted by the current user when viewing 'My Applications'
+            queryset = queryset.filter(applicant=user)
 
         return queryset.order_by('-created_at')
 
     def perform_create(self, serializer):
-        serializer.save(applicant=self.request.user)
+        serializer.save(applicant=self.request.user, status='applied')
 
     def perform_update(self, serializer):
         instance = self.get_object()

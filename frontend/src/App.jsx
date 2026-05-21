@@ -12,6 +12,7 @@ import CompanyMembersPage from "./pages/CompanyMembersPage";
 import ManageOpeningsPage from "./pages/ManageOpeningsPage";
 import ApplyJobPage from "./pages/ApplyJobPage";
 import ManageApplicationsPage from "./pages/ManageApplicationsPage";
+import MyApplicationsPage from "./pages/MyApplicationsPage";
 
 function App() {
   return (
@@ -73,6 +74,14 @@ function App() {
           element={
             <ProtectedRoute>
               <ApplyJobPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-applications"
+          element={
+            <ProtectedRoute>
+              <MyApplicationsPage />
             </ProtectedRoute>
           }
         />

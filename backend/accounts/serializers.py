@@ -245,4 +245,4 @@ class JobApplicationSerializer(serializers.ModelSerializer):
             'full_name', 'email', 'cover_letter', 'resume', 'portfolio_url', 'status',
             'created_at', 'updated_at'
         ]
-        read_only_fields = ['applicant', 'status']
+        read_only_fields = ['applicant']

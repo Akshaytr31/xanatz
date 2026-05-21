@@ -13,6 +13,11 @@ import {
   Settings,
   HelpCircle,
   X,
+  Clock,
+  AlertCircle,
+  Calendar,
+  ChevronRight,
+  ClipboardList,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -104,6 +109,7 @@ const Navbar = () => {
   const [user, setUser] = useState(null);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  
   const navigate = useNavigate();
   const location = useLocation();
   const searchInputRef = useRef(null);
@@ -237,6 +243,12 @@ const Navbar = () => {
             label="Jobs"
             active={location.pathname === "/jobs"}
             onClick={() => navigate("/jobs")}
+          />
+          <NavItem
+            icon={ClipboardList}
+            label="Applications"
+            active={location.pathname === "/my-applications"}
+            onClick={() => navigate("/my-applications")}
           />
           <NavItem
             icon={MessageSquare}
@@ -505,6 +517,14 @@ const Navbar = () => {
                         }}
                       />
                     )}
+                    <MenuLink
+                      icon={ClipboardList}
+                      label="My Applications"
+                      onClick={() => {
+                        setIsProfileOpen(false);
+                        navigate("/my-applications");
+                      }}
+                    />
                     <MenuLink icon={Settings} label="Preferences" />
                     <MenuLink icon={HelpCircle} label="Help & Support" />
                     <div style={{ height: "1px", background: "rgba(255,255,255,0.07)", margin: "0.4rem 0.5rem" }} />
