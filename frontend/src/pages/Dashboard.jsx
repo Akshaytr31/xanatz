@@ -74,14 +74,6 @@ const Dashboard = () => {
       <Box p={{ base: 6, md: 10 }} position="relative">
         {/* Explore Job Openings Section */}
         <Box mt={10} position="relative" zIndex={10}>
-          <VStack align="start" gap={1} mb={6}>
-            <Heading size="lg" fontWeight="black" color="white" letterSpacing="tight">
-              Explore Job Openings
-            </Heading>
-            <Text color="var(--color-secondary)" fontSize="sm">
-              Discover your next career step with leading verified companies
-            </Text>
-          </VStack>
 
           {/* Filters Panel */} 
           <Grid templateColumns={{ base: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }} gap={4} mb={8}>
