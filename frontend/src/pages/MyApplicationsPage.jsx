@@ -175,7 +175,7 @@ const MyApplicationsPage = () => {
                               if (item.count === 0) return null;
                               const pct = (item.count / totalApps) * 100;
                               const strokeDash = (pct / 100) * 314.16;
-                              const strokeOffset = 314.16 - (accumulatedPercent / 100) * 314.16;
+                              const strokeOffset = -(accumulatedPercent / 100) * 314.16;
                               accumulatedPercent += pct;
                               
                               return (
