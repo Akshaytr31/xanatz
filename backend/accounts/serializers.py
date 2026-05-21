@@ -4,9 +4,16 @@ from django.db import models
 from django.core.mail import send_mail
 from django.conf import settings
 import random
-from .models import PrivacyPolicy, Profile, Experience, Education, Company, OTP
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from .models import PrivacyPolicy, Profile, Experience, Education, Company, OTP, JobOpening, JobApplication
 
 User = get_user_model()
+
+
+class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """Custom serializer that uses 'email' instead of 'username'."""
+    username_field = User.USERNAME_FIELD  # resolves to 'email'
+
 
 class SendOTPSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -205,3 +212,37 @@ class CompanySerializer(serializers.ModelSerializer):
         if obj.logo and request:
             return request.build_absolute_uri(obj.logo.url)
         return None
+
+
+class JobOpeningSerializer(serializers.ModelSerializer):
+    company_name = serializers.ReadOnlyField(source='company.name')
+    company_logo_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = JobOpening
+        fields = [
+            'id', 'company', 'company_name', 'company_logo_url',
+            'title', 'description', 'requirements', 'location',
+            'job_type', 'salary_range', 'is_active', 'created_at', 'updated_at'
+        ]
+
+    def get_company_logo_url(self, obj):
+        request = self.context.get('request')
+        if obj.company.logo and request:
+            return request.build_absolute_uri(obj.company.logo.url)
+        return None
+
+
+class JobApplicationSerializer(serializers.ModelSerializer):
+    job_title = serializers.ReadOnlyField(source='job_opening.title')
+    company_name = serializers.ReadOnlyField(source='job_opening.company.name')
+    applicant_email = serializers.ReadOnlyField(source='applicant.email')
+
+    class Meta:
+        model = JobApplication
+        fields = [
+            'id', 'job_opening', 'job_title', 'company_name', 'applicant', 'applicant_email',
+            'full_name', 'email', 'cover_letter', 'resume', 'portfolio_url', 'status',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['applicant', 'status']

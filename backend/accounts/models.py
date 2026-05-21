@@ -220,3 +220,51 @@ class Company(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class JobOpening(models.Model):
+    JOB_TYPE_CHOICES = [
+        ('full_time', 'Full-time'),
+        ('part_time', 'Part-time'),
+        ('contract', 'Contract'),
+        ('internship', 'Internship'),
+        ('remote', 'Remote'),
+    ]
+
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='job_openings')
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    requirements = models.TextField(blank=True, null=True)
+    location = models.CharField(max_length=255, blank=True, null=True)
+    job_type = models.CharField(max_length=50, choices=JOB_TYPE_CHOICES, default='full_time')
+    salary_range = models.CharField(max_length=100, blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.title} at {self.company.name}"
+
+
+class JobApplication(models.Model):
+    STATUS_CHOICES = [
+        ('applied', 'Applied'),
+        ('reviewed', 'Reviewed'),
+        ('shortlisted', 'Shortlisted'),
+        ('rejected', 'Rejected'),
+        ('accepted', 'Accepted'),
+    ]
+
+    job_opening = models.ForeignKey(JobOpening, on_delete=models.CASCADE, related_name='applications')
+    applicant = models.ForeignKey(User, on_delete=models.CASCADE, related_name='job_applications')
+    full_name = models.CharField(max_length=255)
+    email = models.EmailField()
+    cover_letter = models.TextField(blank=True, null=True)
+    resume = models.FileField(upload_to='resumes/', blank=True, null=True)
+    portfolio_url = models.URLField(blank=True, null=True)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='applied')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.full_name} for {self.job_opening.title}"

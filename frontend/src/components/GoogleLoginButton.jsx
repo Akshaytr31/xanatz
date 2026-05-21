@@ -37,7 +37,7 @@ const GoogleLoginButton = ({
               type="icon"
               shape="circle"
               size="large"
-              width={isGoogleHovered ? "280" : "48"}
+              width="280"
             />
           </Box>
 

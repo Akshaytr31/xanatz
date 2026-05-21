@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { Shield } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Shield, Briefcase, MapPin, DollarSign, Search, Building2, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -10,23 +10,56 @@ import {
   HStack,
   Grid,
   GridItem,
+  Input,
+  Badge,
+  Spinner,
 } from "@chakra-ui/react";
 import Navbar from "../components/Navbar";
 import DashboardCard from "../components/DashboardCard";
+import JobOpeningCard from "../components/JobOpeningCard";
+import api from "../api";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [jobs, setJobs] = useState([]);
+  const [titleSearch, setTitleSearch] = useState("");
+  const [companySearch, setCompanySearch] = useState("");
+  const [locationSearch, setLocationSearch] = useState("");
+  const [jobTypeFilter, setJobTypeFilter] = useState("all");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!localStorage.getItem("access")) {
       navigate("/login");
+      return;
     }
+
+    const fetchJobs = async () => {
+      try {
+        const response = await api.get("jobs/");
+        setJobs(response.data);
+      } catch (err) {
+        console.error("Failed to fetch jobs", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchJobs();
   }, [navigate]);
 
   const handleLogout = () => {
     localStorage.clear();
     navigate("/login");
   };
+
+  const filteredJobs = jobs.filter(job => {
+    const matchesTitle = job.title.toLowerCase().includes(titleSearch.toLowerCase());
+    const matchesCompany = job.company_name.toLowerCase().includes(companySearch.toLowerCase());
+    const matchesLocation = !locationSearch || (job.location && job.location.toLowerCase().includes(locationSearch.toLowerCase()));
+    const matchesType = jobTypeFilter === "all" || job.job_type === jobTypeFilter;
+    
+    return matchesTitle && matchesCompany && matchesLocation && matchesType;
+  });
 
   return (
     <Box
@@ -39,63 +72,160 @@ const Dashboard = () => {
       <Navbar handleLogout={handleLogout} />
 
       <Box p={{ base: 6, md: 10 }} position="relative">
-        <Grid
-          templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }}
-          gap={6}
-          position="relative"
-          zIndex={10}
-        >
-          <GridItem colSpan={{ base: 1, md: 2 }}>
-            <DashboardCard title="Account Overview" delay={0.1}>
-              <Text color="var(--color-secondary)">
-                This is your private dashboard. Your application successfully
-                authenticated with the Django backend. From here you can manage
-                your profile, security settings, and connect other applications.
-              </Text>
-            </DashboardCard>
-          </GridItem>
+        {/* Explore Job Openings Section */}
+        <Box mt={10} position="relative" zIndex={10}>
+          <VStack align="start" gap={1} mb={6}>
+            <Heading size="lg" fontWeight="black" color="white" letterSpacing="tight">
+              Explore Job Openings
+            </Heading>
+            <Text color="var(--color-secondary)" fontSize="sm">
+              Discover your next career step with leading verified companies
+            </Text>
+          </VStack>
 
-          <GridItem colSpan={1}>
-            <DashboardCard
-              delay={0.2}
-              border="1px solid"
-              borderColor="var(--color-secondary)"
-            >
-              <HStack gap={3} mb={4}>
-                <Shield size={20} color="var(--color-secondary)" />
-                <Heading size="md" fontWeight="semibold" color="white">
-                  Security Status
-                </Heading>
+          {/* Filters Panel */} 
+          <Grid templateColumns={{ base: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }} gap={4} mb={8}>
+            {/* Title Filter */}
+            <VStack align="start" gap={1.5}>
+              <Text fontSize="xs" fontWeight="black" color="rgba(255,255,255,0.4)" letterSpacing="wider">JOB TITLE</Text>
+              <HStack
+                bg="rgba(255,255,255,0.03)"
+                borderRadius="lg"
+                px={3}
+                border="1px solid rgba(255,255,255,0.07)"
+                w="full"
+                _focusWithin={{ borderColor: "var(--color-accent)", boxShadow: "0 0 0 1px var(--color-accent)" }}
+                transition="all 0.2s"
+              >
+                <Search size={14} color="rgba(255,255,255,0.3)" />
+                <Input
+                  placeholder="e.g. Software Engineer"
+                  variant="unstyled"
+                  color="white"
+                  fontSize="xs"
+                  value={titleSearch}
+                  onChange={(e) => setTitleSearch(e.target.value)}
+                  py={2.5}
+                  _placeholder={{ color: "rgba(255,255,255,0.2)" }}
+                />
               </HStack>
-              <VStack align="stretch" gap={3}>
-                <Flex justify="space-between" align="center" fontSize="sm">
-                  <Text color="var(--color-secondary)">Email Verification</Text>
-                  <Box
-                    bg="var(--color-secondary)"
-                    color="green.400"
-                    px={2}
-                    py={1}
-                    borderRadius="md"
-                  >
-                    Verified
-                  </Box>
-                </Flex>
-                <Flex justify="space-between" align="center" fontSize="sm">
-                  <Text color="var(--color-secondary)">Privacy Policy</Text>
-                  <Box
-                    bg="var(--color-secondary)"
-                    color="green.400"
-                    px={2}
-                    py={1}
-                    borderRadius="md"
-                  >
-                    Accepted
-                  </Box>
-                </Flex>
-              </VStack>
-            </DashboardCard>
-          </GridItem>
-        </Grid>
+            </VStack>
+
+            {/* Company Filter */}
+            <VStack align="start" gap={1.5}>
+              <Text fontSize="xs" fontWeight="black" color="rgba(255,255,255,0.4)" letterSpacing="wider">COMPANY</Text>
+              <HStack
+                bg="rgba(255,255,255,0.03)"
+                borderRadius="lg"
+                px={3}
+                border="1px solid rgba(255,255,255,0.07)"
+                w="full"
+                _focusWithin={{ borderColor: "var(--color-accent)", boxShadow: "0 0 0 1px var(--color-accent)" }}
+                transition="all 0.2s"
+              >
+                <Building2 size={14} color="rgba(255,255,255,0.3)" />
+                <Input
+                  placeholder="e.g. Appzia"
+                  variant="unstyled"
+                  color="white"
+                  fontSize="xs"
+                  value={companySearch}
+                  onChange={(e) => setCompanySearch(e.target.value)}
+                  py={2.5}
+                  _placeholder={{ color: "rgba(255,255,255,0.2)" }}
+                />
+              </HStack>
+            </VStack>
+
+            {/* Location Filter */}
+            <VStack align="start" gap={1.5}>
+              <Text fontSize="xs" fontWeight="black" color="rgba(255,255,255,0.4)" letterSpacing="wider">LOCATION</Text>
+              <HStack
+                bg="rgba(255,255,255,0.03)"
+                borderRadius="lg"
+                px={3}
+                border="1px solid rgba(255,255,255,0.07)"
+                w="full"
+                _focusWithin={{ borderColor: "var(--color-accent)", boxShadow: "0 0 0 1px var(--color-accent)" }}
+                transition="all 0.2s"
+              >
+                <MapPin size={14} color="rgba(255,255,255,0.3)" />
+                <Input
+                  placeholder="e.g. Remote / Austin"
+                  variant="unstyled"
+                  color="white"
+                  fontSize="xs"
+                  value={locationSearch}
+                  onChange={(e) => setLocationSearch(e.target.value)}
+                  py={2.5}
+                  _placeholder={{ color: "rgba(255,255,255,0.2)" }}
+                />
+              </HStack>
+            </VStack>
+
+            {/* Job Type Filter */}
+            <VStack align="start" gap={1.5}>
+              <Text fontSize="xs" fontWeight="black" color="rgba(255,255,255,0.4)" letterSpacing="wider">JOB TYPE</Text>
+              <Box
+                as="select"
+                value={jobTypeFilter}
+                onChange={(e) => setJobTypeFilter(e.target.value)}
+                style={{
+                  background: "rgba(255,255,255,0.03)",
+                  color: "white",
+                  height: "38px",
+                  borderRadius: "8px",
+                  border: "1px solid rgba(255,255,255,0.07)",
+                  fontSize: "12px",
+                  padding: "0 12px",
+                  width: "100%",
+                  outline: "none",
+                  cursor: "pointer",
+                  appearance: "none",
+                  WebkitAppearance: "none",
+                }}
+              >
+                <option value="all" style={{ background: "#0F172A", color: "white" }}>All Job Types</option>
+                <option value="full_time" style={{ background: "#0F172A", color: "white" }}>Full-time</option>
+                <option value="part_time" style={{ background: "#0F172A", color: "white" }}>Part-time</option>
+                <option value="contract" style={{ background: "#0F172A", color: "white" }}>Contract</option>
+                <option value="internship" style={{ background: "#0F172A", color: "white" }}>Internship</option>
+                <option value="remote" style={{ background: "#0F172A", color: "white" }}>Remote</option>
+              </Box>
+            </VStack>
+          </Grid>
+
+          {loading ? (
+            <Flex justify="center" align="center" py={12}>
+              <Spinner size="lg" color="var(--color-accent)" />
+            </Flex>
+          ) : filteredJobs.length === 0 ? (
+            <Flex
+              direction="column"
+              align="center"
+              justify="center"
+              py={12}
+              borderRadius="lg"
+              border="1px dashed rgba(255,255,255,0.1)"
+              bg="rgba(255,255,255,0.01)"
+            >
+              <Briefcase size={36} color="rgba(255,255,255,0.15)" style={{ marginBottom: "12px" }} />
+              <Text color="rgba(255,255,255,0.4)" fontSize="sm" fontWeight="bold">
+                No job openings found
+              </Text>
+            </Flex>
+          ) : (
+            <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }} gap={6}>
+              {filteredJobs.map((job) => (
+                <JobOpeningCard
+                  key={job.id}
+                  job={job}
+                  onClick={() => navigate(`/jobs/${job.id}/apply`)}
+                />
+              ))}
+            </Grid>
+          )}
+        </Box>
       </Box>
     </Box>
   );

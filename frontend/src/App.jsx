@@ -9,6 +9,9 @@ import Profile from "./pages/Profile";
 import PublicProfile from "./pages/PublicProfile";
 import CompanyDashboard from "./pages/CompanyDashboard";
 import CompanyMembersPage from "./pages/CompanyMembersPage";
+import ManageOpeningsPage from "./pages/ManageOpeningsPage";
+import ApplyJobPage from "./pages/ApplyJobPage";
+import ManageApplicationsPage from "./pages/ManageApplicationsPage";
 
 function App() {
   return (
@@ -46,6 +49,30 @@ function App() {
           element={
             <ProtectedRoute>
               <CompanyMembersPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/company/:id/openings"
+          element={
+            <ProtectedRoute>
+              <ManageOpeningsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/company/:id/applications"
+          element={
+            <ProtectedRoute>
+              <ManageApplicationsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/jobs/:id/apply"
+          element={
+            <ProtectedRoute>
+              <ApplyJobPage />
             </ProtectedRoute>
           }
         />

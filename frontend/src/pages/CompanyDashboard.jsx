@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Box, Flex, Text, Button, VStack, HStack, Container, Spinner, Badge, Grid, GridItem } from "@chakra-ui/react";
-import { Building2, ArrowLeft, Globe, MapPin, Users, Calendar, Link2, AtSign, Settings2, Briefcase, TrendingUp, Award, ExternalLink } from "lucide-react";
-import { motion } from "framer-motion";
+import { Building2, ArrowLeft, Globe, MapPin, Users, Calendar, Link2, AtSign, Settings2, Briefcase, TrendingUp, Award, ExternalLink, Plus, FileText } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import CompanyProfileModal from "../components/company/CompanyProfileModal";
 import CompanyMembersList from "../components/company/CompanyMembersList";
+import JobOpeningModal from "../components/company/JobOpeningModal";
 import api from "../api";
 
 const MotionBox = motion.create(Box);
@@ -68,14 +69,25 @@ const CompanyDashboard = () => {
   const navigate = useNavigate();
   const [company, setCompany] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [jobs, setJobs] = useState([]);
+  const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isJobModalOpen, setIsJobModalOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState(null);
 
   const fetchCompany = async () => {
     try {
-      const [cRes, uRes] = await Promise.all([api.get(`companies/${id}/`), api.get("me/")]);
+      const [cRes, uRes, jRes, aRes] = await Promise.all([
+        api.get(`companies/${id}/`),
+        api.get("me/"),
+        api.get(`jobs/?company_id=${id}`),
+        api.get(`applications/?company_id=${id}`).catch(() => ({ data: [] }))
+      ]);
       setCompany(cRes.data);
       setCurrentUser(uRes.data);
+      setJobs(jRes.data);
+      setApplications(aRes.data);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
@@ -83,6 +95,26 @@ const CompanyDashboard = () => {
   useEffect(() => { fetchCompany(); }, [id]);
 
   const handleLogout = () => { localStorage.clear(); navigate("/login"); };
+
+  const handleDeleteJob = async (jobId) => {
+    if (!window.confirm("Are you sure you want to delete this job opening?")) return;
+    try {
+      await api.delete(`jobs/${jobId}/`);
+      fetchCompany();
+    } catch (err) {
+      console.error("Failed to delete job", err);
+    }
+  };
+
+  const handleEditJob = (job) => {
+    setSelectedJob(job);
+    setIsJobModalOpen(true);
+  };
+
+  const handleAddJob = () => {
+    setSelectedJob(null);
+    setIsJobModalOpen(true);
+  };
   const isOwner = currentUser && company && company.creator === currentUser.id;
   const currentUserMemberInfo = company?.members_details?.find(m => m.id === currentUser?.id);
   const isAdmin = currentUserMemberInfo?.access_role === 'admin';
@@ -288,6 +320,189 @@ const CompanyDashboard = () => {
                 </MotionBox>
               )}
 
+              {/* Job Openings */}
+              <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.22 }}
+                p={7} borderRadius="lg" border="1px solid rgba(255,255,255,0.07)"
+                style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(10px)" }}
+              >
+                <HStack gap={3} mb={5} justify="space-between">
+                  <HStack gap={3}>
+                    <Box w="3px" h="20px" borderRadius="full" style={{ background: `linear-gradient(to bottom, ${accentColor}, transparent)` }} />
+                    <Text color="rgba(255,255,255,0.4)" fontSize="10px" fontWeight="black" letterSpacing="widest">JOB OPENINGS</Text>
+                    <Box px={2} py={0.5} borderRadius="full" style={{ background: `${accentColor}20`, border: `1px solid ${accentColor}30` }}>
+                      <Text fontSize="10px" fontWeight="black" style={{ color: accentColor }}>{jobs.length}</Text>
+                    </Box>
+                  </HStack>
+                  
+                  <HStack gap={2}>
+                    <Button h="7" px={3} borderRadius="full" fontWeight="bold" fontSize="2xs" letterSpacing="widest"
+                      color="rgba(255,255,255,0.6)"
+                      border="1px solid rgba(255,255,255,0.1)"
+                      bg="rgba(255,255,255,0.04)"
+                      _hover={{ bg: "rgba(255,255,255,0.09)", color: "white" }}
+                      transition="all 0.2s"
+                      onClick={() => navigate(`/company/${id}/openings`)}
+                    >
+                      MANAGE
+                    </Button>
+                    {hasAccess && (
+                      <Button h="7" px={3} borderRadius="full" fontWeight="bold" fontSize="2xs" letterSpacing="widest" color="white"
+                        onClick={handleAddJob}
+                        style={{
+                          background: `linear-gradient(135deg, ${accentColor}80, rgba(15,23,42,0.5))`,
+                          border: `1px solid ${accentColor}40`
+                        }}
+                        _hover={{ transform: "translateY(-1px)", background: `${accentColor}90` }}
+                        transition="all 0.2s"
+                        leftIcon={<Plus size={12} />}
+                      >
+                        ADD
+                      </Button>
+                    )}
+                  </HStack>
+                </HStack>
+
+                {jobs.length === 0 ? (
+                  <Flex direction="column" align="center" py={8} gap={3}>
+                    <Box w="60px" h="60px" borderRadius="lg" display="flex" alignItems="center" justifyContent="center"
+                      style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                      <Briefcase size={24} color="rgba(255,255,255,0.1)" />
+                    </Box>
+                    <Text color="rgba(255,255,255,0.25)" fontSize="sm">No job openings posted yet</Text>
+                  </Flex>
+                ) : (
+                  <Flex
+                    align="center" gap={6} p={5} borderRadius="xl"
+                    border={`1px solid ${accentColor}20`}
+                    style={{ background: `linear-gradient(135deg, ${accentColor}08, rgba(255,255,255,0.02))` }}
+                  >
+                    {/* Big count */}
+                    <Box textAlign="center" flexShrink={0}>
+                      <Text fontWeight="black" fontSize="4xl" lineHeight="1" letterSpacing="tight" style={{ color: accentColor }}>
+                        {jobs.length}
+                      </Text>
+                      <Text color="rgba(255,255,255,0.35)" fontSize="9px" fontWeight="black" letterSpacing="widest" mt={1}>
+                        {jobs.length === 1 ? "OPENING" : "OPENINGS"}
+                      </Text>
+                    </Box>
+
+                    {/* Divider */}
+                    <Box w="1px" h="48px" borderRadius="full" bg="rgba(255,255,255,0.08)" flexShrink={0} />
+
+                    {/* Active vs Inactive breakdown */}
+                    <HStack gap={5} flex={1} flexWrap="wrap">
+                      <VStack align="start" gap={0}>
+                        <Text fontWeight="black" fontSize="xl" lineHeight="1" color="rgba(72,199,116,0.9)">
+                          {jobs.filter(j => j.is_active).length}
+                        </Text>
+                        <Text color="rgba(255,255,255,0.3)" fontSize="9px" fontWeight="black" letterSpacing="widest">ACTIVE</Text>
+                      </VStack>
+                      {jobs.filter(j => !j.is_active).length > 0 && (
+                        <VStack align="start" gap={0}>
+                          <Text fontWeight="black" fontSize="xl" lineHeight="1" color="rgba(255,255,255,0.35)">
+                            {jobs.filter(j => !j.is_active).length}
+                          </Text>
+                          <Text color="rgba(255,255,255,0.3)" fontSize="9px" fontWeight="black" letterSpacing="widest">INACTIVE</Text>
+                        </VStack>
+                      )}
+                    </HStack>
+
+                    {/* View all arrow — only for admins/owners who can manage */}
+                    {hasAccess && (
+                      <Button
+                        variant="ghost" size="sm" color="rgba(255,255,255,0.3)" flexShrink={0}
+                        _hover={{ color: "white", bg: "rgba(255,255,255,0.05)" }}
+                        onClick={handleAddJob}
+                        title="Manage openings"
+                      >
+                        <Plus size={14} />
+                      </Button>
+                    )}
+                  </Flex>
+                )}
+              </MotionBox>
+
+              {/* Job Applications Card */}
+              {hasAccess && (
+                <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.24 }}
+                  p={7} borderRadius="lg" border="1px solid rgba(255,255,255,0.07)"
+                  style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(10px)" }}
+                >
+                  <HStack gap={3} mb={5} justify="space-between">
+                    <HStack gap={3}>
+                      <Box w="3px" h="20px" borderRadius="full" style={{ background: `linear-gradient(to bottom, var(--color-accent), transparent)` }} />
+                      <Text color="rgba(255,255,255,0.4)" fontSize="10px" fontWeight="black" letterSpacing="widest">JOB APPLICATIONS</Text>
+                      <Box px={2} py={0.5} borderRadius="full" style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.3)" }}>
+                        <Text fontSize="10px" fontWeight="black" color="var(--color-accent)">{applications.length}</Text>
+                      </Box>
+                    </HStack>
+                    
+                    <Button h="7" px={3} borderRadius="full" fontWeight="bold" fontSize="2xs" letterSpacing="widest"
+                      color="rgba(255,255,255,0.6)"
+                      border="1px solid rgba(255,255,255,0.1)"
+                      bg="rgba(255,255,255,0.04)"
+                      _hover={{ bg: "rgba(255,255,255,0.09)", color: "white" }}
+                      transition="all 0.2s"
+                      onClick={() => navigate(`/company/${id}/applications`)}
+                    >
+                      MANAGE APPLICATIONS
+                    </Button>
+                  </HStack>
+
+                  {applications.length === 0 ? (
+                    <Flex direction="column" align="center" py={8} gap={3}>
+                      <Box w="60px" h="60px" borderRadius="lg" display="flex" alignItems="center" justifyContent="center"
+                        style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                        <FileText size={24} color="rgba(255,255,255,0.1)" />
+                      </Box>
+                      <Text color="rgba(255,255,255,0.25)" fontSize="sm">No applications received yet</Text>
+                    </Flex>
+                  ) : (
+                    <Flex
+                      align="center" gap={6} p={5} borderRadius="xl"
+                      border="1px solid rgba(59,130,246,0.2)"
+                      style={{ background: "linear-gradient(135deg, rgba(59,130,246,0.08), rgba(255,255,255,0.02))" }}
+                    >
+                      {/* Big count */}
+                      <Box textAlign="center" flexShrink={0}>
+                        <Text fontWeight="black" fontSize="4xl" lineHeight="1" letterSpacing="tight" color="var(--color-accent)">
+                          {applications.length}
+                        </Text>
+                        <Text color="rgba(255,255,255,0.35)" fontSize="9px" fontWeight="black" letterSpacing="widest" mt={1}>
+                          {applications.length === 1 ? "APPLICATION" : "APPLICATIONS"}
+                        </Text>
+                      </Box>
+
+                      {/* Divider */}
+                      <Box w="1px" h="48px" borderRadius="full" bg="rgba(255,255,255,0.08)" flexShrink={0} />
+
+                      {/* Breakdown by status */}
+                      <HStack gap={5} flex={1} flexWrap="wrap">
+                        <VStack align="start" gap={0}>
+                          <Text fontWeight="black" fontSize="xl" lineHeight="1" color="rgba(59,130,246,0.9)">
+                            {applications.filter(a => a.status === "applied").length}
+                          </Text>
+                          <Text color="rgba(255,255,255,0.3)" fontSize="9px" fontWeight="black" letterSpacing="widest">NEW</Text>
+                        </VStack>
+                        <VStack align="start" gap={0}>
+                          <Text fontWeight="black" fontSize="xl" lineHeight="1" color="rgba(72,199,116,0.9)">
+                            {applications.filter(a => ["shortlisted", "accepted"].includes(a.status)).length}
+                          </Text>
+                          <Text color="rgba(255,255,255,0.3)" fontSize="9px" fontWeight="black" letterSpacing="widest">SHORTLISTED</Text>
+                        </VStack>
+                        <VStack align="start" gap={0}>
+                          <Text fontWeight="black" fontSize="xl" lineHeight="1" color="rgba(255,255,255,0.35)">
+                            {applications.filter(a => a.status === "rejected").length}
+                          </Text>
+                          <Text color="rgba(255,255,255,0.3)" fontSize="9px" fontWeight="black" letterSpacing="widest">REJECTED</Text>
+                        </VStack>
+                      </HStack>
+                    </Flex>
+                  )}
+                </MotionBox>
+              )}
+
+
               {/* Members */}
               <CompanyMembersList members={company.members_details || []} accentColor={accentColor} companyId={company.id} isOwner={hasAccess} />
             </VStack>
@@ -421,6 +636,14 @@ const CompanyDashboard = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         company={company}
+        onSaved={fetchCompany}
+      />
+
+      <JobOpeningModal
+        isOpen={isJobModalOpen}
+        onClose={() => setIsJobModalOpen(false)}
+        companyId={company.id}
+        job={selectedJob}
         onSaved={fetchCompany}
       />
     </Box>

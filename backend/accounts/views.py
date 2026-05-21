@@ -2,12 +2,12 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
-from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember
+from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication
 from .serializers import (
     SendOTPSerializer, VerifyOTPSerializer, RegisterUserSerializer, 
     PrivacyPolicySerializer, UserSerializer, ProfileSerializer,
     ExperienceSerializer, EducationSerializer, CompanySerializer,
-    UserSearchSerializer
+    UserSearchSerializer, JobOpeningSerializer, JobApplicationSerializer
 )
 
 class SendOTPView(APIView):
@@ -278,3 +278,98 @@ class UserSearchView(APIView):
         
         serializer = UserSearchSerializer(users, many=True, context={'request': request})
         return Response(serializer.data)
+
+
+class JobOpeningViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = JobOpeningSerializer
+
+    def get_queryset(self):
+        queryset = JobOpening.objects.all()
+        company_id = self.request.query_params.get('company_id')
+        if company_id:
+            queryset = queryset.filter(company_id=company_id)
+            try:
+                company = Company.objects.get(id=company_id)
+                is_owner = company.creator == self.request.user
+                is_admin = CompanyMember.objects.filter(company=company, user=self.request.user, access_role='admin').exists()
+                if not (is_owner or is_admin):
+                    queryset = queryset.filter(is_active=True)
+            except Company.DoesNotExist:
+                queryset = queryset.filter(is_active=True)
+        else:
+            queryset = queryset.filter(is_active=True)
+            
+        return queryset.order_by('-created_at')
+
+    def check_company_access(self, company):
+        is_owner = company.creator == self.request.user
+        is_admin = CompanyMember.objects.filter(company=company, user=self.request.user, access_role='admin').exists()
+        if not (is_owner or is_admin):
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You do not have permission to manage this company's job openings.")
+
+    def perform_create(self, serializer):
+        company = serializer.validated_data.get('company')
+        self.check_company_access(company)
+        serializer.save()
+
+    def perform_update(self, serializer):
+        company = self.get_object().company
+        self.check_company_access(company)
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        self.check_company_access(instance.company)
+        instance.delete()
+
+
+class JobApplicationViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = JobApplicationSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        job_id = self.request.query_params.get('job_id')
+        company_id = self.request.query_params.get('company_id')
+
+        # Company owner/admin should see applications for their company/job
+        # Otherwise, user should only see applications they submitted.
+        my_companies = Company.objects.filter(creator=user).values_list('id', flat=True)
+        my_member_companies = CompanyMember.objects.filter(user=user, access_role='admin').values_list('company_id', flat=True)
+        all_my_company_ids = list(my_companies) + list(my_member_companies)
+
+        queryset = JobApplication.objects.all()
+
+        if job_id:
+            queryset = queryset.filter(job_opening_id=job_id)
+            if not queryset.filter(job_opening__company_id__in=all_my_company_ids).exists():
+                queryset = queryset.filter(applicant=user)
+        elif company_id:
+            if int(company_id) in all_my_company_ids:
+                queryset = queryset.filter(job_opening__company_id=company_id)
+            else:
+                queryset = queryset.none()
+        else:
+            queryset = queryset.filter(
+                Q(applicant=user) | 
+                Q(job_opening__company_id__in=all_my_company_ids)
+            )
+
+        return queryset.order_by('-created_at')
+
+    def perform_create(self, serializer):
+        serializer.save(applicant=self.request.user)
+
+    def perform_update(self, serializer):
+        instance = self.get_object()
+        user = self.request.user
+        is_owner = instance.job_opening.company.creator == user
+        is_admin = CompanyMember.objects.filter(company=instance.job_opening.company, user=user, access_role='admin').exists()
+        is_applicant = instance.applicant == user
+
+        if not (is_owner or is_admin or is_applicant):
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You do not have permission to update this application.")
+        
+        serializer.save()
