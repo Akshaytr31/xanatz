@@ -189,7 +189,6 @@ const MyApplicationsPage = () => {
                                   strokeWidth="12"
                                   strokeDasharray={`${strokeDash} 314.16`}
                                   strokeDashoffset={strokeOffset}
-                                  strokeLinecap="round"
                                   style={{ transition: "stroke-dashoffset 0.8s ease" }}
                                 />
                               );
@@ -198,7 +197,7 @@ const MyApplicationsPage = () => {
                         </svg>
                         
                         {/* Centered overall count */}
-                        <VStack position="absolute" gap={0} justify="center">
+                        <VStack position="absolute" top="50%" left="50%" transform="translate(-50%, -50%)" align="center" justify="center" gap={0}>
                           <Text color="white" fontWeight="black" fontSize="2xl" lineHeight="1">{applications.length}</Text>
                           <Text color="rgba(255,255,255,0.4)" fontSize="9px" fontWeight="black" letterSpacing="wider">SUBMITTED</Text>
                         </VStack>
