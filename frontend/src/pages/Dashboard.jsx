@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Shield, Briefcase, MapPin, DollarSign, Search, Building2, ExternalLink } from "lucide-react";
+import { Shield, Briefcase, MapPin, DollarSign, Search, Building2, ExternalLink, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -73,119 +73,134 @@ const Dashboard = () => {
 
       <Box p={{ base: 6, md: 10 }} position="relative">
         {/* Explore Job Openings Section */}
-        <Box mt={10} position="relative" zIndex={10}>
+        <Box mt={1} position="relative" zIndex={10}>
 
           {/* Filters Panel */} 
-          <Grid templateColumns={{ base: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }} gap={4} mb={8}>
-            {/* Title Filter */}
-            <VStack align="start" gap={1.5}>
-              <Text fontSize="xs" fontWeight="black" color="rgba(255,255,255,0.4)" letterSpacing="wider">JOB TITLE</Text>
-              <HStack
-                bg="rgba(255,255,255,0.03)"
-                borderRadius="lg"
-                px={3}
-                border="1px solid rgba(255,255,255,0.07)"
-                w="full"
-                _focusWithin={{ borderColor: "var(--color-accent)", boxShadow: "0 0 0 1px var(--color-accent)" }}
-                transition="all 0.2s"
-              >
-                <Search size={14} color="rgba(255,255,255,0.3)" />
-                <Input
-                  placeholder="e.g. Software Engineer"
-                  variant="unstyled"
-                  color="white"
-                  fontSize="xs"
-                  value={titleSearch}
-                  onChange={(e) => setTitleSearch(e.target.value)}
-                  py={2.5}
-                  _placeholder={{ color: "rgba(255,255,255,0.2)" }}
-                />
-              </HStack>
-            </VStack>
+          <Box p={5} borderRadius="2xl" border="1px solid rgba(255,255,255,0.06)" mb={8}
+            style={{ background: "rgba(255,255,255,0.02)", backdropFilter: "blur(20px)" }}>
+            <Grid templateColumns={{ base: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }} gap={4}>
+              {/* Title Filter */}
+              <VStack align="start" gap={1.5}>
+                <Text fontSize="xs" fontWeight="black" color="rgba(255,255,255,0.4)" letterSpacing="wider">JOB TITLE</Text>
+                <HStack
+                  bg="rgba(0,0,0,0.25)"
+                  borderRadius="xl"
+                  px={3.5}
+                  border="1px solid rgba(255,255,255,0.07)"
+                  w="full"
+                  _hover={{ borderColor: "rgba(255,255,255,0.12)", bg: "rgba(0,0,0,0.3)" }}
+                  _focusWithin={{ borderColor: "var(--color-accent)", boxShadow: "0 0 10px rgba(59, 130, 246, 0.2)", bg: "rgba(0,0,0,0.35)" }}
+                  transition="all 0.3s"
+                >
+                  <Search size={14} color="#3b82f6" />
+                  <Input
+                    placeholder="e.g. Software Engineer"
+                    variant="unstyled"
+                    color="white"
+                    fontSize="xs"
+                    value={titleSearch}
+                    onChange={(e) => setTitleSearch(e.target.value)}
+                    py={3}
+                    _placeholder={{ color: "rgba(255,255,255,0.2)" }}
+                  />
+                </HStack>
+              </VStack>
 
-            {/* Company Filter */}
-            <VStack align="start" gap={1.5}>
-              <Text fontSize="xs" fontWeight="black" color="rgba(255,255,255,0.4)" letterSpacing="wider">COMPANY</Text>
-              <HStack
-                bg="rgba(255,255,255,0.03)"
-                borderRadius="lg"
-                px={3}
-                border="1px solid rgba(255,255,255,0.07)"
-                w="full"
-                _focusWithin={{ borderColor: "var(--color-accent)", boxShadow: "0 0 0 1px var(--color-accent)" }}
-                transition="all 0.2s"
-              >
-                <Building2 size={14} color="rgba(255,255,255,0.3)" />
-                <Input
-                  placeholder="e.g. Appzia"
-                  variant="unstyled"
-                  color="white"
-                  fontSize="xs"
-                  value={companySearch}
-                  onChange={(e) => setCompanySearch(e.target.value)}
-                  py={2.5}
-                  _placeholder={{ color: "rgba(255,255,255,0.2)" }}
-                />
-              </HStack>
-            </VStack>
+              {/* Company Filter */}
+              <VStack align="start" gap={1.5}>
+                <Text fontSize="xs" fontWeight="black" color="rgba(255,255,255,0.4)" letterSpacing="wider">COMPANY</Text>
+                <HStack
+                  bg="rgba(0,0,0,0.25)"
+                  borderRadius="xl"
+                  px={3.5}
+                  border="1px solid rgba(255,255,255,0.07)"
+                  w="full"
+                  _hover={{ borderColor: "rgba(255,255,255,0.12)", bg: "rgba(0,0,0,0.3)" }}
+                  _focusWithin={{ borderColor: "var(--color-accent)", boxShadow: "0 0 10px rgba(59, 130, 246, 0.2)", bg: "rgba(0,0,0,0.35)" }}
+                  transition="all 0.3s"
+                >
+                  <Building2 size={14} color="#3b82f6" />
+                  <Input
+                    placeholder="e.g. Appzia"
+                    variant="unstyled"
+                    color="white"
+                    fontSize="xs"
+                    value={companySearch}
+                    onChange={(e) => setCompanySearch(e.target.value)}
+                    py={3}
+                    _placeholder={{ color: "rgba(255,255,255,0.2)" }}
+                  />
+                </HStack>
+              </VStack>
 
-            {/* Location Filter */}
-            <VStack align="start" gap={1.5}>
-              <Text fontSize="xs" fontWeight="black" color="rgba(255,255,255,0.4)" letterSpacing="wider">LOCATION</Text>
-              <HStack
-                bg="rgba(255,255,255,0.03)"
-                borderRadius="lg"
-                px={3}
-                border="1px solid rgba(255,255,255,0.07)"
-                w="full"
-                _focusWithin={{ borderColor: "var(--color-accent)", boxShadow: "0 0 0 1px var(--color-accent)" }}
-                transition="all 0.2s"
-              >
-                <MapPin size={14} color="rgba(255,255,255,0.3)" />
-                <Input
-                  placeholder="e.g. Remote / Austin"
-                  variant="unstyled"
-                  color="white"
-                  fontSize="xs"
-                  value={locationSearch}
-                  onChange={(e) => setLocationSearch(e.target.value)}
-                  py={2.5}
-                  _placeholder={{ color: "rgba(255,255,255,0.2)" }}
-                />
-              </HStack>
-            </VStack>
+              {/* Location Filter */}
+              <VStack align="start" gap={1.5}>
+                <Text fontSize="xs" fontWeight="black" color="rgba(255,255,255,0.4)" letterSpacing="wider">LOCATION</Text>
+                <HStack
+                  bg="rgba(0,0,0,0.25)"
+                  borderRadius="xl"
+                  px={3.5}
+                  border="1px solid rgba(255,255,255,0.07)"
+                  w="full"
+                  _hover={{ borderColor: "rgba(255,255,255,0.12)", bg: "rgba(0,0,0,0.3)" }}
+                  _focusWithin={{ borderColor: "var(--color-accent)", boxShadow: "0 0 10px rgba(59, 130, 246, 0.2)", bg: "rgba(0,0,0,0.35)" }}
+                  transition="all 0.3s"
+                >
+                  <MapPin size={14} color="#3b82f6" />
+                  <Input
+                    placeholder="e.g. Remote / Austin"
+                    variant="unstyled"
+                    color="white"
+                    fontSize="xs"
+                    value={locationSearch}
+                    onChange={(e) => setLocationSearch(e.target.value)}
+                    py={3}
+                    _placeholder={{ color: "rgba(255,255,255,0.2)" }}
+                  />
+                </HStack>
+              </VStack>
 
-            {/* Job Type Filter */}
-            <VStack align="start" gap={1.5}>
-              <Text fontSize="xs" fontWeight="black" color="rgba(255,255,255,0.4)" letterSpacing="wider">JOB TYPE</Text>
-              <Box
-                as="select"
-                value={jobTypeFilter}
-                onChange={(e) => setJobTypeFilter(e.target.value)}
-                style={{
-                  background: "rgba(255,255,255,0.03)",
-                  color: "white",
-                  height: "38px",
-                  borderRadius: "8px",
-                  border: "1px solid rgba(255,255,255,0.07)",
-                  fontSize: "12px",
-                  padding: "0 12px",
-                  width: "100%",
-                  outline: "none",
-                  cursor: "pointer",
-                  appearance: "none",
-                  WebkitAppearance: "none",
-                }}
-              >
-                <option value="all" style={{ background: "#0F172A", color: "white" }}>All Job Types</option>
-                <option value="full_time" style={{ background: "#0F172A", color: "white" }}>Full-time</option>
-                <option value="part_time" style={{ background: "#0F172A", color: "white" }}>Part-time</option>
-                <option value="contract" style={{ background: "#0F172A", color: "white" }}>Contract</option>
-                <option value="internship" style={{ background: "#0F172A", color: "white" }}>Internship</option>
-                <option value="remote" style={{ background: "#0F172A", color: "white" }}>Remote</option>
-              </Box>
-            </VStack>
-          </Grid>
+              {/* Job Type Filter */}
+              <VStack align="start" gap={1.5}>
+                <Text fontSize="xs" fontWeight="black" color="rgba(255,255,255,0.4)" letterSpacing="wider">JOB TYPE</Text>
+                <Box position="relative" w="full" transition="all 0.3s">
+                  <Box
+                    as="select"
+                    value={jobTypeFilter}
+                    onChange={(e) => setJobTypeFilter(e.target.value)}
+                    style={{
+                      width: "100%",
+                      height: "42px",
+                      background: "rgba(0,0,0,0.25)",
+                      border: "1px solid rgba(255,255,255,0.07)",
+                      borderRadius: "12px",
+                      color: "white",
+                      fontSize: "12px",
+                      padding: "0 36px 0 14px",
+                      outline: "none",
+                      cursor: "pointer",
+                      appearance: "none",
+                      WebkitAppearance: "none",
+                      transition: "all 0.3s",
+                      fontFamily: "inherit",
+                    }}
+                    _hover={{ borderColor: "rgba(255,255,255,0.12)", bg: "rgba(0,0,0,0.3)" }}
+                    _focus={{ borderColor: "var(--color-accent)", boxShadow: "0 0 10px rgba(59, 130, 246, 0.2)", bg: "rgba(0,0,0,0.35)" }}
+                  >
+                    <option value="all" style={{ background: "#0F172A", color: "white" }}>All Job Types</option>
+                    <option value="full_time" style={{ background: "#0F172A", color: "white" }}>Full-time</option>
+                    <option value="part_time" style={{ background: "#0F172A", color: "white" }}>Part-time</option>
+                    <option value="contract" style={{ background: "#0F172A", color: "white" }}>Contract</option>
+                    <option value="internship" style={{ background: "#0F172A", color: "white" }}>Internship</option>
+                    <option value="remote" style={{ background: "#0F172A", color: "white" }}>Remote</option>
+                  </Box>
+                  <Box position="absolute" right="3.5" top="50%" transform="translateY(-50%)" pointerEvents="none" color="rgba(255,255,255,0.35)">
+                    <ChevronDown size={14} />
+                  </Box>
+                </Box>
+              </VStack>
+            </Grid>
+          </Box>
 
           {loading ? (
             <Flex justify="center" align="center" py={12}>
