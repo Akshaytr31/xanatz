@@ -187,9 +187,8 @@ const MyApplicationsPage = () => {
                                   fill="transparent"
                                   stroke={item.color}
                                   strokeWidth="12"
-                                  strokeDasharray={`${strokeDash} 314.16`}
+                                  strokeDasharray={`${strokeDash}, 314.16`}
                                   strokeDashoffset={strokeOffset}
-                                  style={{ transition: "stroke-dashoffset 0.8s ease" }}
                                 />
                               );
                             });
