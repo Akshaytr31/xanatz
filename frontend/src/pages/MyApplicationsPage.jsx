@@ -261,10 +261,10 @@ const MyApplicationsPage = () => {
                             >
                               <Flex direction={{ base: "column", sm: "row" }} justify="space-between" align={{ base: "start", sm: "center" }} gap={4} mb={4}>
                                 <HStack gap={3.5} align="center">
-                                  <Box w="10" h="10" borderRadius="xl" bg="rgba(59,130,246,0.1)" display="flex" alignItems="center" justify="center"
-                                    border="1px solid rgba(59,130,246,0.25)">
+                                  <Flex w="10" h="10" borderRadius="xl" bg="rgba(59,130,246,0.1)" align="center" justify="center"
+                                    border="1px solid rgba(59,130,246,0.25)" flexShrink={0}>
                                     <Building2 size={18} color={accentColor} />
-                                  </Box>
+                                  </Flex>
                                   <VStack align="start" gap={0.5}>
                                     <HStack gap={2.5}>
                                       <Text color="white" fontWeight="black" fontSize="md" letterSpacing="tight">{app.job_title}</Text>
@@ -278,7 +278,7 @@ const MyApplicationsPage = () => {
                                 </HStack>
 
                                 <VStack align={{ base: "start", sm: "end" }} gap={1}>
-                                  <HStack gap={1.5} fontSize="3xs" color="rgba(255,255,255,0.3)" fontWeight="bold" letterSpacing="wider">
+                                  <HStack gap={1.5} fontSize="xs" color="rgba(255,255,255,0.3)" fontWeight="bold" letterSpacing="wider">
                                     <Calendar size={10} />
                                     <Text>APPLIED {new Date(app.created_at).toLocaleDateString(undefined, { dateStyle: "medium" }).toUpperCase()}</Text>
                                   </HStack>
@@ -287,30 +287,26 @@ const MyApplicationsPage = () => {
 
                               {/* Pipeline Stage Tracker */}
                               {app.status === "rejected" ? (
-                                <Flex align="center" gap={3} p={4} borderRadius="xl" bg="rgba(239,68,68,0.05)" border="1px solid rgba(239,68,68,0.15)">
-                                  <AlertCircle size={15} color="#ef4444" />
-                                  <Text fontSize="xs" color="#ef4444" fontWeight="semibold">
-                                    Thank you for your interest! The hiring team has reviewed your application and decided not to move forward at this time.
+                                <Flex align="center" gap={2.5} p={3} borderRadius="xl" bg="rgba(239,68,68,0.04)" border="1px solid rgba(239,68,68,0.1)">
+                                  <AlertCircle size={13} color="#ef4444" />
+                                  <Text fontSize="2xs" color="#ef4444" fontWeight="semibold">
+                                    Hiring team decided not to move forward. Thank you for your interest!
                                   </Text>
                                 </Flex>
                               ) : (
-                                <VStack align="stretch" gap={3} p={4} borderRadius="xl" bg="rgba(0,0,0,0.15)" border="1px solid rgba(255,255,255,0.04)">
-                                  <Text color="rgba(255,255,255,0.3)" fontSize="2xs" fontWeight="black" letterSpacing="wider">
-                                    APPLICATION PIPELINE STATUS
-                                  </Text>
-
+                                <VStack align="stretch" gap={1.5} py={2.5} px={3.5} borderRadius="xl" bg="rgba(255,255,255,0.02)" border="1px solid rgba(255,255,255,0.05)">
                                   {/* Tracker Line */}
-                                  <Box position="relative" py={2} px={2}>
+                                  <Box position="relative" py={1.5} px={1}>
                                     {/* Track bar backgrounds */}
-                                    <Box position="absolute" top="50%" left={2} right={2} h="3px" bg="rgba(255,255,255,0.06)" transform="translateY(-50%)" zIndex={1} borderRadius="full" />
+                                    <Box position="absolute" top="50%" left={1} right={1} h="2px" bg="rgba(255,255,255,0.08)" transform="translateY(-50%)" zIndex={1} borderRadius="full" />
                                     {currentStageIdx > 0 && (
                                       <Box
                                         position="absolute"
                                         top="50%"
-                                        left={2}
+                                        left={1}
                                         w={`${(currentStageIdx / 3) * 100}%`}
-                                        h="3px"
-                                        style={{ background: `linear-gradient(90deg, ${accentColor}, #8b5cf6)` }}
+                                        h="2px"
+                                        bg={accentColor}
                                         transform="translateY(-50%)"
                                         zIndex={2}
                                         borderRadius="full"
@@ -321,23 +317,24 @@ const MyApplicationsPage = () => {
                                     {/* Track nodes */}
                                     <Flex justify="space-between" position="relative" zIndex={3}>
                                       {stages.map((stage, sIdx) => {
-                                        const isActive = sIdx <= currentStageIdx;
+                                        const isCompleted = sIdx < currentStageIdx;
                                         const isCurrent = sIdx === currentStageIdx;
 
                                         return (
                                           <Box
                                             key={stage}
-                                            w="14px"
-                                            h="14px"
+                                            w="8px"
+                                            h="8px"
                                             borderRadius="full"
                                             style={{
-                                              background: isActive 
-                                                ? `linear-gradient(135deg, ${accentColor}, #8b5cf6)` 
-                                                : "#1e293b",
+                                              background: isCurrent 
+                                                ? "#fff" 
+                                                : isCompleted 
+                                                ? accentColor 
+                                                : "rgba(255,255,255,0.15)",
                                               border: isCurrent 
-                                                ? "3px solid white" 
-                                                : "3px solid transparent",
-                                              boxShadow: isActive ? "0 0 12px rgba(59,130,246,0.6)" : "none",
+                                                ? `2px solid ${accentColor}` 
+                                                : "none",
                                             }}
                                             transition="all 0.3s"
                                           />
@@ -347,20 +344,20 @@ const MyApplicationsPage = () => {
                                   </Box>
 
                                   {/* Labels grid */}
-                                  <Grid templateColumns="repeat(4, 1fr)" textAlign="center" pt={1}>
+                                  <Grid templateColumns="repeat(4, 1fr)" textAlign="center">
                                     {stages.map((stage, sIdx) => {
                                       const isActive = sIdx <= currentStageIdx;
-                                      const labels = ["Applied", "Reviewed", "Shortlisted", "Accepted / Hired"];
+                                      const labels = ["Applied", "Reviewed", "Shortlisted", "Hired"];
                                       
                                       return (
                                         <Text
                                           key={stage}
-                                          fontSize="9px"
-                                          fontWeight="black"
+                                          fontSize="8px"
+                                          fontWeight="bold"
                                           letterSpacing="wider"
                                           textTransform="uppercase"
                                           textAlign={sIdx === 0 ? "left" : sIdx === 3 ? "right" : "center"}
-                                          color={isActive ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.25)"}
+                                          color={isActive ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.25)"}
                                         >
                                           {labels[sIdx]}
                                         </Text>
