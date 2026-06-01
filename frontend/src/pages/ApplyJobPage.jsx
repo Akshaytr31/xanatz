@@ -29,6 +29,7 @@ const ApplyJobPage = () => {
   const navigate = useNavigate();
 
   const [job, setJob] = useState(null);
+  const [similarJobs, setSimilarJobs] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -54,9 +55,10 @@ const ApplyJobPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [jobRes, userRes] = await Promise.all([
+        const [jobRes, userRes, jobsRes] = await Promise.all([
           api.get(`jobs/${id}/`),
-          api.get("me/")
+          api.get("me/"),
+          api.get("jobs/")
         ]);
         setJob(jobRes.data);
         setCurrentUser(userRes.data);
@@ -66,6 +68,22 @@ const ApplyJobPage = () => {
           const name = `${userRes.data.first_name || ""} ${userRes.data.last_name || ""}`.trim();
           setFullName(name || userRes.data.email.split("@")[0]);
           setEmail(userRes.data.email);
+        }
+
+        // Compute similar jobs
+        if (jobsRes.data && jobRes.data) {
+          const currentJob = jobRes.data;
+          const matches = jobsRes.data.filter(j => 
+            j.id !== currentJob.id && 
+            j.category === currentJob.category
+          );
+          // Sort matching sub_category first
+          matches.sort((a, b) => {
+            const aSub = a.sub_category === currentJob.sub_category ? 1 : 0;
+            const bSub = b.sub_category === currentJob.sub_category ? 1 : 0;
+            return bSub - aSub;
+          });
+          setSimilarJobs(matches.slice(0, 4));
         }
       } catch (err) {
         console.error(err);
@@ -135,7 +153,29 @@ const ApplyJobPage = () => {
       <Flex h="100vh" align="center" justify="center" bg="var(--color-primary)" direction="column" gap={4}>
         <AlertCircle size={48} color="#ef4444" />
         <Text color="white" fontSize="lg" fontWeight="bold">Job opening not found.</Text>
-        <Button onClick={() => navigate("/dashboard")} colorScheme="blue">Back to Dashboard</Button>
+        <Button
+          onClick={() => navigate("/dashboard")}
+          h="44px"
+          px={6}
+          borderRadius="xl"
+          fontWeight="black"
+          fontSize="xs"
+          letterSpacing="widest"
+          color="white"
+          style={{
+            background: `linear-gradient(135deg, ${accentColor} 0%, #8b5cf6 100%)`,
+            boxShadow: `0 8px 20px rgba(59, 130, 246, 0.25)`,
+            border: "1px solid rgba(255,255,255,0.1)",
+            transition: "all 0.3s ease",
+          }}
+          _hover={{
+            transform: "translateY(-2px)",
+            boxShadow: `0 12px 28px rgba(59, 130, 246, 0.45)`,
+            filter: "brightness(1.1)",
+          }}
+        >
+          BACK TO DASHBOARD
+        </Button>
       </Flex>
     );
   }
@@ -153,12 +193,35 @@ const ApplyJobPage = () => {
       <Box position="relative" zIndex={1}>
         <Navbar handleLogout={handleLogout} />
 
-        <Container maxW="800px" px={{ base: 5, md: 8 }} pt={10}>
+        <Container maxW="1350px" px={{ base: 5, md: 8 }} pt="120px">
           {/* Back button */}
-          <Button variant="ghost" color="rgba(255,255,255,0.5)" fontWeight="bold" fontSize="xs"
-            letterSpacing="widest" px={0} mb={6} _hover={{ color: "white", transform: "translateX(-4px)" }}
-            transition="all 0.3s" onClick={() => showForm ? setShowForm(false) : navigate("/dashboard")}>
-            <ArrowLeft size={14} style={{ marginRight: "8px" }} />
+          <Button
+            variant="unstyled"
+            display="inline-flex"
+            alignItems="center"
+            h="36px"
+            px={4}
+            borderRadius="xl"
+            border="1px solid rgba(255,255,255,0.08)"
+            style={{
+              background: "rgba(255,255,255,0.03)",
+              backdropFilter: "blur(10px)",
+              color: "rgba(255,255,255,0.6)",
+              transition: "all 0.3s ease",
+            }}
+            _hover={{
+              background: "rgba(255,255,255,0.07)",
+              borderColor: "rgba(255,255,255,0.18)",
+              color: "white",
+              boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+            }}
+            fontWeight="black"
+            fontSize="2xs"
+            letterSpacing="widest"
+            mb={6}
+            onClick={() => showForm ? setShowForm(false) : navigate("/dashboard")}
+          >
+            <ArrowLeft size={12} style={{ marginRight: "6px" }} />
             {showForm ? "BACK TO DESCRIPTION" : "BACK TO OPENINGS"}
           </Button>
 
@@ -171,7 +234,7 @@ const ApplyJobPage = () => {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.4 }}
                 p={{ base: 8, md: 12 }}
-                borderRadius="3xl"
+                borderRadius="xl"
                 border="1px solid rgba(72, 199, 116, 0.2)"
                 bg="rgba(72, 199, 116, 0.03)"
                 backdropFilter="blur(20px)"
@@ -216,124 +279,194 @@ const ApplyJobPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.4 }}
+                w="full"
               >
-                {/* Job Details Card */}
-                <Box
-                  p={{ base: 6, md: 8 }}
-                  borderRadius="3xl"
-                  border="1px solid rgba(255,255,255,0.08)"
-                  style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(20px)" }}
-                  mb={8}
-                >
-                  <Flex gap={5} align="start" wrap="wrap" mb={6}>
+                <Flex direction={{ base: "column", lg: "row" }} gap={8} align="start" w="full">
+                  {/* Left Column: Job Details */}
+                  <Box flex={{ base: "none", lg: "2.8" }} w="full">
+                    {/* Job Details Card */}
                     <Box
-                      w="72px"
-                      h="72px"
-                      borderRadius="2xl"
-                      overflow="hidden"
-                      flexShrink={0}
-                      border="1px solid rgba(255,255,255,0.12)"
-                      style={{ background: "rgba(255,255,255,0.05)" }}
+                      p={{ base: 6, md: 8 }}
+                      borderRadius="xl"
+                      border="1px solid rgba(255,255,255,0.08)"
+                      style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(20px)" }}
+                      mb={8}
                     >
-                      {job.company_logo_url ? (
-                        <Box as="img" src={job.company_logo_url} alt={job.company_name} w="full" h="full" style={{ objectFit: "cover" }} />
+                      <Flex justify="space-between" align="start" wrap="wrap" mb={6} gap={4}>
+                        <HStack gap={5} align="start" flex={1}>
+                          <Box
+                            w="72px"
+                            h="72px"
+                            borderRadius="2xl"
+                            overflow="hidden"
+                            flexShrink={0}
+                            border="1px solid rgba(255,255,255,0.12)"
+                            style={{ background: "rgba(255,255,255,0.05)" }}
+                          >
+                            {job.company_logo_url ? (
+                              <Box as="img" src={job.company_logo_url} alt={job.company_name} w="full" h="full" style={{ objectFit: "cover" }} />
+                            ) : (
+                              <Flex w="full" h="full" align="center" justify="center">
+                                <Building2 size={32} color={accentColor} />
+                              </Flex>
+                            )}
+                          </Box>
+
+                          <VStack align="start" gap={2} flex={1}>
+                            <Heading size="lg" color="white" fontWeight="black" letterSpacing="tight">
+                              {job.title}
+                            </Heading>
+                            <HStack gap={3} flexWrap="wrap">
+                              <Text color="var(--color-secondary)" fontSize="sm" fontWeight="bold">
+                                {job.company_name}
+                              </Text>
+                              <Box w="1px" h="14px" bg="rgba(255,255,255,0.15)" />
+                              <Badge px={2.5} py={0.5} fontSize="xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.7)" }}>
+                                {JOB_TYPE_LABELS[job.job_type] || job.job_type}
+                              </Badge>
+                              {job.category && (
+                                <Badge px={2.5} py={0.5} fontSize="xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(59, 130, 246, 0.15)", color: "rgba(147, 197, 253, 0.9)", border: "1px solid rgba(59, 130, 246, 0.25)" }}>
+                                  {ALL_CATEGORY_LABELS[job.category] || job.category}
+                                </Badge>
+                              )}
+                              {job.sub_category && (
+                                <Badge px={2.5} py={0.5} fontSize="xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(139, 92, 246, 0.15)", color: "rgba(196, 181, 253, 0.9)", border: "1px solid rgba(139, 92, 246, 0.25)" }}>
+                                  {ALL_SUBCATEGORY_LABELS[job.sub_category] || job.sub_category}
+                                </Badge>
+                              )}
+                            </HStack>
+                          </VStack>
+                        </HStack>
+
+                        <Button
+                          onClick={() => setShowForm(true)}
+                          px={6}
+                          h="40px"
+                          borderRadius="xl"
+                          fontWeight="black"
+                          fontSize="xs"
+                          letterSpacing="widest"
+                          color="white"
+                          style={{
+                            background: `linear-gradient(135deg, ${accentColor} 0%, #8b5cf6 100%)`,
+                            boxShadow: `0 8px 20px rgba(59, 130, 246, 0.2)`,
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            transition: "all 0.3s ease",
+                          }}
+                          _hover={{
+                            transform: "translateY(-2px)",
+                            boxShadow: `0 12px 28px rgba(59, 130, 246, 0.35)`,
+                            filter: "brightness(1.1)",
+                          }}
+                        >
+                          APPLY NOW
+                        </Button>
+                      </Flex>
+
+                      <HStack gap={6} wrap="wrap" py={4} borderTop="1px solid rgba(255,255,255,0.06)" borderBottom="1px solid rgba(255,255,255,0.06)">
+                        {job.location && (
+                          <HStack gap={2} fontSize="sm" color="rgba(255,255,255,0.6)">
+                            <MapPin size={16} color={accentColor} />
+                            <Text>{job.location}</Text>
+                          </HStack>
+                        )}
+                        {job.salary_range && (
+                          <HStack gap={2} fontSize="sm" color="rgba(255,255,255,0.6)">
+                            <DollarSign size={16} color={accentColor} />
+                            <Text>{job.salary_range}</Text>
+                          </HStack>
+                        )}
+                      </HStack>
+
+                      {/* About the Job section */}
+                      <VStack align="stretch" gap={6} mt={6}>
+                        <Box>
+                          <Heading size="xs" color="rgba(255,255,255,0.4)" fontWeight="black" letterSpacing="wider" mb={3} textTransform="uppercase">
+                            Job Description
+                          </Heading>
+                          <Text color="rgba(255,255,255,0.8)" fontSize="sm" lineHeight="tall" style={{ whiteSpace: "pre-wrap" }}>
+                            {job.description}
+                          </Text>
+                        </Box>
+
+                        {job.requirements && (
+                          <Box>
+                            <Heading size="xs" color="rgba(255,255,255,0.4)" fontWeight="black" letterSpacing="wider" mb={3} textTransform="uppercase">
+                              Requirements & Qualifications
+                            </Heading>
+                            <Text color="rgba(255,255,255,0.8)" fontSize="sm" lineHeight="tall" style={{ whiteSpace: "pre-wrap" }}>
+                              {job.requirements}
+                            </Text>
+                          </Box>
+                        )}
+                      </VStack>
+                    </Box>
+                  </Box>
+
+                  {/* Right Column: Similar Openings */}
+                  <Box flex={{ base: "none", lg: "1.2" }} w="full" position={{ lg: "sticky" }} top="90px">
+                    <Box
+                      p={6}
+                      borderRadius="xl"
+                      border="1px solid rgba(255,255,255,0.08)"
+                      style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(20px)" }}
+                    >
+                      <Heading size="xs" color="rgba(255,255,255,0.4)" fontWeight="black" letterSpacing="wider" mb={5} textTransform="uppercase">
+                        SIMILAR OPENINGS
+                      </Heading>
+
+                      {similarJobs.length === 0 ? (
+                        <VStack py={6} px={4} border="1px dashed rgba(255,255,255,0.08)" borderRadius="2xl" bg="rgba(0,0,0,0.1)">
+                          <Briefcase size={24} color="rgba(255,255,255,0.2)" />
+                          <Text color="rgba(255,255,255,0.35)" fontSize="xs" fontWeight="bold" textAlign="center">
+                            No similar openings found
+                          </Text>
+                        </VStack>
                       ) : (
-                        <Flex w="full" h="full" align="center" justify="center">
-                          <Building2 size={32} color={accentColor} />
-                        </Flex>
+                        <VStack gap={4} align="stretch">
+                          {similarJobs.map((simJob) => (
+                            <Box
+                              key={simJob.id}
+                              onClick={() => navigate(`/jobs/${simJob.id}/apply`)}
+                              cursor="pointer"
+                              p={4.5}
+                              borderRadius="xl"
+                              border="1px solid rgba(255,255,255,0.06)"
+                              bg="rgba(0,0,0,0.15)"
+                              transition="all 0.3s"
+                              _hover={{
+                                bg: "rgba(255,255,255,0.02)",
+                                borderColor: accentColor,
+                                transform: "translateY(-2px)",
+                                boxShadow: `0 4px 20px rgba(59, 130, 246, 0.1)`,
+                              }}
+                            >
+                              <VStack align="stretch" gap={2}>
+                                <Text color="white" fontSize="xs" fontWeight="black" noOfLines={1} letterSpacing="tight">
+                                  {simJob.title}
+                                </Text>
+                                <Text color="var(--color-secondary)" fontSize="2xs" fontWeight="bold">
+                                  {simJob.company_name}
+                                </Text>
+                                <HStack justify="space-between" flexWrap="wrap" gap={2} mt={1}>
+                                  <Badge px={2} py={0.5} fontSize="3xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.6)" }}>
+                                    {JOB_TYPE_LABELS[simJob.job_type] || simJob.job_type}
+                                  </Badge>
+                                  {simJob.location && (
+                                    <HStack gap={1} fontSize="3xs" color="rgba(255,255,255,0.4)">
+                                      <MapPin size={10} color={accentColor} />
+                                      <Text noOfLines={1}>{simJob.location}</Text>
+                                    </HStack>
+                                  )}
+                                </HStack>
+                              </VStack>
+                            </Box>
+                          ))}
+                        </VStack>
                       )}
                     </Box>
-
-                    <VStack align="start" gap={2} flex={1}>
-                      <Heading size="lg" color="white" fontWeight="black" letterSpacing="tight">
-                        {job.title}
-                      </Heading>
-                      <HStack gap={3} flexWrap="wrap">
-                        <Text color="var(--color-secondary)" fontSize="sm" fontWeight="bold">
-                          {job.company_name}
-                        </Text>
-                        <Box w="1px" h="14px" bg="rgba(255,255,255,0.15)" />
-                        <Badge px={2.5} py={0.5} fontSize="xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.7)" }}>
-                          {JOB_TYPE_LABELS[job.job_type] || job.job_type}
-                        </Badge>
-                        {job.category && (
-                          <Badge px={2.5} py={0.5} fontSize="xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(59, 130, 246, 0.15)", color: "rgba(147, 197, 253, 0.9)", border: "1px solid rgba(59, 130, 246, 0.25)" }}>
-                            {ALL_CATEGORY_LABELS[job.category] || job.category}
-                          </Badge>
-                        )}
-                        {job.sub_category && (
-                          <Badge px={2.5} py={0.5} fontSize="xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(139, 92, 246, 0.15)", color: "rgba(196, 181, 253, 0.9)", border: "1px solid rgba(139, 92, 246, 0.25)" }}>
-                            {ALL_SUBCATEGORY_LABELS[job.sub_category] || job.sub_category}
-                          </Badge>
-                        )}
-                      </HStack>
-                    </VStack>
-                  </Flex>
-
-                  <HStack gap={6} wrap="wrap" py={4} borderTop="1px solid rgba(255,255,255,0.06)" borderBottom="1px solid rgba(255,255,255,0.06)">
-                    {job.location && (
-                      <HStack gap={2} fontSize="sm" color="rgba(255,255,255,0.6)">
-                        <MapPin size={16} color={accentColor} />
-                        <Text>{job.location}</Text>
-                      </HStack>
-                    )}
-                    {job.salary_range && (
-                      <HStack gap={2} fontSize="sm" color="rgba(255,255,255,0.6)">
-                        <DollarSign size={16} color={accentColor} />
-                        <Text>{job.salary_range}</Text>
-                      </HStack>
-                    )}
-                  </HStack>
-
-                  {/* About the Job section */}
-                  <VStack align="stretch" gap={6} mt={6}>
-                    <Box>
-                      <Heading size="xs" color="rgba(255,255,255,0.4)" fontWeight="black" letterSpacing="wider" mb={3} textTransform="uppercase">
-                        Job Description
-                      </Heading>
-                      <Text color="rgba(255,255,255,0.8)" fontSize="sm" lineHeight="tall" style={{ whiteSpace: "pre-wrap" }}>
-                        {job.description}
-                      </Text>
-                    </Box>
-
-                    {job.requirements && (
-                      <Box>
-                        <Heading size="xs" color="rgba(255,255,255,0.4)" fontWeight="black" letterSpacing="wider" mb={3} textTransform="uppercase">
-                          Requirements & Qualifications
-                        </Heading>
-                        <Text color="rgba(255,255,255,0.8)" fontSize="sm" lineHeight="tall" style={{ whiteSpace: "pre-wrap" }}>
-                          {job.requirements}
-                        </Text>
-                      </Box>
-                    )}
-                  </VStack>
-
-                  {/* CTA button */}
-                  <Button
-                    onClick={() => setShowForm(true)}
-                    w="full"
-                    h="56px"
-                    mt={8}
-                    borderRadius="2xl"
-                    fontWeight="black"
-                    fontSize="sm"
-                    letterSpacing="widest"
-                    color="white"
-                    style={{
-                      background: `linear-gradient(135deg, ${accentColor} 0%, #8b5cf6 100%)`,
-                      boxShadow: `0 8px 24px rgba(59, 130, 246, 0.25)`,
-                      border: "1px solid rgba(255,255,255,0.1)",
-                      transition: "all 0.3s ease",
-                    }}
-                    _hover={{
-                      transform: "translateY(-2px)",
-                      boxShadow: `0 12px 32px rgba(59, 130, 246, 0.45)`,
-                      filter: "brightness(1.1)",
-                    }}
-                  >
-                    APPLY NOW
-                  </Button>
-                </Box>
+                  </Box>
+                </Flex>
               </MotionBox>
             ) : (
               <MotionBox
@@ -346,7 +479,7 @@ const ApplyJobPage = () => {
                 {/* Job Info Banner */}
                 <Box
                   p={6}
-                  borderRadius="2xl"
+                  borderRadius="xl"
                   border="1px solid rgba(255,255,255,0.06)"
                   style={{ background: "rgba(255,255,255,0.02)", backdropFilter: "blur(20px)" }}
                   mb={8}
@@ -415,7 +548,7 @@ const ApplyJobPage = () => {
                 {/* Application Form */}
                 <Box
                   p={{ base: 6, md: 8 }}
-                  borderRadius="3xl"
+                  borderRadius="xl"
                   border="1px solid rgba(255,255,255,0.08)"
                   style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(20px)" }}
                 >

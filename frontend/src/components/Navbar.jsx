@@ -54,7 +54,7 @@ const NavItem = ({ icon: Icon, label, active, onClick }) => {
           letterSpacing: active ? "0.02em" : "0",
         }}
       >
-        <Icon size={15} strokeWidth={active ? 2.5 : 2} />
+        <Icon size={18} strokeWidth={active ? 2.5 : 2} />
         <AnimatePresence>
           {active && (
             <motion.span
@@ -134,7 +134,7 @@ const MenuLink = ({ icon: Icon, label, onClick, danger = false }) => (
       e.currentTarget.style.color = danger ? "#f87171" : "rgba(255,255,255,0.75)";
     }}
   >
-    <Icon size={15} strokeWidth={1.8} />
+    <Icon size={17} strokeWidth={1.8} />
     {label}
   </button>
 );
@@ -215,7 +215,7 @@ const Navbar = () => {
         paddingLeft: "clamp(1.25rem, 5vw, 5rem)",
         paddingRight: "clamp(1.25rem, 5vw, 5rem)",
         paddingTop: scrolled ? "0.6rem" : "1rem",
-        paddingBottom: scrolled ? "0.6rem" : "1rem",
+        paddingBottom: scrolled ? "calc(0.6rem + 3px)" : "calc(1rem + 3px)",
         backdropFilter: scrolled ? "blur(24px) saturate(180%)" : "none",
         WebkitBackdropFilter: scrolled ? "blur(24px) saturate(180%)" : "none",
         background: scrolled ? "rgba(2,6,23,0.85)" : "transparent",
@@ -341,7 +341,7 @@ const Navbar = () => {
                 borderRadius: "9999px",
               }}
             >
-              {isSearchExpanded ? <X size={13} /> : <Search size={13} />}
+              {isSearchExpanded ? <X size={16} /> : <Search size={16} />}
             </button>
             <AnimatePresence>
               {isSearchExpanded && (
@@ -397,7 +397,7 @@ const Navbar = () => {
                   style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "9999px" }}
                 />
               ) : (
-                <User size={16} color="rgba(255,255,255,0.8)" />
+                <User size={18} color="rgba(255,255,255,0.8)" />
               )}
             </motion.button>
 
