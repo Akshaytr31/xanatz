@@ -223,7 +223,8 @@ class JobOpeningSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'company', 'company_name', 'company_logo_url',
             'title', 'description', 'requirements', 'location',
-            'job_type', 'salary_range', 'is_active', 'created_at', 'updated_at'
+            'job_type', 'salary_range', 'category', 'sub_category',
+            'is_active', 'created_at', 'updated_at'
         ]
 
     def get_company_logo_url(self, obj):

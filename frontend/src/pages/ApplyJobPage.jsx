@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import api from "../api";
+import { ALL_CATEGORY_LABELS, ALL_SUBCATEGORY_LABELS } from "../components/company/JobOpeningModal";
 
 const MotionBox = motion.create(Box);
 const MotionFlex = motion.create(Flex);
@@ -41,6 +42,7 @@ const ApplyJobPage = () => {
 
   const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [showForm, setShowForm] = useState(false);
 
   const accentColor = "#3b82f6";
 
@@ -155,9 +157,9 @@ const ApplyJobPage = () => {
           {/* Back button */}
           <Button variant="ghost" color="rgba(255,255,255,0.5)" fontWeight="bold" fontSize="xs"
             letterSpacing="widest" px={0} mb={6} _hover={{ color: "white", transform: "translateX(-4px)" }}
-            transition="all 0.3s" onClick={() => navigate("/dashboard")}>
+            transition="all 0.3s" onClick={() => showForm ? setShowForm(false) : navigate("/dashboard")}>
             <ArrowLeft size={14} style={{ marginRight: "8px" }} />
-            BACK TO OPENINGS
+            {showForm ? "BACK TO DESCRIPTION" : "BACK TO OPENINGS"}
           </Button>
 
           <AnimatePresence mode="wait">
@@ -207,11 +209,138 @@ const ApplyJobPage = () => {
                   </Text>
                 </Flex>
               </MotionBox>
+            ) : !showForm ? (
+              <MotionBox
+                key="description"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4 }}
+              >
+                {/* Job Details Card */}
+                <Box
+                  p={{ base: 6, md: 8 }}
+                  borderRadius="3xl"
+                  border="1px solid rgba(255,255,255,0.08)"
+                  style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(20px)" }}
+                  mb={8}
+                >
+                  <Flex gap={5} align="start" wrap="wrap" mb={6}>
+                    <Box
+                      w="72px"
+                      h="72px"
+                      borderRadius="2xl"
+                      overflow="hidden"
+                      flexShrink={0}
+                      border="1px solid rgba(255,255,255,0.12)"
+                      style={{ background: "rgba(255,255,255,0.05)" }}
+                    >
+                      {job.company_logo_url ? (
+                        <Box as="img" src={job.company_logo_url} alt={job.company_name} w="full" h="full" style={{ objectFit: "cover" }} />
+                      ) : (
+                        <Flex w="full" h="full" align="center" justify="center">
+                          <Building2 size={32} color={accentColor} />
+                        </Flex>
+                      )}
+                    </Box>
+
+                    <VStack align="start" gap={2} flex={1}>
+                      <Heading size="lg" color="white" fontWeight="black" letterSpacing="tight">
+                        {job.title}
+                      </Heading>
+                      <HStack gap={3} flexWrap="wrap">
+                        <Text color="var(--color-secondary)" fontSize="sm" fontWeight="bold">
+                          {job.company_name}
+                        </Text>
+                        <Box w="1px" h="14px" bg="rgba(255,255,255,0.15)" />
+                        <Badge px={2.5} py={0.5} fontSize="xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.7)" }}>
+                          {JOB_TYPE_LABELS[job.job_type] || job.job_type}
+                        </Badge>
+                        {job.category && (
+                          <Badge px={2.5} py={0.5} fontSize="xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(59, 130, 246, 0.15)", color: "rgba(147, 197, 253, 0.9)", border: "1px solid rgba(59, 130, 246, 0.25)" }}>
+                            {ALL_CATEGORY_LABELS[job.category] || job.category}
+                          </Badge>
+                        )}
+                        {job.sub_category && (
+                          <Badge px={2.5} py={0.5} fontSize="xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(139, 92, 246, 0.15)", color: "rgba(196, 181, 253, 0.9)", border: "1px solid rgba(139, 92, 246, 0.25)" }}>
+                            {ALL_SUBCATEGORY_LABELS[job.sub_category] || job.sub_category}
+                          </Badge>
+                        )}
+                      </HStack>
+                    </VStack>
+                  </Flex>
+
+                  <HStack gap={6} wrap="wrap" py={4} borderTop="1px solid rgba(255,255,255,0.06)" borderBottom="1px solid rgba(255,255,255,0.06)">
+                    {job.location && (
+                      <HStack gap={2} fontSize="sm" color="rgba(255,255,255,0.6)">
+                        <MapPin size={16} color={accentColor} />
+                        <Text>{job.location}</Text>
+                      </HStack>
+                    )}
+                    {job.salary_range && (
+                      <HStack gap={2} fontSize="sm" color="rgba(255,255,255,0.6)">
+                        <DollarSign size={16} color={accentColor} />
+                        <Text>{job.salary_range}</Text>
+                      </HStack>
+                    )}
+                  </HStack>
+
+                  {/* About the Job section */}
+                  <VStack align="stretch" gap={6} mt={6}>
+                    <Box>
+                      <Heading size="xs" color="rgba(255,255,255,0.4)" fontWeight="black" letterSpacing="wider" mb={3} textTransform="uppercase">
+                        Job Description
+                      </Heading>
+                      <Text color="rgba(255,255,255,0.8)" fontSize="sm" lineHeight="tall" style={{ whiteSpace: "pre-wrap" }}>
+                        {job.description}
+                      </Text>
+                    </Box>
+
+                    {job.requirements && (
+                      <Box>
+                        <Heading size="xs" color="rgba(255,255,255,0.4)" fontWeight="black" letterSpacing="wider" mb={3} textTransform="uppercase">
+                          Requirements & Qualifications
+                        </Heading>
+                        <Text color="rgba(255,255,255,0.8)" fontSize="sm" lineHeight="tall" style={{ whiteSpace: "pre-wrap" }}>
+                          {job.requirements}
+                        </Text>
+                      </Box>
+                    )}
+                  </VStack>
+
+                  {/* CTA button */}
+                  <Button
+                    onClick={() => setShowForm(true)}
+                    w="full"
+                    h="56px"
+                    mt={8}
+                    borderRadius="2xl"
+                    fontWeight="black"
+                    fontSize="sm"
+                    letterSpacing="widest"
+                    color="white"
+                    style={{
+                      background: `linear-gradient(135deg, ${accentColor} 0%, #8b5cf6 100%)`,
+                      boxShadow: `0 8px 24px rgba(59, 130, 246, 0.25)`,
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      transition: "all 0.3s ease",
+                    }}
+                    _hover={{
+                      transform: "translateY(-2px)",
+                      boxShadow: `0 12px 32px rgba(59, 130, 246, 0.45)`,
+                      filter: "brightness(1.1)",
+                    }}
+                  >
+                    APPLY NOW
+                  </Button>
+                </Box>
+              </MotionBox>
             ) : (
               <MotionBox
                 key="form"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.4 }}
               >
                 {/* Job Info Banner */}
@@ -253,6 +382,16 @@ const ApplyJobPage = () => {
                         <Badge px={2} py={0.5} fontSize="2xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.7)" }}>
                           {JOB_TYPE_LABELS[job.job_type] || job.job_type}
                         </Badge>
+                        {job.category && (
+                          <Badge px={2} py={0.5} fontSize="2xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(59, 130, 246, 0.15)", color: "rgba(147, 197, 253, 0.9)", border: "1px solid rgba(59, 130, 246, 0.25)" }}>
+                            {ALL_CATEGORY_LABELS[job.category] || job.category}
+                          </Badge>
+                        )}
+                        {job.sub_category && (
+                          <Badge px={2} py={0.5} fontSize="2xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(139, 92, 246, 0.15)", color: "rgba(196, 181, 253, 0.9)", border: "1px solid rgba(139, 92, 246, 0.25)" }}>
+                            {ALL_SUBCATEGORY_LABELS[job.sub_category] || job.sub_category}
+                          </Badge>
+                        )}
                       </HStack>
                     </VStack>
                   </Flex>

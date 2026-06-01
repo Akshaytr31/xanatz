@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Flex, Heading, Text, VStack, HStack, Badge } from "@chakra-ui/react";
 import { Building2, ExternalLink, MapPin, DollarSign } from "lucide-react";
+import { ALL_CATEGORY_LABELS, ALL_SUBCATEGORY_LABELS } from "./company/JobOpeningModal";
 
 const JOB_TYPE_LABELS = {
   full_time: "Full-time",
@@ -65,6 +66,16 @@ const JobOpeningCard = ({ job, onClick }) => {
         <Badge px={2} py={0.5} fontSize="2xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.7)" }}>
           {JOB_TYPE_LABELS[job.job_type] || job.job_type}
         </Badge>
+        {job.category && (
+          <Badge px={2} py={0.5} fontSize="2xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(59, 130, 246, 0.15)", color: "rgba(147, 197, 253, 0.9)", border: "1px solid rgba(59, 130, 246, 0.25)" }}>
+            {ALL_CATEGORY_LABELS[job.category] || job.category}
+          </Badge>
+        )}
+        {job.sub_category && (
+          <Badge px={2} py={0.5} fontSize="2xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(139, 92, 246, 0.15)", color: "rgba(196, 181, 253, 0.9)", border: "1px solid rgba(139, 92, 246, 0.25)" }}>
+            {ALL_SUBCATEGORY_LABELS[job.sub_category] || job.sub_category}
+          </Badge>
+        )}
         {job.location && (
           <HStack gap={1} fontSize="10px" color="rgba(255,255,255,0.4)">
             <MapPin size={10} />

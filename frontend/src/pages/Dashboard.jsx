@@ -78,7 +78,7 @@ const Dashboard = () => {
           {/* Filters Panel */} 
           <Box p={5} borderRadius="2xl" border="1px solid rgba(255,255,255,0.06)" mb={8}
             style={{ background: "rgba(255,255,255,0.02)", backdropFilter: "blur(20px)" }}>
-            <Grid templateColumns={{ base: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }} gap={4}>
+            <Grid templateColumns={{ base: "1fr", sm: "repeat(2, 1fr)", md: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }} gap={4}>
               {/* Title Filter */}
               <VStack align="start" gap={1.5}>
                 <Text fontSize="xs" fontWeight="black" color="rgba(255,255,255,0.4)" letterSpacing="wider">JOB TITLE</Text>

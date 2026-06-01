@@ -288,6 +288,9 @@ class JobOpeningViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = JobOpening.objects.all()
         company_id = self.request.query_params.get('company_id')
+        category = self.request.query_params.get('category')
+        sub_category = self.request.query_params.get('sub_category')
+
         if company_id:
             queryset = queryset.filter(company_id=company_id)
             try:
@@ -300,6 +303,11 @@ class JobOpeningViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(is_active=True)
         else:
             queryset = queryset.filter(is_active=True)
+
+        if category:
+            queryset = queryset.filter(category=category)
+        if sub_category:
+            queryset = queryset.filter(sub_category=sub_category)
             
         return queryset.order_by('-created_at')
 
