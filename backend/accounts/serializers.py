@@ -5,7 +5,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 import random
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import PrivacyPolicy, Profile, Experience, Education, Company, OTP, JobOpening, JobApplication
+from .models import PrivacyPolicy, Profile, Experience, Education, Company, OTP, JobOpening, JobApplication, RFP, RFPInterest
 
 User = get_user_model()
 
@@ -246,3 +246,38 @@ class JobApplicationSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
         read_only_fields = ['applicant']
+
+
+class RFPSerializer(serializers.ModelSerializer):
+    company_name = serializers.ReadOnlyField(source='company.name')
+    company_logo_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = RFP
+        fields = [
+            'id', 'company', 'company_name', 'company_logo_url',
+            'title', 'description', 'requirements', 'budget',
+            'deadline', 'is_active', 'created_at', 'updated_at'
+        ]
+
+    def get_company_logo_url(self, obj):
+        request = self.context.get('request')
+        if obj.company.logo and request:
+            return request.build_absolute_uri(obj.company.logo.url)
+        return None
+
+
+class RFPInterestSerializer(serializers.ModelSerializer):
+    rfp_title = serializers.ReadOnlyField(source='rfp.title')
+    rfp_company_name = serializers.ReadOnlyField(source='rfp.company.name')
+    user_email = serializers.ReadOnlyField(source='user.email')
+
+    class Meta:
+        model = RFPInterest
+        fields = [
+            'id', 'rfp', 'rfp_title', 'rfp_company_name', 'user', 'user_email',
+            'company_name', 'email', 'phone_number', 'proposal_summary',
+            'attached_file', 'created_at'
+        ]
+        read_only_fields = ['user']
+

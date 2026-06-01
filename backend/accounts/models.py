@@ -268,3 +268,33 @@ class JobApplication(models.Model):
 
     def __str__(self):
         return f"{self.full_name} for {self.job_opening.title}"
+
+
+class RFP(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='rfps')
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    budget = models.CharField(max_length=100, blank=True, null=True)
+    deadline = models.DateField(blank=True, null=True)
+    requirements = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.title} by {self.company.name}"
+
+
+class RFPInterest(models.Model):
+    rfp = models.ForeignKey(RFP, on_delete=models.CASCADE, related_name='interests')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='rfp_interests')
+    company_name = models.CharField(max_length=255)
+    email = models.EmailField()
+    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    proposal_summary = models.TextField()
+    attached_file = models.FileField(upload_to='rfp_proposals/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Interest in {self.rfp.title} by {self.user.email}"
+

@@ -4,7 +4,8 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     SendOTPView, VerifyOTPView, RegisterUserView, GoogleLoginView, 
     PrivacyPolicyView, UserProfileView, ExperienceViewSet, EducationViewSet,
-    CompanyViewSet, PublicProfileView, UserSearchView, JobOpeningViewSet, JobApplicationViewSet
+    CompanyViewSet, PublicProfileView, UserSearchView, JobOpeningViewSet, JobApplicationViewSet,
+    RFPViewSet, RFPInterestViewSet
 )
 
 router = DefaultRouter()
@@ -13,6 +14,9 @@ router.register(r'education', EducationViewSet, basename='education')
 router.register(r'companies', CompanyViewSet, basename='company')
 router.register(r'jobs', JobOpeningViewSet, basename='jobs')
 router.register(r'applications', JobApplicationViewSet, basename='applications')
+router.register(r'rfps', RFPViewSet, basename='rfps')
+router.register(r'rfp-interests', RFPInterestViewSet, basename='rfp-interests')
+
 
 urlpatterns = [
     path('auth/send-otp/', SendOTPView.as_view(), name='send-otp'),

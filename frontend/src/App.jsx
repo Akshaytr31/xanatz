@@ -13,6 +13,10 @@ import ManageOpeningsPage from "./pages/ManageOpeningsPage";
 import ApplyJobPage from "./pages/ApplyJobPage";
 import ManageApplicationsPage from "./pages/ManageApplicationsPage";
 import MyApplicationsPage from "./pages/MyApplicationsPage";
+import RFPsPage from "./pages/RFPsPage";
+import ManageRFPsPage from "./pages/ManageRFPsPage";
+import ManageRFPInterestsPage from "./pages/ManageRFPInterestsPage";
+
 
 function App() {
   return (
@@ -85,6 +89,31 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/rfps"
+          element={
+            <ProtectedRoute>
+              <RFPsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/company/:id/rfps"
+          element={
+            <ProtectedRoute>
+              <ManageRFPsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/company/:id/rfp-interests"
+          element={
+            <ProtectedRoute>
+              <ManageRFPInterestsPage />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/admin"
           element={

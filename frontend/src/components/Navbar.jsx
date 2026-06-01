@@ -18,56 +18,93 @@ import {
   Calendar,
   ChevronRight,
   ClipboardList,
+  FileText,
 } from "lucide-react";
+
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import api, { backendUrl } from "../api";
 
 /* ─── tiny helpers ─────────────────────────────────────────────────────────── */
 
-const NavItem = ({ icon: Icon, label, active, onClick }) => (
-  <motion.button
-    onClick={onClick}
-    whileHover={{ scale: 1.05 }}
-    whileTap={{ scale: 0.95 }}
-    style={{
-      display: "flex",
-      alignItems: "center",
-      gap: "0.35rem",
-      padding: active ? "0.45rem 0.85rem" : "0.45rem 0.6rem",
-      borderRadius: "9999px",
-      border: "none",
-      background: active ? "rgba(255,255,255,0.10)" : "transparent",
-      color: active ? "#fff" : "rgba(255,255,255,0.45)",
-      fontSize: "0.78rem",
-      fontWeight: active ? 700 : 500,
-      cursor: "pointer",
-      transition: "all 0.25s ease",
-      letterSpacing: active ? "0.02em" : "0",
-    }}
-    onMouseEnter={(e) => {
-      if (!active) e.currentTarget.style.color = "rgba(255,255,255,0.85)";
-    }}
-    onMouseLeave={(e) => {
-      if (!active) e.currentTarget.style.color = "rgba(255,255,255,0.45)";
-    }}
-  >
-    <Icon size={15} strokeWidth={active ? 2.5 : 2} />
-    <AnimatePresence>
-      {active && (
-        <motion.span
-          key="label"
-          initial={{ opacity: 0, width: 0 }}
-          animate={{ opacity: 1, width: "auto" }}
-          exit={{ opacity: 0, width: 0 }}
-          style={{ overflow: "hidden", whiteSpace: "nowrap" }}
-        >
-          {label}
-        </motion.span>
-      )}
-    </AnimatePresence>
-  </motion.button>
-);
+const NavItem = ({ icon: Icon, label, active, onClick }) => {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <div style={{ position: "relative" }}>
+      <motion.button
+        onClick={onClick}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "0.35rem",
+          padding: active ? "0.45rem 0.85rem" : "0.45rem 0.6rem",
+          borderRadius: "9999px",
+          border: "none",
+          background: active ? "rgba(255,255,255,0.10)" : "transparent",
+          color: active ? "#fff" : "rgba(255,255,255,0.45)",
+          fontSize: "0.78rem",
+          fontWeight: active ? 700 : 500,
+          cursor: "pointer",
+          transition: "all 0.25s ease",
+          letterSpacing: active ? "0.02em" : "0",
+        }}
+      >
+        <Icon size={15} strokeWidth={active ? 2.5 : 2} />
+        <AnimatePresence>
+          {active && (
+            <motion.span
+              key="label"
+              initial={{ opacity: 0, width: 0 }}
+              animate={{ opacity: 1, width: "auto" }}
+              exit={{ opacity: 0, width: 0 }}
+              style={{ overflow: "hidden", whiteSpace: "nowrap" }}
+            >
+              {label}
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </motion.button>
+
+      {/* Sleek Premium Tooltip */}
+      <AnimatePresence>
+        {hovered && !active && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.95 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            style={{
+              position: "absolute",
+              bottom: "-38px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              background: "rgba(15, 23, 42, 0.92)",
+              backdropFilter: "blur(8px)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              color: "white",
+              padding: "4px 10px",
+              borderRadius: "8px",
+              fontSize: "10px",
+              fontWeight: 700,
+              whiteSpace: "nowrap",
+              pointerEvents: "none",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.5)",
+              zIndex: 1010,
+              letterSpacing: "0.03em",
+            }}
+          >
+            {label.toUpperCase()}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 const MenuLink = ({ icon: Icon, label, onClick, danger = false }) => (
   <button
@@ -244,6 +281,13 @@ const Navbar = () => {
             active={location.pathname === "/jobs"}
             onClick={() => navigate("/jobs")}
           />
+          <NavItem
+            icon={FileText}
+            label="RFPs"
+            active={location.pathname === "/rfps"}
+            onClick={() => navigate("/rfps")}
+          />
+
           <NavItem
             icon={ClipboardList}
             label="Applications"

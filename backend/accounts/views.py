@@ -2,12 +2,13 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
-from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication
+from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest
 from .serializers import (
     SendOTPSerializer, VerifyOTPSerializer, RegisterUserSerializer, 
     PrivacyPolicySerializer, UserSerializer, ProfileSerializer,
     ExperienceSerializer, EducationSerializer, CompanySerializer,
-    UserSearchSerializer, JobOpeningSerializer, JobApplicationSerializer
+    UserSearchSerializer, JobOpeningSerializer, JobApplicationSerializer,
+    RFPSerializer, RFPInterestSerializer
 )
 
 class SendOTPView(APIView):
@@ -377,3 +378,91 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
             raise PermissionDenied("You do not have permission to update this application.")
         
         serializer.save()
+
+
+class RFPViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = RFPSerializer
+
+    def get_queryset(self):
+        queryset = RFP.objects.all()
+        company_id = self.request.query_params.get('company_id')
+        if company_id:
+            queryset = queryset.filter(company_id=company_id)
+            try:
+                company = Company.objects.get(id=company_id)
+                is_owner = company.creator == self.request.user
+                is_admin = CompanyMember.objects.filter(company=company, user=self.request.user, access_role='admin').exists()
+                if not (is_owner or is_admin):
+                    queryset = queryset.filter(is_active=True)
+            except Company.DoesNotExist:
+                queryset = queryset.filter(is_active=True)
+        else:
+            queryset = queryset.filter(is_active=True)
+            
+        return queryset.order_by('-created_at')
+
+    def check_company_access(self, company):
+        is_owner = company.creator == self.request.user
+        is_admin = CompanyMember.objects.filter(company=company, user=self.request.user, access_role='admin').exists()
+        if not (is_owner or is_admin):
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You do not have permission to manage this company's RFPs.")
+
+    def perform_create(self, serializer):
+        company = serializer.validated_data.get('company')
+        self.check_company_access(company)
+        serializer.save()
+
+    def perform_update(self, serializer):
+        company = self.get_object().company
+        self.check_company_access(company)
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        self.check_company_access(instance.company)
+        instance.delete()
+
+
+class RFPInterestViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = RFPInterestSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        rfp_id = self.request.query_params.get('rfp_id')
+        company_id = self.request.query_params.get('company_id')
+
+        my_companies = Company.objects.filter(creator=user).values_list('id', flat=True)
+        my_member_companies = CompanyMember.objects.filter(user=user, access_role='admin').values_list('company_id', flat=True)
+        all_my_company_ids = list(my_companies) + list(my_member_companies)
+
+        queryset = RFPInterest.objects.all()
+
+        if self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
+            queryset = queryset.filter(
+                Q(user=user) | 
+                Q(rfp__company_id__in=all_my_company_ids)
+            )
+        elif rfp_id:
+            queryset = queryset.filter(rfp_id=rfp_id)
+            if not queryset.filter(rfp__company_id__in=all_my_company_ids).exists():
+                queryset = queryset.filter(user=user)
+        elif company_id:
+            try:
+                # Convert to int to check inside all_my_company_ids (since company_id query parameter is a string)
+                comp_id = int(company_id)
+                if comp_id in all_my_company_ids:
+                    queryset = queryset.filter(rfp__company_id=comp_id)
+                else:
+                    queryset = queryset.none()
+            except ValueError:
+                queryset = queryset.none()
+        else:
+            queryset = queryset.filter(user=user)
+
+        return queryset.order_by('-created_at')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+

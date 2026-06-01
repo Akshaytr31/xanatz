@@ -7,7 +7,9 @@ import Navbar from "../components/Navbar";
 import CompanyProfileModal from "../components/company/CompanyProfileModal";
 import CompanyMembersList from "../components/company/CompanyMembersList";
 import JobOpeningModal from "../components/company/JobOpeningModal";
+import RFPModal from "../components/company/RFPModal";
 import api from "../api";
+
 
 const MotionBox = motion.create(Box);
 
@@ -79,26 +81,35 @@ const CompanyDashboard = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [applications, setApplications] = useState([]);
+  const [rfps, setRfps] = useState([]);
+  const [rfpInterests, setRfpInterests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
+  const [isRfpModalOpen, setIsRfpModalOpen] = useState(false);
+  const [selectedRfp, setSelectedRfp] = useState(null);
 
   const fetchCompany = async () => {
     try {
-      const [cRes, uRes, jRes, aRes] = await Promise.all([
+      const [cRes, uRes, jRes, aRes, rRes, riRes] = await Promise.all([
         api.get(`companies/${id}/`),
         api.get("me/"),
         api.get(`jobs/?company_id=${id}`),
-        api.get(`applications/?company_id=${id}`).catch(() => ({ data: [] }))
+        api.get(`applications/?company_id=${id}`).catch(() => ({ data: [] })),
+        api.get(`rfps/?company_id=${id}`).catch(() => ({ data: [] })),
+        api.get(`rfp-interests/?company_id=${id}`).catch(() => ({ data: [] }))
       ]);
       setCompany(cRes.data);
       setCurrentUser(uRes.data);
       setJobs(jRes.data);
       setApplications(aRes.data);
+      setRfps(rRes.data);
+      setRfpInterests(riRes.data);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
+
 
   useEffect(() => { fetchCompany(); }, [id]);
 
@@ -123,6 +134,12 @@ const CompanyDashboard = () => {
     setSelectedJob(null);
     setIsJobModalOpen(true);
   };
+
+  const handleAddRfp = () => {
+    setSelectedRfp(null);
+    setIsRfpModalOpen(true);
+  };
+
   const isOwner = currentUser && company && company.creator === currentUser.id;
   const currentUserMemberInfo = company?.members_details?.find(m => m.id === currentUser?.id);
   const isAdmin = currentUserMemberInfo?.access_role === 'admin';
@@ -565,6 +582,176 @@ const CompanyDashboard = () => {
               </GridItem>
             )}
 
+            {/* Pair 3: Public RFPs & RFP Proposals */}
+            <GridItem colSpan={{ base: 2, md: hasAccess ? 1 : 2 }}>
+              <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.23 }}
+                h="full"
+                p={7} borderRadius="2xl" border="1px solid rgba(255,255,255,0.05)"
+                style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
+              >
+                <HStack gap={3} mb={5} justify="space-between">
+                  <HStack gap={3}>
+                    <Box w="3px" h="18px" borderRadius="full" style={{ background: `linear-gradient(to bottom, #8b5cf6, transparent)` }} />
+                    <Text color="rgba(255,255,255,0.4)" fontSize="10px" fontWeight="black" letterSpacing="widest">PUBLIC RFPs</Text>
+                    <Box px={2} py={0.5} borderRadius="full" style={{ background: `rgba(139,92,246,0.18)`, border: `1px solid rgba(139,92,246,0.30)` }}>
+                      <Text fontSize="10px" fontWeight="black" style={{ color: "#8b5cf6" }}>{rfps.length}</Text>
+                    </Box>
+                  </HStack>
+                  
+                  <HStack gap={2.5}>
+                    <Button h="7" px={3.5} borderRadius="full" fontWeight="black" fontSize="3xs" letterSpacing="widest"
+                      color="rgba(255,255,255,0.6)"
+                      border="1px solid rgba(255,255,255,0.08)"
+                      bg="rgba(255,255,255,0.03)"
+                      _hover={{ bg: "rgba(255,255,255,0.08)", color: "white", borderColor: "rgba(255,255,255,0.15)" }}
+                      transition="all 0.2s"
+                      onClick={() => navigate(`/company/${id}/rfps`)}
+                    >
+                      MANAGE
+                    </Button>
+                    {hasAccess && (
+                      <Button h="7" px={3.5} borderRadius="full" fontWeight="black" fontSize="3xs" letterSpacing="widest" color="white"
+                        onClick={handleAddRfp}
+                        style={{
+                          background: `linear-gradient(135deg, #8b5cf6 95%, rgba(139,92,246,0.5))`,
+                          border: `1px solid rgba(139,92,246,0.40)`
+                        }}
+                        _hover={{ transform: "translateY(-1px)", background: `#8b5cf6` }}
+                        transition="all 0.2s"
+                        leftIcon={<Plus size={11} />}
+                      >
+                        ADD
+                      </Button>
+                    )}
+                  </HStack>
+                </HStack>
+
+                {rfps.length === 0 ? (
+                  <Flex direction="column" align="center" py={8} gap={3}>
+                    <Box w="60px" h="60px" borderRadius="xl" display="flex" alignItems="center" justify="center"
+                      style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                      <FileText size={22} color="rgba(255,255,255,0.12)" />
+                    </Box>
+                    <Text color="rgba(255,255,255,0.25)" fontSize="sm" fontWeight="medium">No active RFPs posted yet</Text>
+                  </Flex>
+                ) : (
+                  <Flex
+                    align="center" gap={6} p={5} borderRadius="xl"
+                    border={`1px solid rgba(139,92,246,0.18)`}
+                    style={{ background: `linear-gradient(135deg, rgba(139,92,246,0.06) 0%, rgba(255,255,255,0.01) 100%)` }}
+                  >
+                    {/* Big count */}
+                    <Box textAlign="center" flexShrink={0}>
+                      <Text fontWeight="black" fontSize="4xl" lineHeight="1" letterSpacing="tight" style={{ color: "#8b5cf6" }}>
+                        {rfps.length}
+                      </Text>
+                      <Text color="rgba(255,255,255,0.3)" fontSize="9px" fontWeight="black" letterSpacing="widest" mt={1.5}>
+                        {rfps.length === 1 ? "PUBLIC RFP" : "PUBLIC RFPs"}
+                      </Text>
+                    </Box>
+
+                    {/* Divider */}
+                    <Box w="1px" h="48px" borderRadius="full" bg="rgba(255,255,255,0.08)" flexShrink={0} />
+
+                    {/* Active vs Inactive breakdown */}
+                    <HStack gap={6} flex={1} flexWrap="wrap">
+                      <VStack align="start" gap={0.5}>
+                        <HStack gap={1.5} align="center">
+                          <Box w="6px" h="6px" borderRadius="full" bg="purple.400" />
+                          <Text fontWeight="black" fontSize="xl" lineHeight="1" color="white">
+                            {rfps.filter(r => r.is_active).length}
+                          </Text>
+                        </HStack>
+                        <Text color="rgba(255,255,255,0.3)" fontSize="9px" fontWeight="black" letterSpacing="widest">ACTIVE</Text>
+                      </VStack>
+                      {rfps.filter(r => !r.is_active).length > 0 && (
+                        <VStack align="start" gap={0.5}>
+                          <HStack gap={1.5} align="center">
+                            <Box w="6px" h="6px" borderRadius="full" bg="rgba(255,255,255,0.3)" />
+                            <Text fontWeight="black" fontSize="xl" lineHeight="1" color="rgba(255,255,255,0.4)">
+                              {rfps.filter(r => !r.is_active).length}
+                            </Text>
+                          </HStack>
+                          <Text color="rgba(255,255,255,0.3)" fontSize="9px" fontWeight="black" letterSpacing="widest">INACTIVE</Text>
+                        </VStack>
+                      )}
+                    </HStack>
+                  </Flex>
+                )}
+              </MotionBox>
+            </GridItem>
+
+            {hasAccess && (
+              <GridItem colSpan={{ base: 2, md: 1 }}>
+                <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.25 }}
+                  h="full"
+                  p={7} borderRadius="2xl" border="1px solid rgba(255,255,255,0.05)"
+                  style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
+                >
+                  <HStack gap={3} mb={5} justify="space-between">
+                    <HStack gap={3}>
+                      <Box w="3px" h="18px" borderRadius="full" style={{ background: `linear-gradient(to bottom, #10b981, transparent)` }} />
+                      <Text color="rgba(255,255,255,0.4)" fontSize="10px" fontWeight="black" letterSpacing="widest">RFP PROPOSALS</Text>
+                      <Box px={2} py={0.5} borderRadius="full" style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.25)" }}>
+                        <Text fontSize="10px" fontWeight="black" color="#10b981">{rfpInterests.length}</Text>
+                      </Box>
+                    </HStack>
+                    
+                    <Button h="7" px={3.5} borderRadius="full" fontWeight="black" fontSize="3xs" letterSpacing="widest"
+                      color="rgba(255,255,255,0.6)"
+                      border="1px solid rgba(255,255,255,0.08)"
+                      bg="rgba(255,255,255,0.03)"
+                      _hover={{ bg: "rgba(255,255,255,0.08)", color: "white", borderColor: "rgba(255,255,255,0.15)" }}
+                      transition="all 0.2s"
+                      onClick={() => navigate(`/company/${id}/rfp-interests`)}
+                    >
+                      MANAGE PROPOSALS
+                    </Button>
+                  </HStack>
+
+                  {rfpInterests.length === 0 ? (
+                    <Flex direction="column" align="center" py={8} gap={3}>
+                      <Box w="60px" h="60px" borderRadius="xl" display="flex" alignItems="center" justify="center"
+                        style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                        <FileText size={22} color="rgba(255,255,255,0.12)" />
+                      </Box>
+                      <Text color="rgba(255,255,255,0.25)" fontSize="sm" fontWeight="medium">No proposals received yet</Text>
+                    </Flex>
+                  ) : (
+                    <Flex
+                      align="center" gap={6} p={5} borderRadius="xl"
+                      border="1px solid rgba(16,185,129,0.18)"
+                      style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.05), rgba(255,255,255,0.01))" }}
+                    >
+                      {/* Big count */}
+                      <Box textAlign="center" flexShrink={0}>
+                        <Text fontWeight="black" fontSize="4xl" lineHeight="1" letterSpacing="tight" color="#10b981">
+                          {rfpInterests.length}
+                        </Text>
+                        <Text color="rgba(255,255,255,0.3)" fontSize="9px" fontWeight="black" letterSpacing="widest" mt={1.5}>
+                          {rfpInterests.length === 1 ? "PROPOSAL" : "PROPOSALS"}
+                        </Text>
+                      </Box>
+
+                      {/* Divider */}
+                      <Box w="1px" h="48px" borderRadius="full" bg="rgba(255,255,255,0.08)" flexShrink={0} />
+
+                      {/* Description of latest proposals */}
+                      <Flex direction="column" align="start" gap={0.5}>
+                        <Text color="white" fontSize="xs" fontWeight="bold">
+                          Latest: {rfpInterests[0].company_name}
+                        </Text>
+                        <Text color="rgba(255,255,255,0.4)" fontSize="2xs" noOfLines={1}>
+                          {rfpInterests[0].proposal_summary}
+                        </Text>
+                      </Flex>
+                    </Flex>
+                  )}
+                </MotionBox>
+              </GridItem>
+            )}
+
+
             {/* Pair 3: Social Connect & Owner Account Badge */}
             {(company.linkedin_url || company.twitter_url || company.website) && (
               <GridItem colSpan={{ base: 2, md: isOwner ? 1 : 2 }}>
@@ -646,6 +833,15 @@ const CompanyDashboard = () => {
         job={selectedJob}
         onSaved={fetchCompany}
       />
+
+      <RFPModal
+        isOpen={isRfpModalOpen}
+        onClose={() => setIsRfpModalOpen(false)}
+        companyId={company.id}
+        rfp={selectedRfp}
+        onSaved={fetchCompany}
+      />
+
     </Box>
   );
 };
