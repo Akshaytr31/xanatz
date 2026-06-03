@@ -104,7 +104,7 @@ const EducationSection = ({ user, onUpdate }) => {
           <Circle size="32px" bg="purple.500/10" color="purple.400">
             <GraduationCap size={16} />
           </Circle>
-          <Text fontSize="md" fontWeight="black" color="white" letterSpacing="tight" fontFamily="var(--font-heading)">
+          <Text fontSize="md" fontWeight="black" color="var(--color-text-primary)" letterSpacing="tight" fontFamily="var(--font-heading)">
             ACADEMIC FOUNDATION
           </Text>
         </HStack>
@@ -133,7 +133,7 @@ const EducationSection = ({ user, onUpdate }) => {
               <Flex justify="space-between" align="start">
                 <HStack align="start" gap={4} flex={1}>
                   <VStack align="start" gap={1}>
-                    <Text fontSize="md" fontWeight="bold" color="white" lineHeight="1.2">
+                    <Text fontSize="md" fontWeight="bold" color="var(--color-text-primary)" lineHeight="1.2">
                       {edu.school}
                     </Text>
                     <Text color="purple.400" fontWeight="bold" fontSize="10px" letterSpacing="widest">
@@ -228,7 +228,7 @@ const EducationSection = ({ user, onUpdate }) => {
                   </HStack>
                   <Box w="full">
                     <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">ACTIVITIES & SOCIETIES</Text>
-                    <Textarea name="description" value={formData.description} onChange={handleChange} minH="150px" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" placeholder="Outline your academic achievements..." />
+                    <Textarea name="description" value={formData.description} onChange={handleChange} minH="150px" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="var(--color-text-primary)" placeholder="Outline your academic achievements..." />
                   </Box>
                 </VStack>
               </DialogBody>

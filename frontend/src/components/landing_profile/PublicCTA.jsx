@@ -7,7 +7,7 @@ const PublicCTA = ({ email }) => {
     <section className="pub-section">
       <div className="pub-inner">
         {/* Divider */}
-        <div style={{ height: "1px", width: "100%", marginBottom: "3.5rem", background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)" }} />
+        <div style={{ height: "1px", width: "100%", marginBottom: "3.5rem", background: "linear-gradient(90deg, transparent, var(--color-card-border), transparent)" }} />
 
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -18,8 +18,8 @@ const PublicCTA = ({ email }) => {
             borderRadius: "2rem", padding: "clamp(2rem, 6vw, 4rem)", textAlign: "center",
             position: "relative", overflow: "hidden",
             background: "linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.07), rgba(244,114,182,0.04))",
-            border: "1px solid rgba(255,255,255,0.08)",
-            boxShadow: "0 30px 60px -15px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)",
+            border: "1px solid var(--color-card-border)",
+            boxShadow: "0 30px 60px -15px rgba(0,0,0,0.6), inset 0 1px 0 var(--color-card-border)",
           }}
         >
           {/* Glows */}
@@ -27,7 +27,7 @@ const PublicCTA = ({ email }) => {
           <div style={{ position: "absolute", top: "-4rem", right: "-4rem", width: "260px", height: "260px", pointerEvents: "none", opacity: 0.18, background: "radial-gradient(circle, rgba(139,92,246,0.5), transparent 70%)", filter: "blur(40px)" }} />
 
           {/* Grid pattern */}
-          <div style={{ position: "absolute", inset: 0, pointerEvents: "none", opacity: 0.015, backgroundImage: "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)", backgroundSize: "55px 55px" }} />
+          <div style={{ position: "absolute", inset: 0, pointerEvents: "none", opacity: 0.015, backgroundImage: "linear-gradient(var(--color-text-secondary) 1px, transparent 1px), linear-gradient(90deg, var(--color-text-secondary) 1px, transparent 1px)", backgroundSize: "55px 55px" }} />
 
           <div style={{ position: "relative", zIndex: 10 }}>
             {/* Badge */}
@@ -59,7 +59,7 @@ const PublicCTA = ({ email }) => {
                 display: "inline-flex", alignItems: "center", gap: "0.6rem",
                 padding: "0.9rem 2rem", borderRadius: "1rem",
                 background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
-                boxShadow: "0 0 28px rgba(59,130,246,0.4), 0 8px 30px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2)",
+                boxShadow: "0 0 28px rgba(59,130,246,0.4), 0 8px 30px var(--color-card-hover-bg), inset 0 1px 0 var(--color-card-border)",
                 fontSize: "0.78rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: "white",
                 textDecoration: "none",
               }}

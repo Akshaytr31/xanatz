@@ -64,7 +64,7 @@ const MyApplicationsPage = () => {
       <Flex h="100vh" align="center" justify="center" bg="var(--color-primary)">
         <VStack gap={4}>
           <Spinner size="xl" thickness="4px" color="var(--color-accent)" />
-          <Text color="rgba(255,255,255,0.5)" fontSize="xs" fontWeight="black" letterSpacing="widest">
+          <Text color="var(--color-text-muted)" fontSize="xs" fontWeight="black" letterSpacing="widest">
             LOADING YOUR APPLICATIONS...
           </Text>
         </VStack>
@@ -100,7 +100,7 @@ const MyApplicationsPage = () => {
           <Box position="absolute" top="50px" left={{ base: 5, md: 8 }} zIndex={10}>
             <Button
               variant="ghost"
-              color="rgba(255,255,255,0.5)"
+              color="var(--color-text-muted)"
               fontWeight="bold"
               fontSize="2xs"
               letterSpacing="widest"
@@ -118,10 +118,10 @@ const MyApplicationsPage = () => {
           {applications.length === 0 ? (
             /* Fallback empty view when no applications at all */
             <Flex direction="column" align="center" justify="center" py="80px" px={6} borderRadius="3xl"
-              border="1px dashed rgba(255,255,255,0.08)" bg="rgba(255,255,255,0.01)" textAlign="center" mb={12}>
-              <FileText size={48} color="rgba(255,255,255,0.15)" style={{ marginBottom: "16px" }} />
-              <Text color="white" fontWeight="black" fontSize="lg" mb={1}>No Applications Found</Text>
-              <Text color="rgba(255,255,255,0.4)" fontSize="xs" maxW="360px">
+              border="1px dashed var(--color-card-border)" bg="var(--color-glass)" textAlign="center" mb={12}>
+              <FileText size={48} color="var(--color-card-border)" style={{ marginBottom: "16px" }} />
+              <Text color="var(--color-text-primary)" fontWeight="black" fontSize="lg" mb={1}>No Applications Found</Text>
+              <Text color="var(--color-text-muted)" fontSize="xs" maxW="360px">
                 You haven't submitted any job applications yet. Go search and apply to openings!
               </Text>
               <Button size="sm" colorScheme="blue" mt={5} onClick={() => navigate("/dashboard")} borderRadius="xl" fontWeight="black" fontSize="xs">
@@ -140,7 +140,7 @@ const MyApplicationsPage = () => {
                     background: "transparent",
                   },
                   "&::-webkit-scrollbar-thumb": {
-                    background: "rgba(255, 255, 255, 0.12)",
+                    background: "var(--color-card-border)",
                     borderRadius: "10px",
                   },
                   "&::-webkit-scrollbar-thumb:hover": {
@@ -156,7 +156,7 @@ const MyApplicationsPage = () => {
                 
                 {/* Search & Status Filters */}
                 <Grid templateColumns={{ base: "1fr", md: "2fr 1fr" }} gap={4} p={5} borderRadius="2xl"
-                  border="1px solid rgba(255,255,255,0.07)" style={{ background: "rgba(255,255,255,0.02)", backdropFilter: "blur(20px)" }} flexShrink={0}>
+                  border="1px solid var(--color-card-border)" style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }} flexShrink={0}>
                   
                   {/* Search Input */}
                   <Box position="relative">
@@ -168,8 +168,8 @@ const MyApplicationsPage = () => {
                       style={{
                         width: "100%",
                         height: "40px",
-                        background: "rgba(0,0,0,0.25)",
-                        border: "1px solid rgba(255,255,255,0.08)",
+                        background: "var(--color-input-bg)",
+                        border: "1px solid var(--color-card-border)",
                         borderRadius: "12px",
                         color: "white",
                         fontSize: "13px",
@@ -178,7 +178,7 @@ const MyApplicationsPage = () => {
                         fontFamily: "inherit",
                       }}
                     />
-                    <Box position="absolute" left="3.5" top="50%" transform="translateY(-50%)" pointerEvents="none" color="rgba(255,255,255,0.35)">
+                    <Box position="absolute" left="3.5" top="50%" transform="translateY(-50%)" pointerEvents="none" color="var(--color-text-muted)">
                       <Search size={14} />
                     </Box>
                   </Box>
@@ -191,8 +191,8 @@ const MyApplicationsPage = () => {
                     style={{
                       width: "100%",
                       height: "40px",
-                      background: "rgba(0,0,0,0.25)",
-                      border: "1px solid rgba(255,255,255,0.08)",
+                      background: "var(--color-input-bg)",
+                      border: "1px solid var(--color-card-border)",
                       borderRadius: "12px",
                       color: "white",
                       fontSize: "12px",
@@ -221,7 +221,7 @@ const MyApplicationsPage = () => {
                       background: "transparent",
                     },
                     "&::-webkit-scrollbar-thumb": {
-                      background: "rgba(255, 255, 255, 0.12)",
+                      background: "var(--color-card-border)",
                       borderRadius: "10px",
                     },
                     "&::-webkit-scrollbar-thumb:hover": {
@@ -232,10 +232,10 @@ const MyApplicationsPage = () => {
                   <VStack gap={5} align="stretch" pb={4}>
                     {filteredApps.length === 0 ? (
                       <Flex direction="column" align="center" justify="center" py="80px" px={6} borderRadius="3xl"
-                        border="1px dashed rgba(255,255,255,0.08)" bg="rgba(255,255,255,0.01)" textAlign="center">
-                        <FileText size={48} color="rgba(255,255,255,0.15)" style={{ marginBottom: "16px" }} />
-                        <Text color="white" fontWeight="black" fontSize="lg" mb={1}>No Applications Found</Text>
-                        <Text color="rgba(255,255,255,0.4)" fontSize="xs" maxW="360px">
+                        border="1px dashed var(--color-card-border)" bg="var(--color-glass)" textAlign="center">
+                        <FileText size={48} color="var(--color-card-border)" style={{ marginBottom: "16px" }} />
+                        <Text color="var(--color-text-primary)" fontWeight="black" fontSize="lg" mb={1}>No Applications Found</Text>
+                        <Text color="var(--color-text-muted)" fontSize="xs" maxW="360px">
                           No applications match your current search queries or filters.
                         </Text>
                       </Flex>
@@ -255,9 +255,9 @@ const MyApplicationsPage = () => {
                               transition={{ duration: 0.3, delay: idx * 0.05 }}
                               p={{ base: 5, md: 6 }}
                               borderRadius="2xl"
-                              border="1px solid rgba(255,255,255,0.06)"
-                              style={{ background: "rgba(255,255,255,0.02)", backdropFilter: "blur(20px)" }}
-                              _hover={{ borderColor: "rgba(255,255,255,0.12)", bg: "rgba(255,255,255,0.03)" }}
+                              border="1px solid var(--color-card-border)"
+                              style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }}
+                              _hover={{ borderColor: "var(--color-card-border)", bg: "var(--color-glass)" }}
                             >
                               <Flex direction={{ base: "column", sm: "row" }} justify="space-between" align={{ base: "start", sm: "center" }} gap={4} mb={4}>
                                 <HStack gap={3.5} align="center">
@@ -267,18 +267,18 @@ const MyApplicationsPage = () => {
                                   </Flex>
                                   <VStack align="start" gap={0.5}>
                                     <HStack gap={2.5}>
-                                      <Text color="white" fontWeight="black" fontSize="md" letterSpacing="tight">{app.job_title}</Text>
+                                      <Text color="var(--color-text-primary)" fontWeight="black" fontSize="md" letterSpacing="tight">{app.job_title}</Text>
                                       <Badge px={2.5} py={0.5} borderRadius="full" fontSize="3xs" fontWeight="black"
                                         style={{ background: statusColor.bg, color: statusColor.text, border: `1px solid ${statusColor.border}` }}>
                                         {STATUS_LABELS[app.status].toUpperCase()}
                                       </Badge>
                                     </HStack>
-                                    <Text color="rgba(255,255,255,0.4)" fontSize="xs" fontWeight="medium">{app.company_name}</Text>
+                                    <Text color="var(--color-text-muted)" fontSize="xs" fontWeight="medium">{app.company_name}</Text>
                                   </VStack>
                                 </HStack>
 
                                 <VStack align={{ base: "start", sm: "end" }} gap={1}>
-                                  <HStack gap={1.5} fontSize="xs" color="rgba(255,255,255,0.3)" fontWeight="bold" letterSpacing="wider">
+                                  <HStack gap={1.5} fontSize="xs" color="var(--color-text-muted)" fontWeight="bold" letterSpacing="wider">
                                     <Calendar size={10} />
                                     <Text>APPLIED {new Date(app.created_at).toLocaleDateString(undefined, { dateStyle: "medium" }).toUpperCase()}</Text>
                                   </HStack>
@@ -294,11 +294,11 @@ const MyApplicationsPage = () => {
                                   </Text>
                                 </Flex>
                               ) : (
-                                <VStack align="stretch" gap={1.5} py={2.5} px={3.5} borderRadius="xl" bg="rgba(255,255,255,0.02)" border="1px solid rgba(255,255,255,0.05)">
+                                <VStack align="stretch" gap={1.5} py={2.5} px={3.5} borderRadius="xl" bg="var(--color-glass)" border="1px solid var(--color-glass)">
                                   {/* Tracker Line */}
                                   <Box position="relative" py={1.5} px={1}>
                                     {/* Track bar backgrounds */}
-                                    <Box position="absolute" top="50%" left={1} right={1} h="2px" bg="rgba(255,255,255,0.08)" transform="translateY(-50%)" zIndex={1} borderRadius="full" />
+                                    <Box position="absolute" top="50%" left={1} right={1} h="2px" bg="var(--color-card-border)" transform="translateY(-50%)" zIndex={1} borderRadius="full" />
                                     {currentStageIdx > 0 && (
                                       <Box
                                         position="absolute"
@@ -331,7 +331,7 @@ const MyApplicationsPage = () => {
                                                 ? "#fff" 
                                                 : isCompleted 
                                                 ? accentColor 
-                                                : "rgba(255,255,255,0.15)",
+                                                : "var(--color-card-border)",
                                               border: isCurrent 
                                                 ? `2px solid ${accentColor}` 
                                                 : "none",
@@ -357,7 +357,7 @@ const MyApplicationsPage = () => {
                                           letterSpacing="wider"
                                           textTransform="uppercase"
                                           textAlign={sIdx === 0 ? "left" : sIdx === 3 ? "right" : "center"}
-                                          color={isActive ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.25)"}
+                                          color={isActive ? "var(--color-text-primary)" : "var(--color-card-border)"}
                                         >
                                           {labels[sIdx]}
                                         </Text>

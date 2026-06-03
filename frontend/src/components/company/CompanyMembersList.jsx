@@ -17,13 +17,13 @@ const CompanyMembersList = ({ members, accentColor, companyId, isOwner }) => {
 
   return (
     <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.25 }}
-      p={7} borderRadius="2xl" border="1px solid rgba(255,255,255,0.05)"
-      style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
+      p={7} borderRadius="2xl" border="1px solid var(--color-glass)"
+      style={{ background: "linear-gradient(135deg, var(--color-glass) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
     >
       <HStack gap={3} mb={5} justify="space-between">
         <HStack gap={3}>
           <Box w="3px" h="18px" borderRadius="full" style={{ background: `linear-gradient(to bottom, ${accentColor}, transparent)` }} />
-          <Text color="rgba(255,255,255,0.4)" fontSize="10px" fontWeight="black" letterSpacing="widest">MEMBERS</Text>
+          <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest">MEMBERS</Text>
           <Box px={2} py={0.5} borderRadius="full" style={{ background: `${accentColor}18`, border: `1px solid ${accentColor}30` }}>
             <Text fontSize="10px" fontWeight="black" style={{ color: accentColor }}>{safeMembers.length}</Text>
           </Box>
@@ -47,10 +47,10 @@ const CompanyMembersList = ({ members, accentColor, companyId, isOwner }) => {
       {safeMembers.length === 0 ? (
         <Flex direction="column" align="center" py={8} gap={3}>
           <Box w="60px" h="60px" borderRadius="xl" display="flex" alignItems="center" justifyContent="center"
-            style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
-            <Users size={22} color="rgba(255,255,255,0.12)" />
+            style={{ background: "var(--color-glass)", border: "1px solid var(--color-glass)" }}>
+            <Users size={22} color="var(--color-card-border)" />
           </Box>
-          <Text color="rgba(255,255,255,0.25)" fontSize="sm" fontWeight="medium">No members yet</Text>
+          <Text color="var(--color-card-border)" fontSize="sm" fontWeight="medium">No members yet</Text>
         </Flex>
       ) : (
         <Box>
@@ -66,11 +66,11 @@ const CompanyMembersList = ({ members, accentColor, companyId, isOwner }) => {
                   whileHover={{ y: -3 }}
                 >
                   <Flex p={4} borderRadius="xl"
-                    border="1px solid rgba(255,255,255,0.06)"
-                    style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(8px)" }}
+                    border="1px solid var(--color-card-border)"
+                    style={{ background: "linear-gradient(135deg, var(--color-glass) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(8px)" }}
                     _hover={{ 
                       borderColor: `${accentColor}40`, 
-                      background: `linear-gradient(135deg, ${accentColor}12 0%, rgba(255,255,255,0.01) 100%)`,
+                      background: `linear-gradient(135deg, ${accentColor}12 0%, var(--color-glass) 100%)`,
                       boxShadow: `0 8px 20px ${accentColor}12`
                     }}
                     transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
@@ -79,7 +79,7 @@ const CompanyMembersList = ({ members, accentColor, companyId, isOwner }) => {
                     onClick={() => member.public_id && navigate(`/p/${member.public_id}`)}
                   >
                     <Box w="40px" h="40px" borderRadius="full" overflow="hidden" flexShrink={0}
-                      border="2px solid rgba(255,255,255,0.08)"
+                      border="2px solid var(--color-card-border)"
                       style={{ background: `linear-gradient(135deg, ${accentColor}15, rgba(15,23,42,0.85))` }}
                     >
                       {member.profile_picture ? (
@@ -93,10 +93,10 @@ const CompanyMembersList = ({ members, accentColor, companyId, isOwner }) => {
                       )}
                     </Box>
                     <VStack align="start" gap={0} flex={1} overflow="hidden">
-                      <Text color="white" fontSize="xs" fontWeight="bold" noOfLines={1} letterSpacing="tight">
+                      <Text color="var(--color-text-primary)" fontSize="xs" fontWeight="bold" noOfLines={1} letterSpacing="tight">
                         {member.first_name ? `${member.first_name} ${member.last_name}`.trim() : member.email.split('@')[0]}
                       </Text>
-                      <Text color="rgba(255,255,255,0.4)" fontSize="10px" fontWeight="black" noOfLines={1} letterSpacing="wider">
+                      <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" noOfLines={1} letterSpacing="wider">
                         {(member.headline || "Member").toUpperCase()}
                       </Text>
                     </VStack>
@@ -112,11 +112,11 @@ const CompanyMembersList = ({ members, accentColor, companyId, isOwner }) => {
               mt={5}
               variant="ghost"
               onClick={() => setIsExpanded(!isExpanded)}
-              color="rgba(255,255,255,0.5)"
+              color="var(--color-text-muted)"
               fontSize="xs"
               fontWeight="black"
               letterSpacing="widest"
-              _hover={{ color: "white", bg: "rgba(255,255,255,0.04)" }}
+              _hover={{ color: "white", bg: "var(--color-glass)" }}
               borderRadius="xl"
               h="40px"
               rightIcon={isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}

@@ -21,7 +21,7 @@ const BrandingSection = ({ quote, author, stats }) => {
         <Heading
           size="6xl"
           fontWeight="black"
-          color="white"
+          color="var(--color-text-primary)"
           mb={6}
           letterSpacing="tighter"
         >
@@ -66,7 +66,7 @@ const BrandingSection = ({ quote, author, stats }) => {
                 borderColor="whiteAlpha.300"
                 flex="1"
               >
-                <Heading size="3xl" fontWeight="bold" color="white" mb={1}>
+                <Heading size="3xl" fontWeight="bold" color="var(--color-text-primary)" mb={1}>
                   {stat.value}
                 </Heading>
                 <Text color="slate.400" fontSize="sm">

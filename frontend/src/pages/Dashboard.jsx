@@ -76,93 +76,93 @@ const Dashboard = () => {
         <Box mt={1} position="relative" zIndex={10}>
 
           {/* Filters Panel */} 
-          <Box p={5} borderRadius="2xl" border="1px solid rgba(255,255,255,0.06)" mb={8}
-            style={{ background: "rgba(255,255,255,0.02)", backdropFilter: "blur(20px)" }}>
+          <Box p={5} borderRadius="2xl" border="1px solid var(--color-card-border)" mb={8}
+            style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }}>
             <Grid templateColumns={{ base: "1fr", sm: "repeat(2, 1fr)", md: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }} gap={4}>
               {/* Title Filter */}
               <VStack align="start" gap={1.5}>
-                <Text fontSize="xs" fontWeight="black" color="rgba(255,255,255,0.4)" letterSpacing="wider">JOB TITLE</Text>
+                <Text fontSize="xs" fontWeight="black" color="var(--color-text-muted)" letterSpacing="wider">JOB TITLE</Text>
                 <HStack
-                  bg="rgba(0,0,0,0.25)"
+                  bg="var(--color-input-bg)"
                   borderRadius="xl"
                   px={3.5}
-                  border="1px solid rgba(255,255,255,0.07)"
+                  border="1px solid var(--color-card-border)"
                   w="full"
-                  _hover={{ borderColor: "rgba(255,255,255,0.12)", bg: "rgba(0,0,0,0.3)" }}
-                  _focusWithin={{ borderColor: "var(--color-accent)", boxShadow: "0 0 10px rgba(59, 130, 246, 0.2)", bg: "rgba(0,0,0,0.35)" }}
+                  _hover={{ borderColor: "var(--color-card-border)", bg: "var(--color-card-hover-bg)" }}
+                  _focusWithin={{ borderColor: "var(--color-accent)", boxShadow: "0 0 10px rgba(59, 130, 246, 0.2)", bg: "var(--color-card-hover-bg)" }}
                   transition="all 0.3s"
                 >
                   <Search size={14} color="#3b82f6" />
                   <Input
                     placeholder="e.g. Software Engineer"
                     variant="unstyled"
-                    color="white"
+                    color="var(--color-text-primary)"
                     fontSize="xs"
                     value={titleSearch}
                     onChange={(e) => setTitleSearch(e.target.value)}
                     py={3}
-                    _placeholder={{ color: "rgba(255,255,255,0.2)" }}
+                    _placeholder={{ color: "var(--color-text-muted)" }}
                   />
                 </HStack>
               </VStack>
 
               {/* Company Filter */}
               <VStack align="start" gap={1.5}>
-                <Text fontSize="xs" fontWeight="black" color="rgba(255,255,255,0.4)" letterSpacing="wider">COMPANY</Text>
+                <Text fontSize="xs" fontWeight="black" color="var(--color-text-muted)" letterSpacing="wider">COMPANY</Text>
                 <HStack
-                  bg="rgba(0,0,0,0.25)"
+                  bg="var(--color-input-bg)"
                   borderRadius="xl"
                   px={3.5}
-                  border="1px solid rgba(255,255,255,0.07)"
+                  border="1px solid var(--color-card-border)"
                   w="full"
-                  _hover={{ borderColor: "rgba(255,255,255,0.12)", bg: "rgba(0,0,0,0.3)" }}
-                  _focusWithin={{ borderColor: "var(--color-accent)", boxShadow: "0 0 10px rgba(59, 130, 246, 0.2)", bg: "rgba(0,0,0,0.35)" }}
+                  _hover={{ borderColor: "var(--color-card-border)", bg: "var(--color-card-hover-bg)" }}
+                  _focusWithin={{ borderColor: "var(--color-accent)", boxShadow: "0 0 10px rgba(59, 130, 246, 0.2)", bg: "var(--color-card-hover-bg)" }}
                   transition="all 0.3s"
                 >
                   <Building2 size={14} color="#3b82f6" />
                   <Input
                     placeholder="e.g. Appzia"
                     variant="unstyled"
-                    color="white"
+                    color="var(--color-text-primary)"
                     fontSize="xs"
                     value={companySearch}
                     onChange={(e) => setCompanySearch(e.target.value)}
                     py={3}
-                    _placeholder={{ color: "rgba(255,255,255,0.2)" }}
+                    _placeholder={{ color: "var(--color-text-muted)" }}
                   />
                 </HStack>
               </VStack>
 
               {/* Location Filter */}
               <VStack align="start" gap={1.5}>
-                <Text fontSize="xs" fontWeight="black" color="rgba(255,255,255,0.4)" letterSpacing="wider">LOCATION</Text>
+                <Text fontSize="xs" fontWeight="black" color="var(--color-text-muted)" letterSpacing="wider">LOCATION</Text>
                 <HStack
-                  bg="rgba(0,0,0,0.25)"
+                  bg="var(--color-input-bg)"
                   borderRadius="xl"
                   px={3.5}
-                  border="1px solid rgba(255,255,255,0.07)"
+                  border="1px solid var(--color-card-border)"
                   w="full"
-                  _hover={{ borderColor: "rgba(255,255,255,0.12)", bg: "rgba(0,0,0,0.3)" }}
-                  _focusWithin={{ borderColor: "var(--color-accent)", boxShadow: "0 0 10px rgba(59, 130, 246, 0.2)", bg: "rgba(0,0,0,0.35)" }}
+                  _hover={{ borderColor: "var(--color-card-border)", bg: "var(--color-card-hover-bg)" }}
+                  _focusWithin={{ borderColor: "var(--color-accent)", boxShadow: "0 0 10px rgba(59, 130, 246, 0.2)", bg: "var(--color-card-hover-bg)" }}
                   transition="all 0.3s"
                 >
                   <MapPin size={14} color="#3b82f6" />
                   <Input
                     placeholder="e.g. Remote / Austin"
                     variant="unstyled"
-                    color="white"
+                    color="var(--color-text-primary)"
                     fontSize="xs"
                     value={locationSearch}
                     onChange={(e) => setLocationSearch(e.target.value)}
                     py={3}
-                    _placeholder={{ color: "rgba(255,255,255,0.2)" }}
+                    _placeholder={{ color: "var(--color-text-muted)" }}
                   />
                 </HStack>
               </VStack>
 
               {/* Job Type Filter */}
               <VStack align="start" gap={1.5}>
-                <Text fontSize="xs" fontWeight="black" color="rgba(255,255,255,0.4)" letterSpacing="wider">JOB TYPE</Text>
+                <Text fontSize="xs" fontWeight="black" color="var(--color-text-muted)" letterSpacing="wider">JOB TYPE</Text>
                 <Box position="relative" w="full" transition="all 0.3s">
                   <Box
                     as="select"
@@ -171,10 +171,10 @@ const Dashboard = () => {
                     style={{
                       width: "100%",
                       height: "42px",
-                      background: "rgba(0,0,0,0.25)",
-                      border: "1px solid rgba(255,255,255,0.07)",
+                      background: "var(--color-input-bg)",
+                      border: "1px solid var(--color-card-border)",
                       borderRadius: "12px",
-                      color: "white",
+                      color: "var(--color-text-primary)",
                       fontSize: "12px",
                       padding: "0 36px 0 14px",
                       outline: "none",
@@ -184,17 +184,17 @@ const Dashboard = () => {
                       transition: "all 0.3s",
                       fontFamily: "inherit",
                     }}
-                    _hover={{ borderColor: "rgba(255,255,255,0.12)", bg: "rgba(0,0,0,0.3)" }}
-                    _focus={{ borderColor: "var(--color-accent)", boxShadow: "0 0 10px rgba(59, 130, 246, 0.2)", bg: "rgba(0,0,0,0.35)" }}
+                    _hover={{ borderColor: "var(--color-card-border)", bg: "var(--color-card-hover-bg)" }}
+                    _focus={{ borderColor: "var(--color-accent)", boxShadow: "0 0 10px rgba(59, 130, 246, 0.2)", bg: "var(--color-card-hover-bg)" }}
                   >
-                    <option value="all" style={{ background: "#0F172A", color: "white" }}>All Job Types</option>
-                    <option value="full_time" style={{ background: "#0F172A", color: "white" }}>Full-time</option>
-                    <option value="part_time" style={{ background: "#0F172A", color: "white" }}>Part-time</option>
-                    <option value="contract" style={{ background: "#0F172A", color: "white" }}>Contract</option>
-                    <option value="internship" style={{ background: "#0F172A", color: "white" }}>Internship</option>
-                    <option value="remote" style={{ background: "#0F172A", color: "white" }}>Remote</option>
+                    <option value="all" style={{ background: "var(--color-dropdown-bg)", color: "var(--color-text-primary)" }}>All Job Types</option>
+                    <option value="full_time" style={{ background: "var(--color-dropdown-bg)", color: "var(--color-text-primary)" }}>Full-time</option>
+                    <option value="part_time" style={{ background: "var(--color-dropdown-bg)", color: "var(--color-text-primary)" }}>Part-time</option>
+                    <option value="contract" style={{ background: "var(--color-dropdown-bg)", color: "var(--color-text-primary)" }}>Contract</option>
+                    <option value="internship" style={{ background: "var(--color-dropdown-bg)", color: "var(--color-text-primary)" }}>Internship</option>
+                    <option value="remote" style={{ background: "var(--color-dropdown-bg)", color: "var(--color-text-primary)" }}>Remote</option>
                   </Box>
-                  <Box position="absolute" right="3.5" top="50%" transform="translateY(-50%)" pointerEvents="none" color="rgba(255,255,255,0.35)">
+                  <Box position="absolute" right="3.5" top="50%" transform="translateY(-50%)" pointerEvents="none" color="var(--color-text-muted)">
                     <ChevronDown size={14} />
                   </Box>
                 </Box>
@@ -213,11 +213,11 @@ const Dashboard = () => {
               justify="center"
               py={12}
               borderRadius="lg"
-              border="1px dashed rgba(255,255,255,0.1)"
-              bg="rgba(255,255,255,0.01)"
+              border="1px dashed var(--color-card-border)"
+              bg="var(--color-glass)"
             >
-              <Briefcase size={36} color="rgba(255,255,255,0.15)" style={{ marginBottom: "12px" }} />
-              <Text color="rgba(255,255,255,0.4)" fontSize="sm" fontWeight="bold">
+              <Briefcase size={36} color="var(--color-card-border)" style={{ marginBottom: "12px" }} />
+              <Text color="var(--color-text-muted)" fontSize="sm" fontWeight="bold">
                 No job openings found
               </Text>
             </Flex>

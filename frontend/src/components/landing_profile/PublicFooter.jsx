@@ -11,7 +11,7 @@ const PublicFooter = ({ fullName, handleShare }) => {
       viewport={{ once: true }}
       style={{
         position: "relative", zIndex: 20,
-        borderTop: "1px solid rgba(255,255,255,0.06)",
+        borderTop: "1px solid var(--color-card-border)",
         paddingLeft: "clamp(1.5rem, 5vw, 5rem)",
         paddingRight: "clamp(1.5rem, 5vw, 5rem)",
         paddingTop: "2.5rem", paddingBottom: "2.5rem",
@@ -41,7 +41,7 @@ const PublicFooter = ({ fullName, handleShare }) => {
             >
               <Share2 size={11} /> Share
             </button>
-            <div style={{ width: "1px", height: "14px", background: "rgba(255,255,255,0.1)" }} />
+            <div style={{ width: "1px", height: "14px", background: "var(--color-card-border)" }} />
             <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
               style={{ display: "flex", alignItems: "center", gap: "0.35rem", padding: "0.4rem 0.75rem", borderRadius: "8px", background: "transparent", border: "none", cursor: "pointer", fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#4b5563" }}
               onMouseEnter={e => e.currentTarget.style.color = "white"}

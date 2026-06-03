@@ -106,7 +106,7 @@ const ManageRFPsPage = () => {
       <Flex h="100vh" align="center" justify="center" bg="var(--color-primary)">
         <VStack gap={4}>
           <Spinner size="xl" thickness="4px" color={accentColor} />
-          <Text color="rgba(255,255,255,0.5)" fontSize="xs" fontWeight="black" letterSpacing="widest">
+          <Text color="var(--color-text-muted)" fontSize="xs" fontWeight="black" letterSpacing="widest">
             LOADING RFPs...
           </Text>
         </VStack>
@@ -118,7 +118,7 @@ const ManageRFPsPage = () => {
     return (
       <Flex h="100vh" align="center" justify="center" bg="var(--color-primary)" direction="column" gap={4}>
         <AlertCircle size={48} color="#ef4444" />
-        <Text color="white" fontSize="lg" fontWeight="bold">Company not found.</Text>
+        <Text color="var(--color-text-primary)" fontSize="lg" fontWeight="bold">Company not found.</Text>
         <Button onClick={() => navigate("/dashboard")} colorScheme="blue">Back to Dashboard</Button>
       </Flex>
     );
@@ -133,7 +133,7 @@ const ManageRFPsPage = () => {
     return (
       <Flex h="100vh" align="center" justify="center" bg="var(--color-primary)" direction="column" gap={4}>
         <AlertCircle size={48} color="#ef4444" />
-        <Text color="white" fontSize="lg" fontWeight="bold">Access Denied.</Text>
+        <Text color="var(--color-text-primary)" fontSize="lg" fontWeight="bold">Access Denied.</Text>
         <Button onClick={() => navigate("/dashboard")} colorScheme="blue">Back to Dashboard</Button>
       </Flex>
     );
@@ -145,8 +145,8 @@ const ManageRFPsPage = () => {
   const RFPList = ({ list, type }) => {
     if (list.length === 0) {
       return (
-        <Flex py={10} px={6} borderRadius="2xl" border="1px dashed rgba(255,255,255,0.06)" bg="rgba(255,255,255,0.005)" justify="center" align="center">
-          <Text color="rgba(255,255,255,0.3)" fontSize="xs" fontWeight="medium">
+        <Flex py={10} px={6} borderRadius="2xl" border="1px dashed var(--color-card-border)" bg="rgba(255,255,255,0.005)" justify="center" align="center">
+          <Text color="var(--color-text-muted)" fontSize="xs" fontWeight="medium">
             No {type} RFPs posted.
           </Text>
         </Flex>
@@ -165,14 +165,14 @@ const ManageRFPsPage = () => {
               transition={{ duration: 0.3, delay: idx * 0.05 }}
               p={5}
               borderRadius="2xl"
-              border="1px solid rgba(255,255,255,0.05)"
+              border="1px solid var(--color-glass)"
               style={{ background: "rgba(255,255,255,0.015)", backdropFilter: "blur(20px)" }}
-              _hover={{ borderColor: "rgba(255,255,255,0.1)", bg: "rgba(255,255,255,0.02)" }}
+              _hover={{ borderColor: "var(--color-card-border)", bg: "var(--color-glass)" }}
             >
               <Flex direction={{ base: "column", sm: "row" }} justify="space-between" align={{ base: "start", sm: "center" }} gap={4}>
                 {/* Information */}
                 <VStack align="start" gap={1.5} flex={1}>
-                  <Heading size="xs" color="white" fontWeight="black" letterSpacing="tight">
+                  <Heading size="xs" color="var(--color-text-primary)" fontWeight="black" letterSpacing="tight">
                     {rfp.title}
                   </Heading>
                   <HStack gap={4} wrap="wrap">
@@ -186,8 +186,8 @@ const ManageRFPsPage = () => {
                     )}
                     {rfp.deadline && (
                       <HStack gap={1}>
-                        <Calendar size={11} color="rgba(255,255,255,0.4)" />
-                        <Text color="rgba(255,255,255,0.4)" fontSize="3xs" fontWeight="black" letterSpacing="wider">
+                        <Calendar size={11} color="var(--color-text-muted)" />
+                        <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="black" letterSpacing="wider">
                           DUE: {new Date(rfp.deadline).toLocaleDateString(undefined, { dateStyle: "medium" })}
                         </Text>
                       </HStack>
@@ -201,12 +201,12 @@ const ManageRFPsPage = () => {
                     {rfp.is_active ? (
                       <ToggleRight size={32} color="#10b981" />
                     ) : (
-                      <ToggleLeft size={32} color="rgba(255,255,255,0.3)" />
+                      <ToggleLeft size={32} color="var(--color-text-muted)" />
                     )}
                   </Box>
                   <Button h="8" px={3.5} borderRadius="lg" fontSize="3xs" fontWeight="black" letterSpacing="wider"
-                    bg="rgba(255,255,255,0.03)" border="1px solid rgba(255,255,255,0.08)" color="white"
-                    _hover={{ bg: "rgba(255,255,255,0.08)", borderColor: "rgba(255,255,255,0.15)" }}
+                    bg="var(--color-glass)" border="1px solid var(--color-card-border)" color="white"
+                    _hover={{ bg: "var(--color-card-border)", borderColor: "var(--color-card-border)" }}
                     onClick={() => handleEditRfp(rfp)}
                     leftIcon={<Edit2 size={11} />}
                   >
@@ -265,16 +265,16 @@ const ManageRFPsPage = () => {
           {/* Header */}
           <Flex justify="space-between" align="center" wrap="wrap" gap={4} mb={8}>
             <VStack align="start" gap={1}>
-              <Button variant="ghost" color="rgba(255,255,255,0.5)" fontWeight="bold" fontSize="2xs"
+              <Button variant="ghost" color="var(--color-text-muted)" fontWeight="bold" fontSize="2xs"
                 letterSpacing="widest" px={0} mb={2} _hover={{ color: "white", transform: "translateX(-4px)" }}
                 transition="all 0.3s" onClick={() => navigate(`/company/${id}`)}>
                 <ArrowLeft size={13} style={{ marginRight: "6px" }} />
                 BACK TO DASHBOARD
               </Button>
-              <Heading size="xl" color="white" fontWeight="black" letterSpacing="tight">
+              <Heading size="xl" color="var(--color-text-primary)" fontWeight="black" letterSpacing="tight">
                 Manage Public RFPs
               </Heading>
-              <Text color="rgba(255,255,255,0.4)" fontSize="xs" fontWeight="medium">
+              <Text color="var(--color-text-muted)" fontSize="xs" fontWeight="medium">
                 Add, edit, or close public proposal requests for <strong>{company.name}</strong>
               </Text>
             </VStack>
@@ -297,7 +297,7 @@ const ManageRFPsPage = () => {
             <Box>
               <HStack gap={2.5} mb={4.5}>
                 <Box w="2px" h="12px" bg="#10b981" borderRadius="full" />
-                <Text color="rgba(255,255,255,0.4)" fontSize="10px" fontWeight="black" letterSpacing="widest">
+                <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest">
                   ACTIVE RFPs ({activeRfps.length})
                 </Text>
               </HStack>
@@ -307,8 +307,8 @@ const ManageRFPsPage = () => {
             {/* Inactive RFPs */}
             <Box>
               <HStack gap={2.5} mb={4.5}>
-                <Box w="2px" h="12px" bg="rgba(255,255,255,0.2)" borderRadius="full" />
-                <Text color="rgba(255,255,255,0.4)" fontSize="10px" fontWeight="black" letterSpacing="widest">
+                <Box w="2px" h="12px" bg="var(--color-card-border)" borderRadius="full" />
+                <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest">
                   INACTIVE RFPs ({inactiveRfps.length})
                 </Text>
               </HStack>

@@ -48,7 +48,7 @@ const AboutSection = ({ user, onUpdate }) => {
       p={6}
     >
       <HStack justify="space-between" mb={4}>
-        <Text fontSize="xl" fontWeight="bold" color="white">
+        <Text fontSize="xl" fontWeight="bold" color="var(--color-text-primary)">
           About
         </Text>
         <IconButton

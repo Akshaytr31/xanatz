@@ -101,14 +101,14 @@ const ManageOpeningsPage = () => {
     <Flex h="100vh" align="center" justify="center" bg="var(--color-primary)">
       <VStack gap={4}>
         <Spinner size="xl" thickness="4px" color="var(--color-accent)" />
-        <Text color="rgba(255,255,255,0.5)" fontSize="xs" fontWeight="black" letterSpacing="widest">LOADING...</Text>
+        <Text color="var(--color-text-muted)" fontSize="xs" fontWeight="black" letterSpacing="widest">LOADING...</Text>
       </VStack>
     </Flex>
   );
 
   if (!company) return (
     <Flex h="100vh" align="center" justify="center" bg="var(--color-primary)">
-      <Text color="white">Company not found.</Text>
+      <Text color="var(--color-text-primary)">Company not found.</Text>
     </Flex>
   );
 
@@ -160,16 +160,16 @@ const ManageOpeningsPage = () => {
           {/* ── Header ── */}
           <Flex direction={{ base: "column", md: "row" }} justify="space-between" align={{ base: "start", md: "end" }} mb={10} gap={6}>
             <Box>
-              <Button variant="ghost" color="rgba(255,255,255,0.5)" fontWeight="bold" fontSize="xs"
+              <Button variant="ghost" color="var(--color-text-muted)" fontWeight="bold" fontSize="xs"
                 letterSpacing="widest" px={0} mb={5} _hover={{ color: "white", transform: "translateX(-4px)" }}
                 transition="all 0.3s" onClick={() => navigate(`/company/${id}`)}>
                 <ArrowLeft size={14} style={{ marginRight: "8px" }} />
                 BACK TO DASHBOARD
               </Button>
-              <Text fontSize={{ base: "3xl", md: "4xl" }} fontWeight="black" color="white" letterSpacing="tight" lineHeight="1.1" mb={2}>
+              <Text fontSize={{ base: "3xl", md: "4xl" }} fontWeight="black" color="var(--color-text-primary)" letterSpacing="tight" lineHeight="1.1" mb={2}>
                 Job Openings
               </Text>
-              <HStack gap={2} color="rgba(255,255,255,0.5)">
+              <HStack gap={2} color="var(--color-text-muted)">
                 <Building2 size={15} />
                 <Text fontSize="sm">{company.name}</Text>
               </HStack>
@@ -177,11 +177,11 @@ const ManageOpeningsPage = () => {
 
             {/* Stats + Add button */}
             <HStack gap={4} flexShrink={0}>
-              <Flex align="center" gap={4} p={4} borderRadius="2xl" border="1px solid rgba(255,255,255,0.06)"
-                style={{ background: "rgba(255,255,255,0.02)", backdropFilter: "blur(10px)" }}>
+              <Flex align="center" gap={4} p={4} borderRadius="2xl" border="1px solid var(--color-card-border)"
+                style={{ background: "var(--color-glass)", backdropFilter: "blur(10px)" }}>
                 <VStack align="end" gap={0}>
-                  <Text color="rgba(255,255,255,0.4)" fontSize="xs" fontWeight="black" letterSpacing="wider">TOTAL</Text>
-                  <Text color="white" fontSize="2xl" fontWeight="black" lineHeight="1">{jobs.length}</Text>
+                  <Text color="var(--color-text-muted)" fontSize="xs" fontWeight="black" letterSpacing="wider">TOTAL</Text>
+                  <Text color="var(--color-text-primary)" fontSize="2xl" fontWeight="black" lineHeight="1">{jobs.length}</Text>
                 </VStack>
                 <Box w="44px" h="44px" borderRadius="xl" display="flex" alignItems="center" justifyContent="center"
                   style={{ background: `linear-gradient(135deg, ${accentColor}40, rgba(15,23,42,0.8))`, border: `1px solid ${accentColor}30` }}>
@@ -202,7 +202,7 @@ const ManageOpeningsPage = () => {
                   style={{
                     background: `linear-gradient(135deg, ${accentColor} 0%, #E53E3E 100%)`,
                     boxShadow: `0 8px 24px rgba(205, 36, 38, 0.3)`,
-                    border: "1px solid rgba(255, 255, 255, 0.1)",
+                    border: "1px solid var(--color-card-border)",
                     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                     cursor: "pointer",
                   }}
@@ -222,14 +222,14 @@ const ManageOpeningsPage = () => {
           {/* ── Empty state ── */}
           {jobs.length === 0 && (
             <MotionBox initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              p={16} borderRadius="2xl" border="1px dashed rgba(255,255,255,0.08)"
-              style={{ background: "rgba(255,255,255,0.02)" }} textAlign="center">
+              p={16} borderRadius="2xl" border="1px dashed var(--color-card-border)"
+              style={{ background: "var(--color-glass)" }} textAlign="center">
               <Box w="80px" h="80px" borderRadius="2xl" display="flex" alignItems="center" justifyContent="center" mx="auto" mb={5}
-                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <Briefcase size={32} color="rgba(255,255,255,0.12)" />
+                style={{ background: "var(--color-glass)", border: "1px solid var(--color-card-border)" }}>
+                <Briefcase size={32} color="var(--color-card-border)" />
               </Box>
-              <Text color="rgba(255,255,255,0.3)" fontSize="lg" fontWeight="bold" mb={2}>No job openings yet</Text>
-              <Text color="rgba(255,255,255,0.2)" fontSize="sm" mb={6}>Post your first opening to attract talent.</Text>
+              <Text color="var(--color-text-muted)" fontSize="lg" fontWeight="bold" mb={2}>No job openings yet</Text>
+              <Text color="var(--color-card-border)" fontSize="sm" mb={6}>Post your first opening to attract talent.</Text>
               {hasAccess && (
                 <Button
                   onClick={handleAddJob}
@@ -243,7 +243,7 @@ const ManageOpeningsPage = () => {
                   style={{
                     background: `linear-gradient(135deg, ${accentColor} 0%, #E53E3E 100%)`,
                     boxShadow: `0 6px 20px rgba(205, 36, 38, 0.25)`,
-                    border: "1px solid rgba(255, 255, 255, 0.1)",
+                    border: "1px solid var(--color-card-border)",
                     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                     cursor: "pointer",
                   }}
@@ -266,7 +266,7 @@ const ManageOpeningsPage = () => {
               <HStack gap={2} mb={4}>
                 <Box w="8px" h="8px" borderRadius="full" bg="rgba(72,199,116,0.9)"
                   style={{ boxShadow: "0 0 8px rgba(72,199,116,0.6)" }} />
-                <Text color="rgba(255,255,255,0.35)" fontSize="10px" fontWeight="black" letterSpacing="widest">
+                <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest">
                   ACTIVE — {activeJobs.length}
                 </Text>
               </HStack>
@@ -286,8 +286,8 @@ const ManageOpeningsPage = () => {
           {inactiveJobs.length > 0 && (
             <Box>
               <HStack gap={2} mb={4}>
-                <Box w="8px" h="8px" borderRadius="full" bg="rgba(255,255,255,0.2)" />
-                <Text color="rgba(255,255,255,0.25)" fontSize="10px" fontWeight="black" letterSpacing="widest">
+                <Box w="8px" h="8px" borderRadius="full" bg="var(--color-card-border)" />
+                <Text color="var(--color-card-border)" fontSize="10px" fontWeight="black" letterSpacing="widest">
                   INACTIVE — {inactiveJobs.length}
                 </Text>
               </HStack>
@@ -324,10 +324,10 @@ const JobCard = ({ job, index, hasAccess, accentColor, onEdit, onDelete, onToggl
     exit={{ opacity: 0, scale: 0.97 }}
     transition={{ duration: 0.25, delay: index * 0.04 }}
     p={5} borderRadius="xl"
-    border={`1px solid ${job.is_active ? "rgba(255,255,255,0.09)" : "rgba(255,255,255,0.04)"}`}
+    border={`1px solid ${job.is_active ? "var(--color-card-border)" : "var(--color-glass)"}`}
     style={{
       background: job.is_active
-        ? "rgba(255,255,255,0.03)"
+        ? "var(--color-glass)"
         : "rgba(255,255,255,0.015)",
       backdropFilter: "blur(10px)",
       opacity: job.is_active ? 1 : 0.6,
@@ -339,12 +339,12 @@ const JobCard = ({ job, index, hasAccess, accentColor, onEdit, onDelete, onToggl
       {/* Left: job info */}
       <VStack align="start" gap={2} flex={1} minW={0}>
         <HStack gap={2} flexWrap="wrap">
-          <Text color="white" fontSize="md" fontWeight="bold" letterSpacing="tight" noOfLines={1}>
+          <Text color="var(--color-text-primary)" fontSize="md" fontWeight="bold" letterSpacing="tight" noOfLines={1}>
             {job.title}
           </Text>
           {!job.is_active && (
             <Badge fontSize="2xs" px={2} py={0.5} borderRadius="full"
-              style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.35)" }}>
+              style={{ background: "var(--color-card-border)", color: "var(--color-text-muted)" }}>
               INACTIVE
             </Badge>
           )}
@@ -353,7 +353,7 @@ const JobCard = ({ job, index, hasAccess, accentColor, onEdit, onDelete, onToggl
         {/* Chips */}
         <HStack gap={3} flexWrap="wrap">
           <Badge px={2} py={0.5} fontSize="2xs" fontWeight="bold" borderRadius="md"
-            style={{ background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.65)" }}>
+            style={{ background: "var(--color-card-border)", color: "var(--color-text-secondary)" }}>
             {JOB_TYPE_LABELS[job.job_type] || job.job_type}
           </Badge>
           {job.category && (
@@ -369,13 +369,13 @@ const JobCard = ({ job, index, hasAccess, accentColor, onEdit, onDelete, onToggl
             </Badge>
           )}
           {job.location && (
-            <HStack gap={1} fontSize="xs" color="rgba(255,255,255,0.4)">
+            <HStack gap={1} fontSize="xs" color="var(--color-text-muted)">
               <MapPin size={11} />
               <Text>{job.location}</Text>
             </HStack>
           )}
           {job.salary_range && (
-            <HStack gap={1} fontSize="xs" color="rgba(255,255,255,0.4)">
+            <HStack gap={1} fontSize="xs" color="var(--color-text-muted)">
               <DollarSign size={11} />
               <Text>{job.salary_range}</Text>
             </HStack>
@@ -383,12 +383,12 @@ const JobCard = ({ job, index, hasAccess, accentColor, onEdit, onDelete, onToggl
         </HStack>
 
         {job.description && (
-          <Text color="rgba(255,255,255,0.5)" fontSize="xs" lineHeight="1.7" noOfLines={2}>
+          <Text color="var(--color-text-muted)" fontSize="xs" lineHeight="1.7" noOfLines={2}>
             {job.description}
           </Text>
         )}
         {job.requirements && (
-          <Text color="rgba(255,255,255,0.3)" fontSize="2xs" noOfLines={1} fontStyle="italic">
+          <Text color="var(--color-text-muted)" fontSize="2xs" noOfLines={1} fontStyle="italic">
             Requirements: {job.requirements}
           </Text>
         )}
@@ -399,11 +399,11 @@ const JobCard = ({ job, index, hasAccess, accentColor, onEdit, onDelete, onToggl
         <VStack gap={2} flexShrink={0} align="end">
           {/* Toggle active */}
           <Button size="xs" h="7" px={3} borderRadius="full" fontWeight="bold" fontSize="2xs" letterSpacing="wider"
-            color={job.is_active ? "rgba(72,199,116,0.9)" : "rgba(255,255,255,0.35)"}
+            color={job.is_active ? "rgba(72,199,116,0.9)" : "var(--color-text-muted)"}
             border="1px solid"
-            borderColor={job.is_active ? "rgba(72,199,116,0.3)" : "rgba(255,255,255,0.1)"}
-            bg={job.is_active ? "rgba(72,199,116,0.1)" : "rgba(255,255,255,0.03)"}
-            _hover={{ bg: job.is_active ? "rgba(72,199,116,0.2)" : "rgba(255,255,255,0.07)" }}
+            borderColor={job.is_active ? "rgba(72,199,116,0.3)" : "var(--color-card-border)"}
+            bg={job.is_active ? "rgba(72,199,116,0.1)" : "var(--color-glass)"}
+            _hover={{ bg: job.is_active ? "rgba(72,199,116,0.2)" : "var(--color-card-border)" }}
             onClick={() => onToggle(job)}
             gap={1}
           >
@@ -412,8 +412,8 @@ const JobCard = ({ job, index, hasAccess, accentColor, onEdit, onDelete, onToggl
           </Button>
 
           <HStack gap={1}>
-            <Button size="xs" variant="ghost" color="rgba(255,255,255,0.45)"
-              _hover={{ bg: "rgba(255,255,255,0.08)", color: "white" }}
+            <Button size="xs" variant="ghost" color="var(--color-text-muted)"
+              _hover={{ bg: "var(--color-card-border)", color: "white" }}
               onClick={() => onEdit(job)} title="Edit">
               <Edit2 size={13} />
             </Button>

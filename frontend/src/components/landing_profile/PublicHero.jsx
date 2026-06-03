@@ -101,7 +101,7 @@ const PublicHero = ({ profile, first_name, last_name, fullName, heroY, heroOpaci
                 <span style={{
                   display: "inline-flex", alignItems: "center", gap: "0.4rem",
                   padding: "0.35rem 0.8rem", borderRadius: "9999px",
-                  background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+                  background: "var(--color-glass)", border: "1px solid var(--color-card-border)",
                   fontSize: "0.58rem", fontWeight: 800, letterSpacing: "0.15em",
                   textTransform: "uppercase", color: "#9ca3af",
                 }}>
@@ -115,7 +115,7 @@ const PublicHero = ({ profile, first_name, last_name, fullName, heroY, heroOpaci
                 <span style={{
                   display: "inline-flex", alignItems: "center", gap: "0.4rem",
                   padding: "0.35rem 0.8rem", borderRadius: "9999px",
-                  background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+                  background: "var(--color-glass)", border: "1px solid var(--color-card-border)",
                   fontSize: "0.58rem", fontWeight: 800, letterSpacing: "0.15em",
                   textTransform: "uppercase", color: "#9ca3af",
                 }}>
@@ -229,7 +229,7 @@ const PublicHero = ({ profile, first_name, last_name, fullName, heroY, heroOpaci
               {/* Card */}
               <div style={{
                 borderRadius: "1.25rem", overflow: "hidden",
-                background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.09)",
+                background: "var(--color-glass)", border: "1px solid var(--color-card-border)",
                 padding: "4px", boxShadow: "0 32px 64px -16px rgba(0,0,0,0.8)",
               }}>
                 <div style={{
@@ -262,7 +262,7 @@ const PublicHero = ({ profile, first_name, last_name, fullName, heroY, heroOpaci
                   }}>
                     <p style={{
                       fontSize: "0.56rem", fontWeight: 800, textTransform: "uppercase",
-                      letterSpacing: "0.18em", color: "rgba(255,255,255,0.3)", marginBottom: "2px",
+                      letterSpacing: "0.18em", color: "var(--color-text-muted)", marginBottom: "2px",
                     }}>
                       {profile?.location || ""}
                     </p>

@@ -60,20 +60,20 @@ const SIZE_OPTIONS = [
 ];
 
 const fieldStyle = {
-  bg: "rgba(255,255,255,0.05)",
+  bg: "var(--color-glass)",
   color: "white",
   h: "11",
   borderRadius: "lg",
   border: "1px solid",
-  borderColor: "rgba(255,255,255,0.12)",
+  borderColor: "var(--color-card-border)",
   _focus: { borderColor: "var(--color-accent)", boxShadow: "0 0 0 2px rgba(66,153,225,0.25)" },
-  _placeholder: { color: "rgba(255,255,255,0.25)" },
+  _placeholder: { color: "var(--color-card-border)" },
   fontSize: "sm",
   px: "4",
 };
 
 const labelStyle = {
-  color: "rgba(255,255,255,0.45)",
+  color: "var(--color-text-muted)",
   fontSize: "10px",
   fontWeight: "black",
   letterSpacing: "widest",
@@ -86,11 +86,11 @@ const SelectField = ({ value, onChange, options, placeholder }) => (
     value={value || ""}
     onChange={(e) => onChange(e.target.value)}
     style={{
-      background: "rgba(255,255,255,0.05)",
-      color: value ? "white" : "rgba(255,255,255,0.25)",
+      background: "var(--color-glass)",
+      color: value ? "white" : "var(--color-card-border)",
       height: "44px",
       borderRadius: "lg",
-      border: "1px solid rgba(255,255,255,0.12)",
+      border: "1px solid var(--color-card-border)",
       fontSize: "14px",
       padding: "0 16px",
       width: "100%",
@@ -223,17 +223,17 @@ const CompanyProfileModal = ({ isOpen, onClose, company, onSaved }) => {
               transition={{ duration: 0.3, ease: "easeOut" }}
               borderRadius="lg"
               overflow="hidden"
-              border="1px solid rgba(255,255,255,0.1)"
+              border="1px solid var(--color-card-border)"
               style={{
                 background: "linear-gradient(135deg, rgba(15,23,42,0.97) 0%, rgba(20,30,55,0.97) 100%)",
-                boxShadow: "0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05)",
+                boxShadow: "0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px var(--color-glass)",
               }}
             >
               {/* ─── Header ─── */}
               <Box
                 px={8}
                 py={6}
-                borderBottom="1px solid rgba(255,255,255,0.07)"
+                borderBottom="1px solid var(--color-card-border)"
                 style={{
                   background: "linear-gradient(90deg, rgba(66,153,225,0.08) 0%, transparent 60%)",
                 }}
@@ -246,14 +246,14 @@ const CompanyProfileModal = ({ isOpen, onClose, company, onSaved }) => {
                         w="56px"
                         h="56px"
                         borderRadius="lg"
-                        border="2px dashed rgba(255,255,255,0.2)"
+                        border="2px dashed var(--color-card-border)"
                         overflow="hidden"
                         cursor="pointer"
                         onClick={() => fileInputRef.current?.click()}
                         position="relative"
                         _hover={{ borderColor: "var(--color-accent)" }}
                         transition="all 0.2s"
-                        style={{ background: "rgba(255,255,255,0.05)" }}
+                        style={{ background: "var(--color-glass)" }}
                       >
                         {logoPreview ? (
                           <Box
@@ -266,8 +266,8 @@ const CompanyProfileModal = ({ isOpen, onClose, company, onSaved }) => {
                           />
                         ) : (
                           <Flex w="full" h="full" align="center" justify="center" direction="column" gap={1}>
-                            <Upload size={14} color="rgba(255,255,255,0.3)" />
-                            <Text fontSize="7px" color="rgba(255,255,255,0.3)" fontWeight="black" letterSpacing="widest">
+                            <Upload size={14} color="var(--color-text-muted)" />
+                            <Text fontSize="7px" color="var(--color-text-muted)" fontWeight="black" letterSpacing="widest">
                               LOGO
                             </Text>
                           </Flex>
@@ -284,7 +284,7 @@ const CompanyProfileModal = ({ isOpen, onClose, company, onSaved }) => {
 
                     <VStack align="start" gap={0}>
                       <HStack gap={2}>
-                        <Text color="white" fontWeight="black" fontSize="lg" letterSpacing="tight">
+                        <Text color="var(--color-text-primary)" fontWeight="black" fontSize="lg" letterSpacing="tight">
                           {company?.name?.toUpperCase() || "COMPANY PROFILE"}
                         </Text>
                         <Badge
@@ -299,7 +299,7 @@ const CompanyProfileModal = ({ isOpen, onClose, company, onSaved }) => {
                           OWNER
                         </Badge>
                       </HStack>
-                      <Text color="rgba(255,255,255,0.35)" fontSize="xs" fontWeight="medium">
+                      <Text color="var(--color-text-muted)" fontSize="xs" fontWeight="medium">
                         {company?.members?.length || 0} members · Click logo to upload
                       </Text>
                     </VStack>
@@ -314,12 +314,12 @@ const CompanyProfileModal = ({ isOpen, onClose, company, onSaved }) => {
                       display="flex"
                       alignItems="center"
                       justifyContent="center"
-                      style={{ background: "rgba(255,255,255,0.07)" }}
-                      _hover={{ background: "rgba(255,255,255,0.12)" }}
+                      style={{ background: "var(--color-card-border)" }}
+                      _hover={{ background: "var(--color-card-border)" }}
                       transition="all 0.2s"
                       onClick={onClose}
                     >
-                      <X size={16} color="rgba(255,255,255,0.7)" />
+                      <X size={16} color="var(--color-text-secondary)" />
                     </Box>
                   </DialogCloseTrigger>
                 </Flex>
@@ -344,12 +344,12 @@ const CompanyProfileModal = ({ isOpen, onClose, company, onSaved }) => {
                         }}
                       >
                         <HStack gap={2}>
-                          <Icon size={12} color={isActive ? "var(--color-accent)" : "rgba(255,255,255,0.4)"} />
+                          <Icon size={12} color={isActive ? "var(--color-accent)" : "var(--color-text-muted)"} />
                           <Text
                             fontSize="10px"
                             fontWeight="black"
                             letterSpacing="widest"
-                            color={isActive ? "var(--color-accent)" : "rgba(255,255,255,0.4)"}
+                            color={isActive ? "var(--color-accent)" : "var(--color-text-muted)"}
                           >
                             {tab.label}
                           </Text>
@@ -404,10 +404,10 @@ const CompanyProfileModal = ({ isOpen, onClose, company, onSaved }) => {
                             placeholder="Describe the company's purpose and what it does..."
                             rows={3}
                             style={{
-                              background: "rgba(255,255,255,0.05)",
+                              background: "var(--color-glass)",
                               color: "white",
                               borderRadius: "lg",
-                              border: "1px solid rgba(255,255,255,0.12)",
+                              border: "1px solid var(--color-card-border)",
                               fontSize: "14px",
                               padding: "12px 16px",
                               width: "100%",
@@ -453,7 +453,7 @@ const CompanyProfileModal = ({ isOpen, onClose, company, onSaved }) => {
                                 placeholder="City, Country"
                               />
                               <Box position="absolute" left="3" top="50%" transform="translateY(-50%)" pointerEvents="none">
-                                <MapPin size={14} color="rgba(255,255,255,0.3)" />
+                                <MapPin size={14} color="var(--color-text-muted)" />
                               </Box>
                             </Box>
                           </Box>
@@ -471,7 +471,7 @@ const CompanyProfileModal = ({ isOpen, onClose, company, onSaved }) => {
                                 max={new Date().getFullYear()}
                               />
                               <Box position="absolute" left="3" top="50%" transform="translateY(-50%)" pointerEvents="none">
-                                <Calendar size={14} color="rgba(255,255,255,0.3)" />
+                                <Calendar size={14} color="var(--color-text-muted)" />
                               </Box>
                             </Box>
                           </Box>
@@ -489,7 +489,7 @@ const CompanyProfileModal = ({ isOpen, onClose, company, onSaved }) => {
                               placeholder="https://yourcompany.com"
                             />
                             <Box position="absolute" left="3" top="50%" transform="translateY(-50%)" pointerEvents="none">
-                              <Globe size={14} color="rgba(255,255,255,0.3)" />
+                              <Globe size={14} color="var(--color-text-muted)" />
                             </Box>
                           </Box>
                         </Box>
@@ -509,10 +509,10 @@ const CompanyProfileModal = ({ isOpen, onClose, company, onSaved }) => {
                         <Box
                           p={4}
                           borderRadius="lg"
-                          border="1px solid rgba(255,255,255,0.06)"
-                          style={{ background: "rgba(255,255,255,0.03)" }}
+                          border="1px solid var(--color-card-border)"
+                          style={{ background: "var(--color-glass)" }}
                         >
-                          <Text color="rgba(255,255,255,0.3)" fontSize="xs" fontWeight="medium" textAlign="center">
+                          <Text color="var(--color-text-muted)" fontSize="xs" fontWeight="medium" textAlign="center">
                             Add social links to help people find and connect with your organization.
                           </Text>
                         </Box>
@@ -560,25 +560,25 @@ const CompanyProfileModal = ({ isOpen, onClose, company, onSaved }) => {
               <Flex
                 px={8}
                 py={5}
-                borderTop="1px solid rgba(255,255,255,0.07)"
+                borderTop="1px solid var(--color-card-border)"
                 justify="space-between"
                 align="center"
-                style={{ background: "rgba(255,255,255,0.02)" }}
+                style={{ background: "var(--color-glass)" }}
               >
-                <Text color="rgba(255,255,255,0.2)" fontSize="xs" fontWeight="medium">
+                <Text color="var(--color-card-border)" fontSize="xs" fontWeight="medium">
                   Changes are saved to your company profile
                 </Text>
                 <HStack gap={3}>
                   <Button
                     variant="ghost"
-                    color="rgba(255,255,255,0.45)"
+                    color="var(--color-text-muted)"
                     fontWeight="black"
                     fontSize="xs"
                     letterSpacing="widest"
                     h="10"
                     px={5}
                     borderRadius="lg"
-                    _hover={{ color: "white", bg: "rgba(255,255,255,0.07)" }}
+                    _hover={{ color: "white", bg: "var(--color-card-border)" }}
                     onClick={onClose}
                   >
                     CANCEL

@@ -261,10 +261,10 @@ const Step4Details = ({
                       css={{
                         "&::-webkit-scrollbar": { width: "5px" },
                         "&::-webkit-scrollbar-track": {
-                          background: "rgba(255,255,255,0.05)",
+                          background: "var(--color-glass)",
                         },
                         "&::-webkit-scrollbar-thumb": {
-                          background: "rgba(255, 255, 255, 0.2)",
+                          background: "var(--color-card-border)",
                           borderRadius: "10px",
                         },
                       }}

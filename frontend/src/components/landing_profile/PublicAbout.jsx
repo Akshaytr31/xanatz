@@ -10,7 +10,7 @@ const PublicAbout = ({ about }) => {
     <section className="pub-section">
       <div className="pub-inner">
         {/* Divider */}
-        <div style={{ height: "1px", width: "100%", marginBottom: "3.5rem", background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)" }} />
+        <div style={{ height: "1px", width: "100%", marginBottom: "3.5rem", background: "linear-gradient(90deg, transparent, var(--color-card-border), transparent)" }} />
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "2rem" }}>
           <style>{`
@@ -55,7 +55,7 @@ const PublicAbout = ({ about }) => {
             >
               <div style={{
                 borderRadius: "1.25rem", padding: "1.75rem", position: "relative", overflow: "hidden",
-                background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
+                background: "var(--color-glass)", border: "1px solid var(--color-card-border)",
                 backdropFilter: "blur(20px)", boxShadow: "0 20px 50px -15px rgba(0,0,0,0.5)",
               }}>
                 {/* Corner glow */}

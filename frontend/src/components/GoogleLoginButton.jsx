@@ -81,7 +81,7 @@ const GoogleLoginButton = ({
                   <Text
                     fontSize="sm"
                     fontWeight="black"
-                    color="white"
+                    color="var(--color-text-primary)"
                     letterSpacing="tight"
                   >
                     {label}

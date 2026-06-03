@@ -16,8 +16,8 @@ const JobOpeningCard = ({ job, onClick }) => {
     <Box
       p={6}
       borderRadius="lg"
-      border="1px solid rgba(255,255,255,0.07)"
-      style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(20px)" }}
+      border="1px solid var(--color-card-border)"
+      style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }}
       _hover={{
         borderColor: "rgba(205,36,38,0.4)",
         background: "rgba(205,36,38,0.05)",
@@ -35,8 +35,8 @@ const JobOpeningCard = ({ job, onClick }) => {
           borderRadius="lg"
           overflow="hidden"
           flexShrink={0}
-          border="1px solid rgba(255,255,255,0.1)"
-          style={{ background: "rgba(255,255,255,0.05)" }}
+          border="1px solid var(--color-card-border)"
+          style={{ background: "var(--color-glass)" }}
         >
           {job.company_logo_url ? (
             <Box as="img" src={job.company_logo_url} alt={job.company_name} w="full" h="full" style={{ objectFit: "cover" }} />
@@ -48,7 +48,7 @@ const JobOpeningCard = ({ job, onClick }) => {
         </Box>
 
         <VStack align="start" gap={0.5} overflow="hidden">
-          <Heading size="sm" color="white" fontWeight="black" noOfLines={1} letterSpacing="tight">
+          <Heading size="sm" color="var(--color-text-primary)" fontWeight="black" noOfLines={1} letterSpacing="tight">
             {job.title}
           </Heading>
           <HStack gap={1.5} color="var(--color-secondary)" fontSize="xs" fontWeight="bold">
@@ -58,12 +58,12 @@ const JobOpeningCard = ({ job, onClick }) => {
         </VStack>
       </Flex>
 
-      <Text color="rgba(255,255,255,0.6)" fontSize="xs" noOfLines={3} mb={4} lineHeight="relaxed">
+      <Text color="var(--color-text-secondary)" fontSize="xs" noOfLines={3} mb={4} lineHeight="relaxed">
         {job.description}
       </Text>
 
-      <HStack gap={2} wrap="wrap" pt={2} borderTop="1px solid rgba(255,255,255,0.06)">
-        <Badge px={2} py={0.5} fontSize="2xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.7)" }}>
+      <HStack gap={2} wrap="wrap" pt={2} borderTop="1px solid var(--color-card-border)">
+        <Badge px={2} py={0.5} fontSize="2xs" fontWeight="bold" borderRadius="md" style={{ background: "var(--color-card-border)", color: "var(--color-text-secondary)" }}>
           {JOB_TYPE_LABELS[job.job_type] || job.job_type}
         </Badge>
         {job.category && (
@@ -77,13 +77,13 @@ const JobOpeningCard = ({ job, onClick }) => {
           </Badge>
         )}
         {job.location && (
-          <HStack gap={1} fontSize="10px" color="rgba(255,255,255,0.4)">
+          <HStack gap={1} fontSize="10px" color="var(--color-text-muted)">
             <MapPin size={10} />
             <Text>{job.location}</Text>
           </HStack>
         )}
         {job.salary_range && (
-          <HStack gap={1} fontSize="10px" color="rgba(255,255,255,0.4)">
+          <HStack gap={1} fontSize="10px" color="var(--color-text-muted)">
             <DollarSign size={10} />
             <Text>{job.salary_range}</Text>
           </HStack>

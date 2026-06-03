@@ -38,7 +38,7 @@ const DashboardHeader = ({ handleLogout }) => {
           <User size={20} />
         </Circle>
         <Box>
-          <Heading size="md" fontWeight="bold" color="white">
+          <Heading size="md" fontWeight="bold" color="var(--color-text-primary)">
             My Dashboard
           </Heading>
           <Text fontSize="xs" color="var(--color-secondary)">

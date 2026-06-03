@@ -148,7 +148,7 @@ const Profile = () => {
               </>
             ) : (
               <Box className="glass-card" p={8} textAlign="center">
-                <Text color="white" fontSize="sm">
+                <Text color="var(--color-text-primary)" fontSize="sm">
                   Unable to load profile details.
                 </Text>
               </Box>
@@ -197,7 +197,7 @@ const Profile = () => {
                     }}
                   >
                     <Text
-                      color="rgba(255,255,255,0.4)"
+                      color="var(--color-text-muted)"
                       fontSize="10px"
                       fontWeight="black"
                       letterSpacing="widest"
@@ -284,7 +284,7 @@ const Profile = () => {
                                 px={4}
                                 py={3}
                                 textAlign="left"
-                                borderBottom="1px solid rgba(255,255,255,0.06)"
+                                borderBottom="1px solid var(--color-card-border)"
                                 _hover={{ bg: "rgba(66,153,225,0.1)" }}
                                 transition="all 0.15s"
                                 onClick={() => {
@@ -317,7 +317,7 @@ const Profile = () => {
                                       </Text>
                                     </Box>
                                     <Text
-                                      color="white"
+                                      color="var(--color-text-primary)"
                                       fontWeight="bold"
                                       fontSize="xs"
                                       letterSpacing="tight"
@@ -356,7 +356,7 @@ const Profile = () => {
                 p={6}
               >
                 <Text
-                  color="white"
+                  color="var(--color-text-primary)"
                   fontWeight="black"
                   mb={5}
                   fontSize="10px"
@@ -400,7 +400,7 @@ const Profile = () => {
                 <Flex justify="space-between" align="center">
                   <VStack align="start" gap={0}>
                     <Text
-                      color="white"
+                      color="var(--color-text-primary)"
                       fontSize="xl"
                       fontWeight="black"
                       lineHeight="1"

@@ -41,13 +41,13 @@ const StatCard = ({ icon: Icon, label, value, color = "rgba(66,153,225,0.8)", de
     minW="160px"
     p={6}
     borderRadius="2xl"
-    border="1px solid rgba(255,255,255,0.05)"
+    border="1px solid var(--color-glass)"
     position="relative"
     overflow="hidden"
     style={{
-      background: "linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.005) 100%)",
+      background: "linear-gradient(135deg, var(--color-glass) 0%, rgba(255,255,255,0.005) 100%)",
       backdropFilter: "blur(24px)",
-      boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.3)"
+      boxShadow: "0 8px 32px 0 var(--color-card-hover-bg)"
     }}
     _hover={{ 
       borderColor: `${color}40`,
@@ -69,8 +69,8 @@ const StatCard = ({ icon: Icon, label, value, color = "rgba(66,153,225,0.8)", de
     >
       <Icon size={20} color={color} />
     </Flex>
-    <Text color="white" fontWeight="black" fontSize="2xl" lineHeight="1" letterSpacing="tight" position="relative" zIndex={1}>{value || "—"}</Text>
-    <Text color="rgba(255,255,255,0.35)" fontSize="9px" fontWeight="black" letterSpacing="widest" mt={2} position="relative" zIndex={1}>{label.toUpperCase()}</Text>
+    <Text color="var(--color-text-primary)" fontWeight="black" fontSize="2xl" lineHeight="1" letterSpacing="tight" position="relative" zIndex={1}>{value || "—"}</Text>
+    <Text color="var(--color-text-muted)" fontSize="9px" fontWeight="black" letterSpacing="widest" mt={2} position="relative" zIndex={1}>{label.toUpperCase()}</Text>
   </MotionBox>
 );
 
@@ -150,14 +150,14 @@ const CompanyDashboard = () => {
     <Flex h="100vh" align="center" justify="center" bg="var(--color-primary)">
       <VStack gap={4}>
         <Spinner size="xl" thickness="4px" color="var(--color-accent)" />
-        <Text color="rgba(255,255,255,0.5)" fontSize="xs" fontWeight="black" letterSpacing="widest">LOADING...</Text>
+        <Text color="var(--color-text-muted)" fontSize="xs" fontWeight="black" letterSpacing="widest">LOADING...</Text>
       </VStack>
     </Flex>
   );
 
   if (!company) return (
     <Flex h="100vh" align="center" justify="center" bg="var(--color-primary)">
-      <Text color="white">Company not found.</Text>
+      <Text color="var(--color-text-primary)">Company not found.</Text>
     </Flex>
   );
 
@@ -187,7 +187,7 @@ const CompanyDashboard = () => {
           {/* Grid pattern overlay */}
           <Box position="absolute" inset={0} opacity={0.06}
             style={{
-              backgroundImage: "linear-gradient(rgba(255,255,255,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.2) 1px, transparent 1px)",
+              backgroundImage: "linear-gradient(var(--color-card-border) 1px, transparent 1px), linear-gradient(90deg, var(--color-card-border) 1px, transparent 1px)",
               backgroundSize: "45px 45px",
             }}
           />
@@ -202,17 +202,17 @@ const CompanyDashboard = () => {
               <MotionBox initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }}>
                 <Button 
                   variant="ghost" 
-                  color="rgba(255,255,255,0.5)" 
+                  color="var(--color-text-muted)" 
                   fontWeight="black" 
                   fontSize="2xs"
                   letterSpacing="widest" 
                   px={4} 
                   py={4}
                   borderRadius="full"
-                  border="1px solid rgba(255,255,255,0.06)"
-                  bg="rgba(0,0,0,0.25)"
+                  border="1px solid var(--color-card-border)"
+                  bg="var(--color-input-bg)"
                   backdropFilter="blur(10px)"
-                  _hover={{ color: "white", bg: "rgba(255,255,255,0.08)", transform: "translateX(-3px)", borderColor: "rgba(255,255,255,0.12)" }} 
+                  _hover={{ color: "white", bg: "var(--color-card-border)", transform: "translateX(-3px)", borderColor: "var(--color-card-border)" }} 
                   transition="all 0.3s"
                   onClick={() => navigate("/profile")}
                 >
@@ -233,10 +233,10 @@ const CompanyDashboard = () => {
                 {/* Logo */}
                 <Box position="relative">
                   <Box w="110px" h="110px" borderRadius="2xl" overflow="hidden" flexShrink={0}
-                    border="3px solid rgba(255,255,255,0.12)"
+                    border="3px solid var(--color-card-border)"
                     style={{
                       background: `linear-gradient(135deg, ${accentColor}25, rgba(15,23,42,0.98))`,
-                      boxShadow: `0 20px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)`,
+                      boxShadow: `0 20px 50px rgba(0,0,0,0.5), 0 0 0 1px var(--color-glass)`,
                     }}
                   >
                     {company.logo_url ? (
@@ -274,16 +274,16 @@ const CompanyDashboard = () => {
                     )}
                     {company.industry && (
                       <Badge px={2.5} py={0.5} fontSize="3xs" fontWeight="black" borderRadius="full"
-                        style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))", color: "rgba(255,255,255,0.65)", border: "1px solid rgba(255,255,255,0.12)" }}>
+                        style={{ background: "linear-gradient(135deg, var(--color-card-border), var(--color-glass))", color: "var(--color-text-secondary)", border: "1px solid var(--color-card-border)" }}>
                         {INDUSTRY_LABELS[company.industry] || company.industry}
                       </Badge>
                     )}
                   </HStack>
-                  <Text color="white" fontWeight="black" fontSize="3xl" letterSpacing="tight" lineHeight="1">
+                  <Text color="var(--color-text-primary)" fontWeight="black" fontSize="3xl" letterSpacing="tight" lineHeight="1">
                     {company.name}
                   </Text>
                   {company.tagline && (
-                    <Text color="rgba(255,255,255,0.4)" fontSize="sm" fontStyle="italic" fontWeight="medium">
+                    <Text color="var(--color-text-muted)" fontSize="sm" fontStyle="italic" fontWeight="medium">
                       "{company.tagline}"
                     </Text>
                   )}
@@ -295,19 +295,19 @@ const CompanyDashboard = () => {
                 {company.website && (
                   <Box as="a" href={company.website} target="_blank" rel="noopener noreferrer"
                     w="44px" h="44px" borderRadius="full" display="flex" alignItems="center" justifyContent="center"
-                    border="1px solid rgba(255,255,255,0.07)"
-                    style={{ background: "rgba(0,0,0,0.25)", backdropFilter: "blur(10px)", cursor: "pointer", transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" }}
-                    _hover={{ borderColor: "rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.08)", transform: "translateY(-3px)" }}
+                    border="1px solid var(--color-card-border)"
+                    style={{ background: "var(--color-input-bg)", backdropFilter: "blur(10px)", cursor: "pointer", transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" }}
+                    _hover={{ borderColor: "var(--color-card-border)", background: "var(--color-card-border)", transform: "translateY(-3px)" }}
                     title="Visit Website"
                   >
-                    <Globe size={18} color="rgba(255,255,255,0.75)" />
+                    <Globe size={18} color="var(--color-text-secondary)" />
                   </Box>
                 )}
                 {isOwner && (
                   <Box as="button" onClick={() => setIsModalOpen(true)}
                     w="44px" h="44px" borderRadius="full" display="flex" alignItems="center" justifyContent="center"
-                    border="1px solid rgba(255,255,255,0.07)"
-                    style={{ background: "rgba(0,0,0,0.25)", backdropFilter: "blur(10px)", cursor: "pointer", transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" }}
+                    border="1px solid var(--color-card-border)"
+                    style={{ background: "var(--color-input-bg)", backdropFilter: "blur(10px)", cursor: "pointer", transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" }}
                     _hover={{ 
                       borderColor: accentColor, 
                       background: `${accentColor}20`, 
@@ -316,7 +316,7 @@ const CompanyDashboard = () => {
                     }}
                     title="Edit Profile"
                   >
-                    <Settings2 size={18} color="rgba(255,255,255,0.85)" />
+                    <Settings2 size={18} color="var(--color-text-primary)" />
                   </Box>
                 )}
               </HStack>
@@ -346,14 +346,14 @@ const CompanyDashboard = () => {
               <GridItem colSpan={{ base: 2, md: 1 }}>
                 <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}
                   h="full"
-                  p={7} borderRadius="2xl" border="1px solid rgba(255,255,255,0.05)"
-                  style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
+                  p={7} borderRadius="2xl" border="1px solid var(--color-glass)"
+                  style={{ background: "linear-gradient(135deg, var(--color-glass) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
                 >
                   <HStack gap={3} mb={5}>
                     <Box w="3px" h="18px" borderRadius="full" style={{ background: `linear-gradient(to bottom, ${accentColor}, transparent)` }} />
-                    <Text color="rgba(255,255,255,0.4)" fontSize="10px" fontWeight="black" letterSpacing="widest">ABOUT</Text>
+                    <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest">ABOUT</Text>
                   </HStack>
-                  <Text color="rgba(255,255,255,0.75)" fontSize="sm" lineHeight="1.95" fontWeight="normal">
+                  <Text color="var(--color-text-secondary)" fontSize="sm" lineHeight="1.95" fontWeight="normal">
                     {company.description}
                   </Text>
                 </MotionBox>
@@ -363,10 +363,10 @@ const CompanyDashboard = () => {
             <GridItem colSpan={{ base: 2, md: company.description ? 1 : 2 }}>
               <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}
                 h="full"
-                p={6} borderRadius="2xl" border="1px solid rgba(255,255,255,0.05)"
-                style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
+                p={6} borderRadius="2xl" border="1px solid var(--color-glass)"
+                style={{ background: "linear-gradient(135deg, var(--color-glass) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
               >
-                <Text color="rgba(255,255,255,0.3)" fontSize="10px" fontWeight="black" letterSpacing="widest" mb={5}>COMPANY INFO</Text>
+                <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest" mb={5}>COMPANY INFO</Text>
                 <VStack align="stretch" gap={4.5}>
                   {[
                     { icon: Briefcase, label: "Industry", value: INDUSTRY_LABELS[company.industry] },
@@ -376,12 +376,12 @@ const CompanyDashboard = () => {
                   ].filter(i => i.value).map(({ icon: Icon, label, value }) => (
                     <Flex key={label} align="center" gap={3.5}>
                       <Box w="36px" h="36px" borderRadius="xl" display="flex" alignItems="center" justifyContent="center" flexShrink={0}
-                        style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
-                        <Icon size={14} color="rgba(255,255,255,0.45)" />
+                        style={{ background: "var(--color-glass)", border: "1px solid var(--color-glass)" }}>
+                        <Icon size={14} color="var(--color-text-muted)" />
                       </Box>
                       <VStack align="start" gap={0.5}>
-                        <Text color="rgba(255,255,255,0.3)" fontSize="9px" fontWeight="black" letterSpacing="widest">{label.toUpperCase()}</Text>
-                        <Text color="rgba(255,255,255,0.8)" fontSize="xs" fontWeight="bold">{value}</Text>
+                        <Text color="var(--color-text-muted)" fontSize="9px" fontWeight="black" letterSpacing="widest">{label.toUpperCase()}</Text>
+                        <Text color="var(--color-text-primary)" fontSize="xs" fontWeight="bold">{value}</Text>
                       </VStack>
                     </Flex>
                   ))}
@@ -393,13 +393,13 @@ const CompanyDashboard = () => {
             <GridItem colSpan={{ base: 2, md: hasAccess ? 1 : 2 }}>
               <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.22 }}
                 h="full"
-                p={7} borderRadius="2xl" border="1px solid rgba(255,255,255,0.05)"
-                style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
+                p={7} borderRadius="2xl" border="1px solid var(--color-glass)"
+                style={{ background: "linear-gradient(135deg, var(--color-glass) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
               >
                 <HStack gap={3} mb={5} justify="space-between">
                   <HStack gap={3}>
                     <Box w="3px" h="18px" borderRadius="full" style={{ background: `linear-gradient(to bottom, ${accentColor}, transparent)` }} />
-                    <Text color="rgba(255,255,255,0.4)" fontSize="10px" fontWeight="black" letterSpacing="widest">JOB OPENINGS</Text>
+                    <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest">JOB OPENINGS</Text>
                     <Box px={2} py={0.5} borderRadius="full" style={{ background: `${accentColor}18`, border: `1px solid ${accentColor}30` }}>
                       <Text fontSize="10px" fontWeight="black" style={{ color: accentColor }}>{jobs.length}</Text>
                     </Box>
@@ -407,10 +407,10 @@ const CompanyDashboard = () => {
                   
                   <HStack gap={2.5}>
                     <Button h="7" px={3.5} borderRadius="full" fontWeight="black" fontSize="3xs" letterSpacing="widest"
-                      color="rgba(255,255,255,0.6)"
-                      border="1px solid rgba(255,255,255,0.08)"
-                      bg="rgba(255,255,255,0.03)"
-                      _hover={{ bg: "rgba(255,255,255,0.08)", color: "white", borderColor: "rgba(255,255,255,0.15)" }}
+                      color="var(--color-text-secondary)"
+                      border="1px solid var(--color-card-border)"
+                      bg="var(--color-glass)"
+                      _hover={{ bg: "var(--color-card-border)", color: "white", borderColor: "var(--color-card-border)" }}
                       transition="all 0.2s"
                       onClick={() => navigate(`/company/${id}/openings`)}
                     >
@@ -436,50 +436,50 @@ const CompanyDashboard = () => {
                 {jobs.length === 0 ? (
                   <Flex direction="column" align="center" py={8} gap={3}>
                     <Box w="60px" h="60px" borderRadius="xl" display="flex" alignItems="center" justifyContent="center"
-                      style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
-                      <Briefcase size={22} color="rgba(255,255,255,0.12)" />
+                      style={{ background: "var(--color-glass)", border: "1px solid var(--color-glass)" }}>
+                      <Briefcase size={22} color="var(--color-card-border)" />
                     </Box>
-                    <Text color="rgba(255,255,255,0.25)" fontSize="sm" fontWeight="medium">No job openings posted yet</Text>
+                    <Text color="var(--color-card-border)" fontSize="sm" fontWeight="medium">No job openings posted yet</Text>
                   </Flex>
                 ) : (
                   <Flex
                     align="center" gap={6} p={5} borderRadius="xl"
                     border={`1px solid ${accentColor}18`}
-                    style={{ background: `linear-gradient(135deg, ${accentColor}06 0%, rgba(255,255,255,0.01) 100%)` }}
+                    style={{ background: `linear-gradient(135deg, ${accentColor}06 0%, var(--color-glass) 100%)` }}
                   >
                     {/* Big count */}
                     <Box textAlign="center" flexShrink={0}>
                       <Text fontWeight="black" fontSize="4xl" lineHeight="1" letterSpacing="tight" style={{ color: accentColor }}>
                         {jobs.length}
                       </Text>
-                      <Text color="rgba(255,255,255,0.3)" fontSize="9px" fontWeight="black" letterSpacing="widest" mt={1.5}>
+                      <Text color="var(--color-text-muted)" fontSize="9px" fontWeight="black" letterSpacing="widest" mt={1.5}>
                         {jobs.length === 1 ? "OPENING" : "OPENINGS"}
                       </Text>
                     </Box>
 
                     {/* Divider */}
-                    <Box w="1px" h="48px" borderRadius="full" bg="rgba(255,255,255,0.08)" flexShrink={0} />
+                    <Box w="1px" h="48px" borderRadius="full" bg="var(--color-card-border)" flexShrink={0} />
 
                     {/* Active vs Inactive breakdown */}
                     <HStack gap={6} flex={1} flexWrap="wrap">
                       <VStack align="start" gap={0.5}>
                         <HStack gap={1.5} align="center">
                           <Box w="6px" h="6px" borderRadius="full" bg="green.400" />
-                          <Text fontWeight="black" fontSize="xl" lineHeight="1" color="white">
+                          <Text fontWeight="black" fontSize="xl" lineHeight="1" color="var(--color-text-primary)">
                             {jobs.filter(j => j.is_active).length}
                           </Text>
                         </HStack>
-                        <Text color="rgba(255,255,255,0.3)" fontSize="9px" fontWeight="black" letterSpacing="widest">ACTIVE</Text>
+                        <Text color="var(--color-text-muted)" fontSize="9px" fontWeight="black" letterSpacing="widest">ACTIVE</Text>
                       </VStack>
                       {jobs.filter(j => !j.is_active).length > 0 && (
                         <VStack align="start" gap={0.5}>
                           <HStack gap={1.5} align="center">
-                            <Box w="6px" h="6px" borderRadius="full" bg="rgba(255,255,255,0.3)" />
-                            <Text fontWeight="black" fontSize="xl" lineHeight="1" color="rgba(255,255,255,0.4)">
+                            <Box w="6px" h="6px" borderRadius="full" bg="var(--color-text-muted)" />
+                            <Text fontWeight="black" fontSize="xl" lineHeight="1" color="var(--color-text-muted)">
                               {jobs.filter(j => !j.is_active).length}
                             </Text>
                           </HStack>
-                          <Text color="rgba(255,255,255,0.3)" fontSize="9px" fontWeight="black" letterSpacing="widest">INACTIVE</Text>
+                          <Text color="var(--color-text-muted)" fontSize="9px" fontWeight="black" letterSpacing="widest">INACTIVE</Text>
                         </VStack>
                       )}
                     </HStack>
@@ -487,8 +487,8 @@ const CompanyDashboard = () => {
                     {/* View all arrow — only for admins/owners who can manage */}
                     {hasAccess && (
                       <Button
-                        variant="ghost" size="sm" color="rgba(255,255,255,0.35)" flexShrink={0}
-                        _hover={{ color: "white", bg: "rgba(255,255,255,0.06)" }}
+                        variant="ghost" size="sm" color="var(--color-text-muted)" flexShrink={0}
+                        _hover={{ color: "white", bg: "var(--color-card-border)" }}
                         onClick={handleAddJob}
                         title="Manage openings"
                       >
@@ -504,23 +504,23 @@ const CompanyDashboard = () => {
               <GridItem colSpan={{ base: 2, md: 1 }}>
                 <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.24 }}
                   h="full"
-                  p={7} borderRadius="2xl" border="1px solid rgba(255,255,255,0.05)"
-                  style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
+                  p={7} borderRadius="2xl" border="1px solid var(--color-glass)"
+                  style={{ background: "linear-gradient(135deg, var(--color-glass) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
                 >
                   <HStack gap={3} mb={5} justify="space-between">
                     <HStack gap={3}>
                       <Box w="3px" h="18px" borderRadius="full" style={{ background: `linear-gradient(to bottom, var(--color-accent), transparent)` }} />
-                      <Text color="rgba(255,255,255,0.4)" fontSize="10px" fontWeight="black" letterSpacing="widest">JOB APPLICATIONS</Text>
+                      <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest">JOB APPLICATIONS</Text>
                       <Box px={2} py={0.5} borderRadius="full" style={{ background: "rgba(59,130,246,0.12)", border: "1px solid rgba(59,130,246,0.25)" }}>
                         <Text fontSize="10px" fontWeight="black" color="var(--color-accent)">{applications.length}</Text>
                       </Box>
                     </HStack>
                     
                     <Button h="7" px={3.5} borderRadius="full" fontWeight="black" fontSize="3xs" letterSpacing="widest"
-                      color="rgba(255,255,255,0.6)"
-                      border="1px solid rgba(255,255,255,0.08)"
-                      bg="rgba(255,255,255,0.03)"
-                      _hover={{ bg: "rgba(255,255,255,0.08)", color: "white", borderColor: "rgba(255,255,255,0.15)" }}
+                      color="var(--color-text-secondary)"
+                      border="1px solid var(--color-card-border)"
+                      bg="var(--color-glass)"
+                      _hover={{ bg: "var(--color-card-border)", color: "white", borderColor: "var(--color-card-border)" }}
                       transition="all 0.2s"
                       onClick={() => navigate(`/company/${id}/applications`)}
                     >
@@ -531,29 +531,29 @@ const CompanyDashboard = () => {
                   {applications.length === 0 ? (
                     <Flex direction="column" align="center" py={8} gap={3}>
                       <Box w="60px" h="60px" borderRadius="xl" display="flex" alignItems="center" justifyContent="center"
-                        style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
-                        <FileText size={22} color="rgba(255,255,255,0.12)" />
+                        style={{ background: "var(--color-glass)", border: "1px solid var(--color-glass)" }}>
+                        <FileText size={22} color="var(--color-card-border)" />
                       </Box>
-                      <Text color="rgba(255,255,255,0.25)" fontSize="sm" fontWeight="medium">No applications received yet</Text>
+                      <Text color="var(--color-card-border)" fontSize="sm" fontWeight="medium">No applications received yet</Text>
                     </Flex>
                   ) : (
                     <Flex
                       align="center" gap={6} p={5} borderRadius="xl"
                       border="1px solid rgba(59,130,246,0.18)"
-                      style={{ background: "linear-gradient(135deg, rgba(59,130,246,0.05), rgba(255,255,255,0.01))" }}
+                      style={{ background: "linear-gradient(135deg, rgba(59,130,246,0.05), var(--color-glass))" }}
                     >
                       {/* Big count */}
                       <Box textAlign="center" flexShrink={0}>
                         <Text fontWeight="black" fontSize="4xl" lineHeight="1" letterSpacing="tight" color="var(--color-accent)">
                           {applications.length}
                         </Text>
-                        <Text color="rgba(255,255,255,0.3)" fontSize="9px" fontWeight="black" letterSpacing="widest" mt={1.5}>
+                        <Text color="var(--color-text-muted)" fontSize="9px" fontWeight="black" letterSpacing="widest" mt={1.5}>
                           {applications.length === 1 ? "APPLICATION" : "APPLICATIONS"}
                         </Text>
                       </Box>
 
                       {/* Divider */}
-                      <Box w="1px" h="48px" borderRadius="full" bg="rgba(255,255,255,0.08)" flexShrink={0} />
+                      <Box w="1px" h="48px" borderRadius="full" bg="var(--color-card-border)" flexShrink={0} />
 
                       {/* Breakdown by status */}
                       <HStack gap={6} flex={1} flexWrap="wrap">
@@ -561,19 +561,19 @@ const CompanyDashboard = () => {
                           <Text fontWeight="black" fontSize="xl" lineHeight="1" color="#3b82f6">
                             {applications.filter(a => a.status === "applied").length}
                           </Text>
-                          <Text color="rgba(255,255,255,0.3)" fontSize="9px" fontWeight="black" letterSpacing="widest">NEW</Text>
+                          <Text color="var(--color-text-muted)" fontSize="9px" fontWeight="black" letterSpacing="widest">NEW</Text>
                         </VStack>
                         <VStack align="start" gap={0.5}>
                           <Text fontWeight="black" fontSize="xl" lineHeight="1" color="#8b5cf6">
                             {applications.filter(a => ["shortlisted", "accepted"].includes(a.status)).length}
                           </Text>
-                          <Text color="rgba(255,255,255,0.3)" fontSize="9px" fontWeight="black" letterSpacing="widest">SHORTLISTED</Text>
+                          <Text color="var(--color-text-muted)" fontSize="9px" fontWeight="black" letterSpacing="widest">SHORTLISTED</Text>
                         </VStack>
                         <VStack align="start" gap={0.5}>
                           <Text fontWeight="black" fontSize="xl" lineHeight="1" color="#ef4444">
                             {applications.filter(a => a.status === "rejected").length}
                           </Text>
-                          <Text color="rgba(255,255,255,0.3)" fontSize="9px" fontWeight="black" letterSpacing="widest">REJECTED</Text>
+                          <Text color="var(--color-text-muted)" fontSize="9px" fontWeight="black" letterSpacing="widest">REJECTED</Text>
                         </VStack>
                       </HStack>
                     </Flex>
@@ -586,13 +586,13 @@ const CompanyDashboard = () => {
             <GridItem colSpan={{ base: 2, md: hasAccess ? 1 : 2 }}>
               <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.23 }}
                 h="full"
-                p={7} borderRadius="2xl" border="1px solid rgba(255,255,255,0.05)"
-                style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
+                p={7} borderRadius="2xl" border="1px solid var(--color-glass)"
+                style={{ background: "linear-gradient(135deg, var(--color-glass) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
               >
                 <HStack gap={3} mb={5} justify="space-between">
                   <HStack gap={3}>
                     <Box w="3px" h="18px" borderRadius="full" style={{ background: `linear-gradient(to bottom, #8b5cf6, transparent)` }} />
-                    <Text color="rgba(255,255,255,0.4)" fontSize="10px" fontWeight="black" letterSpacing="widest">PUBLIC RFPs</Text>
+                    <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest">PUBLIC RFPs</Text>
                     <Box px={2} py={0.5} borderRadius="full" style={{ background: `rgba(139,92,246,0.18)`, border: `1px solid rgba(139,92,246,0.30)` }}>
                       <Text fontSize="10px" fontWeight="black" style={{ color: "#8b5cf6" }}>{rfps.length}</Text>
                     </Box>
@@ -600,10 +600,10 @@ const CompanyDashboard = () => {
                   
                   <HStack gap={2.5}>
                     <Button h="7" px={3.5} borderRadius="full" fontWeight="black" fontSize="3xs" letterSpacing="widest"
-                      color="rgba(255,255,255,0.6)"
-                      border="1px solid rgba(255,255,255,0.08)"
-                      bg="rgba(255,255,255,0.03)"
-                      _hover={{ bg: "rgba(255,255,255,0.08)", color: "white", borderColor: "rgba(255,255,255,0.15)" }}
+                      color="var(--color-text-secondary)"
+                      border="1px solid var(--color-card-border)"
+                      bg="var(--color-glass)"
+                      _hover={{ bg: "var(--color-card-border)", color: "white", borderColor: "var(--color-card-border)" }}
                       transition="all 0.2s"
                       onClick={() => navigate(`/company/${id}/rfps`)}
                     >
@@ -629,50 +629,50 @@ const CompanyDashboard = () => {
                 {rfps.length === 0 ? (
                   <Flex direction="column" align="center" py={8} gap={3}>
                     <Box w="60px" h="60px" borderRadius="xl" display="flex" alignItems="center" justify="center"
-                      style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
-                      <FileText size={22} color="rgba(255,255,255,0.12)" />
+                      style={{ background: "var(--color-glass)", border: "1px solid var(--color-glass)" }}>
+                      <FileText size={22} color="var(--color-card-border)" />
                     </Box>
-                    <Text color="rgba(255,255,255,0.25)" fontSize="sm" fontWeight="medium">No active RFPs posted yet</Text>
+                    <Text color="var(--color-card-border)" fontSize="sm" fontWeight="medium">No active RFPs posted yet</Text>
                   </Flex>
                 ) : (
                   <Flex
                     align="center" gap={6} p={5} borderRadius="xl"
                     border={`1px solid rgba(139,92,246,0.18)`}
-                    style={{ background: `linear-gradient(135deg, rgba(139,92,246,0.06) 0%, rgba(255,255,255,0.01) 100%)` }}
+                    style={{ background: `linear-gradient(135deg, rgba(139,92,246,0.06) 0%, var(--color-glass) 100%)` }}
                   >
                     {/* Big count */}
                     <Box textAlign="center" flexShrink={0}>
                       <Text fontWeight="black" fontSize="4xl" lineHeight="1" letterSpacing="tight" style={{ color: "#8b5cf6" }}>
                         {rfps.length}
                       </Text>
-                      <Text color="rgba(255,255,255,0.3)" fontSize="9px" fontWeight="black" letterSpacing="widest" mt={1.5}>
+                      <Text color="var(--color-text-muted)" fontSize="9px" fontWeight="black" letterSpacing="widest" mt={1.5}>
                         {rfps.length === 1 ? "PUBLIC RFP" : "PUBLIC RFPs"}
                       </Text>
                     </Box>
 
                     {/* Divider */}
-                    <Box w="1px" h="48px" borderRadius="full" bg="rgba(255,255,255,0.08)" flexShrink={0} />
+                    <Box w="1px" h="48px" borderRadius="full" bg="var(--color-card-border)" flexShrink={0} />
 
                     {/* Active vs Inactive breakdown */}
                     <HStack gap={6} flex={1} flexWrap="wrap">
                       <VStack align="start" gap={0.5}>
                         <HStack gap={1.5} align="center">
                           <Box w="6px" h="6px" borderRadius="full" bg="purple.400" />
-                          <Text fontWeight="black" fontSize="xl" lineHeight="1" color="white">
+                          <Text fontWeight="black" fontSize="xl" lineHeight="1" color="var(--color-text-primary)">
                             {rfps.filter(r => r.is_active).length}
                           </Text>
                         </HStack>
-                        <Text color="rgba(255,255,255,0.3)" fontSize="9px" fontWeight="black" letterSpacing="widest">ACTIVE</Text>
+                        <Text color="var(--color-text-muted)" fontSize="9px" fontWeight="black" letterSpacing="widest">ACTIVE</Text>
                       </VStack>
                       {rfps.filter(r => !r.is_active).length > 0 && (
                         <VStack align="start" gap={0.5}>
                           <HStack gap={1.5} align="center">
-                            <Box w="6px" h="6px" borderRadius="full" bg="rgba(255,255,255,0.3)" />
-                            <Text fontWeight="black" fontSize="xl" lineHeight="1" color="rgba(255,255,255,0.4)">
+                            <Box w="6px" h="6px" borderRadius="full" bg="var(--color-text-muted)" />
+                            <Text fontWeight="black" fontSize="xl" lineHeight="1" color="var(--color-text-muted)">
                               {rfps.filter(r => !r.is_active).length}
                             </Text>
                           </HStack>
-                          <Text color="rgba(255,255,255,0.3)" fontSize="9px" fontWeight="black" letterSpacing="widest">INACTIVE</Text>
+                          <Text color="var(--color-text-muted)" fontSize="9px" fontWeight="black" letterSpacing="widest">INACTIVE</Text>
                         </VStack>
                       )}
                     </HStack>
@@ -685,23 +685,23 @@ const CompanyDashboard = () => {
               <GridItem colSpan={{ base: 2, md: 1 }}>
                 <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.25 }}
                   h="full"
-                  p={7} borderRadius="2xl" border="1px solid rgba(255,255,255,0.05)"
-                  style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
+                  p={7} borderRadius="2xl" border="1px solid var(--color-glass)"
+                  style={{ background: "linear-gradient(135deg, var(--color-glass) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
                 >
                   <HStack gap={3} mb={5} justify="space-between">
                     <HStack gap={3}>
                       <Box w="3px" h="18px" borderRadius="full" style={{ background: `linear-gradient(to bottom, #10b981, transparent)` }} />
-                      <Text color="rgba(255,255,255,0.4)" fontSize="10px" fontWeight="black" letterSpacing="widest">RFP PROPOSALS</Text>
+                      <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest">RFP PROPOSALS</Text>
                       <Box px={2} py={0.5} borderRadius="full" style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.25)" }}>
                         <Text fontSize="10px" fontWeight="black" color="#10b981">{rfpInterests.length}</Text>
                       </Box>
                     </HStack>
                     
                     <Button h="7" px={3.5} borderRadius="full" fontWeight="black" fontSize="3xs" letterSpacing="widest"
-                      color="rgba(255,255,255,0.6)"
-                      border="1px solid rgba(255,255,255,0.08)"
-                      bg="rgba(255,255,255,0.03)"
-                      _hover={{ bg: "rgba(255,255,255,0.08)", color: "white", borderColor: "rgba(255,255,255,0.15)" }}
+                      color="var(--color-text-secondary)"
+                      border="1px solid var(--color-card-border)"
+                      bg="var(--color-glass)"
+                      _hover={{ bg: "var(--color-card-border)", color: "white", borderColor: "var(--color-card-border)" }}
                       transition="all 0.2s"
                       onClick={() => navigate(`/company/${id}/rfp-interests`)}
                     >
@@ -712,36 +712,36 @@ const CompanyDashboard = () => {
                   {rfpInterests.length === 0 ? (
                     <Flex direction="column" align="center" py={8} gap={3}>
                       <Box w="60px" h="60px" borderRadius="xl" display="flex" alignItems="center" justify="center"
-                        style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
-                        <FileText size={22} color="rgba(255,255,255,0.12)" />
+                        style={{ background: "var(--color-glass)", border: "1px solid var(--color-glass)" }}>
+                        <FileText size={22} color="var(--color-card-border)" />
                       </Box>
-                      <Text color="rgba(255,255,255,0.25)" fontSize="sm" fontWeight="medium">No proposals received yet</Text>
+                      <Text color="var(--color-card-border)" fontSize="sm" fontWeight="medium">No proposals received yet</Text>
                     </Flex>
                   ) : (
                     <Flex
                       align="center" gap={6} p={5} borderRadius="xl"
                       border="1px solid rgba(16,185,129,0.18)"
-                      style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.05), rgba(255,255,255,0.01))" }}
+                      style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.05), var(--color-glass))" }}
                     >
                       {/* Big count */}
                       <Box textAlign="center" flexShrink={0}>
                         <Text fontWeight="black" fontSize="4xl" lineHeight="1" letterSpacing="tight" color="#10b981">
                           {rfpInterests.length}
                         </Text>
-                        <Text color="rgba(255,255,255,0.3)" fontSize="9px" fontWeight="black" letterSpacing="widest" mt={1.5}>
+                        <Text color="var(--color-text-muted)" fontSize="9px" fontWeight="black" letterSpacing="widest" mt={1.5}>
                           {rfpInterests.length === 1 ? "PROPOSAL" : "PROPOSALS"}
                         </Text>
                       </Box>
 
                       {/* Divider */}
-                      <Box w="1px" h="48px" borderRadius="full" bg="rgba(255,255,255,0.08)" flexShrink={0} />
+                      <Box w="1px" h="48px" borderRadius="full" bg="var(--color-card-border)" flexShrink={0} />
 
                       {/* Description of latest proposals */}
                       <Flex direction="column" align="start" gap={0.5}>
-                        <Text color="white" fontSize="xs" fontWeight="bold">
+                        <Text color="var(--color-text-primary)" fontSize="xs" fontWeight="bold">
                           Latest: {rfpInterests[0].company_name}
                         </Text>
-                        <Text color="rgba(255,255,255,0.4)" fontSize="2xs" noOfLines={1}>
+                        <Text color="var(--color-text-muted)" fontSize="2xs" noOfLines={1}>
                           {rfpInterests[0].proposal_summary}
                         </Text>
                       </Flex>
@@ -757,24 +757,24 @@ const CompanyDashboard = () => {
               <GridItem colSpan={{ base: 2, md: isOwner ? 1 : 2 }}>
                 <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.25 }}
                   h="full"
-                  p={6} borderRadius="2xl" border="1px solid rgba(255,255,255,0.05)"
-                  style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
+                  p={6} borderRadius="2xl" border="1px solid var(--color-glass)"
+                  style={{ background: "linear-gradient(135deg, var(--color-glass) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
                 >
-                  <Text color="rgba(255,255,255,0.3)" fontSize="10px" fontWeight="black" letterSpacing="widest" mb={4}>CONNECT</Text>
+                  <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest" mb={4}>CONNECT</Text>
                   <VStack align="stretch" gap={3}>
                     {company.website && (
                       <Box as="a" href={company.website} target="_blank" rel="noopener noreferrer"
-                        px={4} py={3} borderRadius="xl" border="1px solid rgba(255,255,255,0.07)"
+                        px={4} py={3} borderRadius="xl" border="1px solid var(--color-card-border)"
                         style={{ background: "rgba(255,255,255,0.015)" }}
                         _hover={{ borderColor: `${accentColor}40`, background: `${accentColor}08` }}
                         transition="all 0.2s"
                       >
                         <HStack gap={3}>
                           <Globe size={14} color={accentColor} />
-                          <Text fontSize="xs" fontWeight="bold" color="rgba(255,255,255,0.75)">
+                          <Text fontSize="xs" fontWeight="bold" color="var(--color-text-secondary)">
                             {company.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
                           </Text>
-                          <ExternalLink size={10} color="rgba(255,255,255,0.25)" style={{ marginLeft: "auto" }} />
+                          <ExternalLink size={10} color="var(--color-card-border)" style={{ marginLeft: "auto" }} />
                         </HStack>
                       </Box>
                     )}

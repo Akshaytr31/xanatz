@@ -150,11 +150,11 @@ const CareerTimeline = ({ user, onUpdate }) => {
     >
       <Flex justify="space-between" align="center" mb={8}>
         <HStack gap={3}>
-          <Box p={2} bgGradient="linear(to-br, var(--color-accent), purple.500)" borderRadius="md" color="white" boxShadow="0 0 15px rgba(59, 130, 246, 0.3)">
+          <Box p={2} bgGradient="linear(to-br, var(--color-accent), purple.500)" borderRadius="md" color="var(--color-text-primary)" boxShadow="0 0 15px rgba(59, 130, 246, 0.3)">
             <Target size={20} />
           </Box>
           <VStack align="start" gap={0}>
-            <Text fontSize="lg" fontWeight="black" color="white" letterSpacing="tight" fontFamily="var(--font-heading)">
+            <Text fontSize="lg" fontWeight="black" color="var(--color-text-primary)" letterSpacing="tight" fontFamily="var(--font-heading)">
               CAREER ARCHITECTURE
             </Text>
             <Text fontSize="10px" color="whiteAlpha.500" fontWeight="bold" letterSpacing="widest">
@@ -182,7 +182,7 @@ const CareerTimeline = ({ user, onUpdate }) => {
 
       <Box overflowX="auto" pb={4} css={{
         '&::-webkit-scrollbar': { height: '6px' },
-        '&::-webkit-scrollbar-thumb': { background: 'rgba(255,255,255,0.1)', borderRadius: '10px' }
+        '&::-webkit-scrollbar-thumb': { background: 'var(--color-card-border)', borderRadius: '10px' }
       }}>
         {experiences.length === 0 ? (
           <Flex h="200px" align="center" justify="center" direction="column" gap={4}>
@@ -250,7 +250,7 @@ const CareerTimeline = ({ user, onUpdate }) => {
                   </HStack>
                   <Box w="full">
                     <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">IMPACT & RESPONSIBILITIES</Text>
-                    <Textarea name="description" value={formData.description} onChange={handleChange} minH="120px" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" placeholder="Describe your key achievements..." />
+                    <Textarea name="description" value={formData.description} onChange={handleChange} minH="120px" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="var(--color-text-primary)" placeholder="Describe your key achievements..." />
                   </Box>
                   {editingItem && (
                     <Button mt={2} w="full" colorPalette="red" variant="ghost" onClick={() => handleDelete(editingItem.id)} _hover={{ bg: "rgba(var(--color-accent-rgb), 0.1)" }}>
@@ -348,7 +348,7 @@ const TimelineChart = ({ experiences, handleOpen }) => {
             >
               <VStack align="start" gap={2} bg="whiteAlpha.50" p={3} borderRadius="md" border="1px solid" borderColor="whiteAlpha.100" backdropFilter="blur(10px)" minW="140px">
                 <HStack w="full" justify="space-between" align="center">
-                  <Text fontWeight="black" color="white" fontSize="10px" letterSpacing="tight">{exp.company.toUpperCase()}</Text>
+                  <Text fontWeight="black" color="var(--color-text-primary)" fontSize="10px" letterSpacing="tight">{exp.company.toUpperCase()}</Text>
                   <IconButton
                     aria-label="Edit milestone"
                     variant="ghost"

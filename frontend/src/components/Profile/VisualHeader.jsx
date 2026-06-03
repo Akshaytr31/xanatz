@@ -289,7 +289,7 @@ const VisualHeader = ({ user, onUpdate }) => {
               <Text
                 fontSize={{ base: "3xl", md: "4xl" }}
                 fontWeight="black"
-                color="white"
+                color="var(--color-text-primary)"
                 lineHeight="0.9"
                 letterSpacing="tight"
                 fontFamily="var(--font-heading)"
@@ -628,7 +628,7 @@ const VisualHeader = ({ user, onUpdate }) => {
                   </VStack>
                   <Box w="full">
                     <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">ABOUT SUMMARY</Text>
-                    <Textarea name="about" value={formData.about} onChange={handleChange} minH="150px" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" _focus={{ borderColor: "var(--color-accent)" }} color="white" placeholder="Tell your professional story..." />
+                    <Textarea name="about" value={formData.about} onChange={handleChange} minH="150px" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" _focus={{ borderColor: "var(--color-accent)" }} color="var(--color-text-primary)" placeholder="Tell your professional story..." />
                   </Box>
                 </VStack>
               </DialogBody>

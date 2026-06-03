@@ -140,7 +140,7 @@ const ApplyJobPage = () => {
       <Flex h="100vh" align="center" justify="center" bg="var(--color-primary)">
         <VStack gap={4}>
           <Spinner size="xl" thickness="4px" color="var(--color-accent)" />
-          <Text color="rgba(255,255,255,0.5)" fontSize="xs" fontWeight="black" letterSpacing="widest">
+          <Text color="var(--color-text-muted)" fontSize="xs" fontWeight="black" letterSpacing="widest">
             LOADING DETAILS...
           </Text>
         </VStack>
@@ -152,7 +152,7 @@ const ApplyJobPage = () => {
     return (
       <Flex h="100vh" align="center" justify="center" bg="var(--color-primary)" direction="column" gap={4}>
         <AlertCircle size={48} color="#ef4444" />
-        <Text color="white" fontSize="lg" fontWeight="bold">Job opening not found.</Text>
+        <Text color="var(--color-text-primary)" fontSize="lg" fontWeight="bold">Job opening not found.</Text>
         <Button
           onClick={() => navigate("/dashboard")}
           h="44px"
@@ -165,7 +165,7 @@ const ApplyJobPage = () => {
           style={{
             background: `linear-gradient(135deg, ${accentColor} 0%, #8b5cf6 100%)`,
             boxShadow: `0 8px 20px rgba(59, 130, 246, 0.25)`,
-            border: "1px solid rgba(255,255,255,0.1)",
+            border: "1px solid var(--color-card-border)",
             transition: "all 0.3s ease",
           }}
           _hover={{
@@ -202,18 +202,18 @@ const ApplyJobPage = () => {
             h="36px"
             px={4}
             borderRadius="xl"
-            border="1px solid rgba(255,255,255,0.08)"
+            border="1px solid var(--color-card-border)"
             style={{
-              background: "rgba(255,255,255,0.03)",
+              background: "var(--color-glass)",
               backdropFilter: "blur(10px)",
-              color: "rgba(255,255,255,0.6)",
+              color: "var(--color-text-secondary)",
               transition: "all 0.3s ease",
             }}
             _hover={{
-              background: "rgba(255,255,255,0.07)",
+              background: "var(--color-card-border)",
               borderColor: "rgba(255,255,255,0.18)",
               color: "white",
-              boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+              boxShadow: "0 4px 15px var(--color-input-bg)",
             }}
             fontWeight="black"
             fontSize="2xs"
@@ -259,15 +259,15 @@ const ApplyJobPage = () => {
                   </Box>
 
                   <VStack gap={2}>
-                    <Text fontSize="2xl" fontWeight="black" color="white" letterSpacing="tight">
+                    <Text fontSize="2xl" fontWeight="black" color="var(--color-text-primary)" letterSpacing="tight">
                       Application Submitted!
                     </Text>
-                    <Text color="rgba(255,255,255,0.5)" fontSize="sm" maxW="450px" mx="auto">
+                    <Text color="var(--color-text-muted)" fontSize="sm" maxW="450px" mx="auto">
                       Your application for <strong>{job.title}</strong> at <strong>{job.company_name}</strong> was submitted successfully.
                     </Text>
                   </VStack>
 
-                  <Text color="rgba(255,255,255,0.3)" fontSize="xs" mt={4}>
+                  <Text color="var(--color-text-muted)" fontSize="xs" mt={4}>
                     Redirecting you back to exploration page...
                   </Text>
                 </Flex>
@@ -288,8 +288,8 @@ const ApplyJobPage = () => {
                     <Box
                       p={{ base: 6, md: 8 }}
                       borderRadius="xl"
-                      border="1px solid rgba(255,255,255,0.08)"
-                      style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(20px)" }}
+                      border="1px solid var(--color-card-border)"
+                      style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }}
                       mb={8}
                     >
                       <Flex justify="space-between" align="start" wrap="wrap" mb={6} gap={4}>
@@ -300,8 +300,8 @@ const ApplyJobPage = () => {
                             borderRadius="2xl"
                             overflow="hidden"
                             flexShrink={0}
-                            border="1px solid rgba(255,255,255,0.12)"
-                            style={{ background: "rgba(255,255,255,0.05)" }}
+                            border="1px solid var(--color-card-border)"
+                            style={{ background: "var(--color-glass)" }}
                           >
                             {job.company_logo_url ? (
                               <Box as="img" src={job.company_logo_url} alt={job.company_name} w="full" h="full" style={{ objectFit: "cover" }} />
@@ -313,15 +313,15 @@ const ApplyJobPage = () => {
                           </Box>
 
                           <VStack align="start" gap={2} flex={1}>
-                            <Heading size="lg" color="white" fontWeight="black" letterSpacing="tight">
+                            <Heading size="lg" color="var(--color-text-primary)" fontWeight="black" letterSpacing="tight">
                               {job.title}
                             </Heading>
                             <HStack gap={3} flexWrap="wrap">
                               <Text color="var(--color-secondary)" fontSize="sm" fontWeight="bold">
                                 {job.company_name}
                               </Text>
-                              <Box w="1px" h="14px" bg="rgba(255,255,255,0.15)" />
-                              <Badge px={2.5} py={0.5} fontSize="xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.7)" }}>
+                              <Box w="1px" h="14px" bg="var(--color-card-border)" />
+                              <Badge px={2.5} py={0.5} fontSize="xs" fontWeight="bold" borderRadius="md" style={{ background: "var(--color-card-border)", color: "var(--color-text-secondary)" }}>
                                 {JOB_TYPE_LABELS[job.job_type] || job.job_type}
                               </Badge>
                               {job.category && (
@@ -350,7 +350,7 @@ const ApplyJobPage = () => {
                           style={{
                             background: `linear-gradient(135deg, ${accentColor} 0%, #8b5cf6 100%)`,
                             boxShadow: `0 8px 20px rgba(59, 130, 246, 0.2)`,
-                            border: "1px solid rgba(255,255,255,0.1)",
+                            border: "1px solid var(--color-card-border)",
                             transition: "all 0.3s ease",
                           }}
                           _hover={{
@@ -363,15 +363,15 @@ const ApplyJobPage = () => {
                         </Button>
                       </Flex>
 
-                      <HStack gap={6} wrap="wrap" py={4} borderTop="1px solid rgba(255,255,255,0.06)" borderBottom="1px solid rgba(255,255,255,0.06)">
+                      <HStack gap={6} wrap="wrap" py={4} borderTop="1px solid var(--color-card-border)" borderBottom="1px solid var(--color-card-border)">
                         {job.location && (
-                          <HStack gap={2} fontSize="sm" color="rgba(255,255,255,0.6)">
+                          <HStack gap={2} fontSize="sm" color="var(--color-text-secondary)">
                             <MapPin size={16} color={accentColor} />
                             <Text>{job.location}</Text>
                           </HStack>
                         )}
                         {job.salary_range && (
-                          <HStack gap={2} fontSize="sm" color="rgba(255,255,255,0.6)">
+                          <HStack gap={2} fontSize="sm" color="var(--color-text-secondary)">
                             <DollarSign size={16} color={accentColor} />
                             <Text>{job.salary_range}</Text>
                           </HStack>
@@ -381,20 +381,20 @@ const ApplyJobPage = () => {
                       {/* About the Job section */}
                       <VStack align="stretch" gap={6} mt={6}>
                         <Box>
-                          <Heading size="xs" color="rgba(255,255,255,0.4)" fontWeight="black" letterSpacing="wider" mb={3} textTransform="uppercase">
+                          <Heading size="xs" color="var(--color-text-muted)" fontWeight="black" letterSpacing="wider" mb={3} textTransform="uppercase">
                             Job Description
                           </Heading>
-                          <Text color="rgba(255,255,255,0.8)" fontSize="sm" lineHeight="tall" style={{ whiteSpace: "pre-wrap" }}>
+                          <Text color="var(--color-text-primary)" fontSize="sm" lineHeight="tall" style={{ whiteSpace: "pre-wrap" }}>
                             {job.description}
                           </Text>
                         </Box>
 
                         {job.requirements && (
                           <Box>
-                            <Heading size="xs" color="rgba(255,255,255,0.4)" fontWeight="black" letterSpacing="wider" mb={3} textTransform="uppercase">
+                            <Heading size="xs" color="var(--color-text-muted)" fontWeight="black" letterSpacing="wider" mb={3} textTransform="uppercase">
                               Requirements & Qualifications
                             </Heading>
-                            <Text color="rgba(255,255,255,0.8)" fontSize="sm" lineHeight="tall" style={{ whiteSpace: "pre-wrap" }}>
+                            <Text color="var(--color-text-primary)" fontSize="sm" lineHeight="tall" style={{ whiteSpace: "pre-wrap" }}>
                               {job.requirements}
                             </Text>
                           </Box>
@@ -408,17 +408,17 @@ const ApplyJobPage = () => {
                     <Box
                       p={6}
                       borderRadius="xl"
-                      border="1px solid rgba(255,255,255,0.08)"
-                      style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(20px)" }}
+                      border="1px solid var(--color-card-border)"
+                      style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }}
                     >
-                      <Heading size="xs" color="rgba(255,255,255,0.4)" fontWeight="black" letterSpacing="wider" mb={5} textTransform="uppercase">
+                      <Heading size="xs" color="var(--color-text-muted)" fontWeight="black" letterSpacing="wider" mb={5} textTransform="uppercase">
                         SIMILAR OPENINGS
                       </Heading>
 
                       {similarJobs.length === 0 ? (
-                        <VStack py={6} px={4} border="1px dashed rgba(255,255,255,0.08)" borderRadius="2xl" bg="rgba(0,0,0,0.1)">
-                          <Briefcase size={24} color="rgba(255,255,255,0.2)" />
-                          <Text color="rgba(255,255,255,0.35)" fontSize="xs" fontWeight="bold" textAlign="center">
+                        <VStack py={6} px={4} border="1px dashed var(--color-card-border)" borderRadius="2xl" bg="var(--color-input-bg)">
+                          <Briefcase size={24} color="var(--color-card-border)" />
+                          <Text color="var(--color-text-muted)" fontSize="xs" fontWeight="bold" textAlign="center">
                             No similar openings found
                           </Text>
                         </VStack>
@@ -431,29 +431,29 @@ const ApplyJobPage = () => {
                               cursor="pointer"
                               p={4.5}
                               borderRadius="xl"
-                              border="1px solid rgba(255,255,255,0.06)"
-                              bg="rgba(0,0,0,0.15)"
+                              border="1px solid var(--color-card-border)"
+                              bg="var(--color-input-bg)"
                               transition="all 0.3s"
                               _hover={{
-                                bg: "rgba(255,255,255,0.02)",
+                                bg: "var(--color-glass)",
                                 borderColor: accentColor,
                                 transform: "translateY(-2px)",
                                 boxShadow: `0 4px 20px rgba(59, 130, 246, 0.1)`,
                               }}
                             >
                               <VStack align="stretch" gap={2}>
-                                <Text color="white" fontSize="xs" fontWeight="black" noOfLines={1} letterSpacing="tight">
+                                <Text color="var(--color-text-primary)" fontSize="xs" fontWeight="black" noOfLines={1} letterSpacing="tight">
                                   {simJob.title}
                                 </Text>
                                 <Text color="var(--color-secondary)" fontSize="2xs" fontWeight="bold">
                                   {simJob.company_name}
                                 </Text>
                                 <HStack justify="space-between" flexWrap="wrap" gap={2} mt={1}>
-                                  <Badge px={2} py={0.5} fontSize="3xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.6)" }}>
+                                  <Badge px={2} py={0.5} fontSize="3xs" fontWeight="bold" borderRadius="md" style={{ background: "var(--color-glass)", color: "var(--color-text-secondary)" }}>
                                     {JOB_TYPE_LABELS[simJob.job_type] || simJob.job_type}
                                   </Badge>
                                   {simJob.location && (
-                                    <HStack gap={1} fontSize="3xs" color="rgba(255,255,255,0.4)">
+                                    <HStack gap={1} fontSize="3xs" color="var(--color-text-muted)">
                                       <MapPin size={10} color={accentColor} />
                                       <Text noOfLines={1}>{simJob.location}</Text>
                                     </HStack>
@@ -480,8 +480,8 @@ const ApplyJobPage = () => {
                 <Box
                   p={6}
                   borderRadius="xl"
-                  border="1px solid rgba(255,255,255,0.06)"
-                  style={{ background: "rgba(255,255,255,0.02)", backdropFilter: "blur(20px)" }}
+                  border="1px solid var(--color-card-border)"
+                  style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }}
                   mb={8}
                 >
                   <Flex gap={4} align="start" wrap="wrap">
@@ -491,8 +491,8 @@ const ApplyJobPage = () => {
                       borderRadius="xl"
                       overflow="hidden"
                       flexShrink={0}
-                      border="1px solid rgba(255,255,255,0.1)"
-                      style={{ background: "rgba(255,255,255,0.05)" }}
+                      border="1px solid var(--color-card-border)"
+                      style={{ background: "var(--color-glass)" }}
                     >
                       {job.company_logo_url ? (
                         <Box as="img" src={job.company_logo_url} alt={job.company_name} w="full" h="full" style={{ objectFit: "cover" }} />
@@ -504,15 +504,15 @@ const ApplyJobPage = () => {
                     </Box>
 
                     <VStack align="start" gap={1} flex={1}>
-                      <Heading size="md" color="white" fontWeight="black" letterSpacing="tight">
+                      <Heading size="md" color="var(--color-text-primary)" fontWeight="black" letterSpacing="tight">
                         {job.title}
                       </Heading>
                       <HStack gap={2} flexWrap="wrap">
                         <Text color="var(--color-secondary)" fontSize="xs" fontWeight="bold">
                           {job.company_name}
                         </Text>
-                        <Box w="1px" h="12px" bg="rgba(255,255,255,0.15)" />
-                        <Badge px={2} py={0.5} fontSize="2xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.7)" }}>
+                        <Box w="1px" h="12px" bg="var(--color-card-border)" />
+                        <Badge px={2} py={0.5} fontSize="2xs" fontWeight="bold" borderRadius="md" style={{ background: "var(--color-card-border)", color: "var(--color-text-secondary)" }}>
                           {JOB_TYPE_LABELS[job.job_type] || job.job_type}
                         </Badge>
                         {job.category && (
@@ -529,15 +529,15 @@ const ApplyJobPage = () => {
                     </VStack>
                   </Flex>
 
-                  <HStack gap={5} wrap="wrap" mt={5} pt={4} borderTop="1px solid rgba(255,255,255,0.06)">
+                  <HStack gap={5} wrap="wrap" mt={5} pt={4} borderTop="1px solid var(--color-card-border)">
                     {job.location && (
-                      <HStack gap={1.5} fontSize="xs" color="rgba(255,255,255,0.5)">
+                      <HStack gap={1.5} fontSize="xs" color="var(--color-text-muted)">
                         <MapPin size={13} color={accentColor} />
                         <Text>{job.location}</Text>
                       </HStack>
                     )}
                     {job.salary_range && (
-                      <HStack gap={1.5} fontSize="xs" color="rgba(255,255,255,0.5)">
+                      <HStack gap={1.5} fontSize="xs" color="var(--color-text-muted)">
                         <DollarSign size={13} color={accentColor} />
                         <Text>{job.salary_range}</Text>
                       </HStack>
@@ -549,10 +549,10 @@ const ApplyJobPage = () => {
                 <Box
                   p={{ base: 6, md: 8 }}
                   borderRadius="xl"
-                  border="1px solid rgba(255,255,255,0.08)"
-                  style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(20px)" }}
+                  border="1px solid var(--color-card-border)"
+                  style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }}
                 >
-                  <Text fontSize="lg" fontWeight="black" color="white" mb={6} letterSpacing="tight">
+                  <Text fontSize="lg" fontWeight="black" color="var(--color-text-primary)" mb={6} letterSpacing="tight">
                     Submit your application
                   </Text>
 
@@ -567,12 +567,12 @@ const ApplyJobPage = () => {
                     <VStack gap={5} align="stretch">
                       {/* Name */}
                       <Box>
-                        <Text fontSize="2xs" fontWeight="black" color="rgba(255,255,255,0.4)" letterSpacing="wider" mb={2}>
+                        <Text fontSize="2xs" fontWeight="black" color="var(--color-text-muted)" letterSpacing="wider" mb={2}>
                           FULL NAME <span style={{ color: accentColor }}>*</span>
                         </Text>
-                        <HStack bg="rgba(0,0,0,0.15)" border="1px solid rgba(255,255,255,0.08)" px={3.5} borderRadius="xl"
+                        <HStack bg="var(--color-input-bg)" border="1px solid var(--color-card-border)" px={3.5} borderRadius="xl"
                           _focusWithin={{ borderColor: accentColor, boxShadow: `0 0 0 1px ${accentColor}` }} transition="all 0.2s">
-                          <User size={14} color="rgba(255,255,255,0.3)" />
+                          <User size={14} color="var(--color-text-muted)" />
                           <Input
                             placeholder="Enter your full name"
                             variant="unstyled"
@@ -587,12 +587,12 @@ const ApplyJobPage = () => {
 
                       {/* Email */}
                       <Box>
-                        <Text fontSize="2xs" fontWeight="black" color="rgba(255,255,255,0.4)" letterSpacing="wider" mb={2}>
+                        <Text fontSize="2xs" fontWeight="black" color="var(--color-text-muted)" letterSpacing="wider" mb={2}>
                           EMAIL ADDRESS <span style={{ color: accentColor }}>*</span>
                         </Text>
-                        <HStack bg="rgba(0,0,0,0.15)" border="1px solid rgba(255,255,255,0.08)" px={3.5} borderRadius="xl"
+                        <HStack bg="var(--color-input-bg)" border="1px solid var(--color-card-border)" px={3.5} borderRadius="xl"
                           _focusWithin={{ borderColor: accentColor, boxShadow: `0 0 0 1px ${accentColor}` }} transition="all 0.2s">
-                          <Mail size={14} color="rgba(255,255,255,0.3)" />
+                          <Mail size={14} color="var(--color-text-muted)" />
                           <Input
                             type="email"
                             placeholder="Enter your email address"
@@ -608,12 +608,12 @@ const ApplyJobPage = () => {
 
                       {/* Portfolio URL */}
                       <Box>
-                        <Text fontSize="2xs" fontWeight="black" color="rgba(255,255,255,0.4)" letterSpacing="wider" mb={2}>
+                        <Text fontSize="2xs" fontWeight="black" color="var(--color-text-muted)" letterSpacing="wider" mb={2}>
                           PORTFOLIO / LINKEDIN URL
                         </Text>
-                        <HStack bg="rgba(0,0,0,0.15)" border="1px solid rgba(255,255,255,0.08)" px={3.5} borderRadius="xl"
+                        <HStack bg="var(--color-input-bg)" border="1px solid var(--color-card-border)" px={3.5} borderRadius="xl"
                           _focusWithin={{ borderColor: accentColor, boxShadow: `0 0 0 1px ${accentColor}` }} transition="all 0.2s">
-                          <Link2 size={14} color="rgba(255,255,255,0.3)" />
+                          <Link2 size={14} color="var(--color-text-muted)" />
                           <Input
                             placeholder="https://yourportfolio.com or LinkedIn profile"
                             variant="unstyled"
@@ -628,17 +628,17 @@ const ApplyJobPage = () => {
 
                       {/* Resume File Upload */}
                       <Box>
-                        <Text fontSize="2xs" fontWeight="black" color="rgba(255,255,255,0.4)" letterSpacing="wider" mb={2}>
+                        <Text fontSize="2xs" fontWeight="black" color="var(--color-text-muted)" letterSpacing="wider" mb={2}>
                           UPLOAD RESUME (PDF/DOCX)
                         </Text>
                         <Box
-                          border="1px dashed rgba(255,255,255,0.12)"
+                          border="1px dashed var(--color-card-border)"
                           borderRadius="xl"
                           p={4}
-                          bg="rgba(0,0,0,0.1)"
+                          bg="var(--color-input-bg)"
                           textAlign="center"
                           position="relative"
-                          _hover={{ borderColor: "rgba(255,255,255,0.25)" }}
+                          _hover={{ borderColor: "var(--color-card-border)" }}
                           transition="all 0.2s"
                         >
                           <input
@@ -660,13 +660,13 @@ const ApplyJobPage = () => {
                             }}
                           />
                           <Flex direction="column" align="center" gap={2}>
-                            <FileText size={20} color={resumeFile ? "#48C774" : "rgba(255,255,255,0.4)"} />
+                            <FileText size={20} color={resumeFile ? "#48C774" : "var(--color-text-muted)"} />
                             {resumeFile ? (
                               <Text color="#48C774" fontSize="xs" fontWeight="bold">
                                 Selected: {resumeFile.name} ({(resumeFile.size / 1024 / 1024).toFixed(2)} MB)
                               </Text>
                             ) : (
-                              <Text color="rgba(255,255,255,0.35)" fontSize="xs">
+                              <Text color="var(--color-text-muted)" fontSize="xs">
                                 Click or drag files to upload resume (max 5MB)
                               </Text>
                             )}
@@ -676,18 +676,18 @@ const ApplyJobPage = () => {
 
                       {/* Cover Letter */}
                       <Box>
-                        <Text fontSize="2xs" fontWeight="black" color="rgba(255,255,255,0.4)" letterSpacing="wider" mb={2}>
+                        <Text fontSize="2xs" fontWeight="black" color="var(--color-text-muted)" letterSpacing="wider" mb={2}>
                           COVER LETTER / STATEMENT
                         </Text>
                         <Textarea
                           placeholder="Write why you are the perfect fit for this job..."
-                          bg="rgba(0,0,0,0.15)"
-                          border="1px solid rgba(255,255,255,0.08)"
-                          color="white"
+                          bg="var(--color-input-bg)"
+                          border="1px solid var(--color-card-border)"
+                          color="var(--color-text-primary)"
                           fontSize="xs"
                           rows={6}
                           borderRadius="xl"
-                          _hover={{ borderColor: "rgba(255,255,255,0.12)" }}
+                          _hover={{ borderColor: "var(--color-card-border)" }}
                           _focus={{ borderColor: accentColor, boxShadow: `0 0 0 1px ${accentColor}` }}
                           value={coverLetter}
                           onChange={(e) => setCoverLetter(e.target.value)}
@@ -709,7 +709,7 @@ const ApplyJobPage = () => {
                         style={{
                           background: `linear-gradient(135deg, ${accentColor} 0%, #8b5cf6 100%)`,
                           boxShadow: `0 8px 24px rgba(59, 130, 246, 0.25)`,
-                          border: "1px solid rgba(255,255,255,0.1)",
+                          border: "1px solid var(--color-card-border)",
                           transition: "all 0.3s ease",
                         }}
                         _hover={{

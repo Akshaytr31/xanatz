@@ -21,7 +21,7 @@ const PublicExpertise = ({ skills, educations, experiencesCount }) => {
 
         {/* Skills card */}
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}
-          style={{ borderRadius: "1rem", padding: "1.5rem", marginBottom: "1rem", position: "relative", overflow: "hidden", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(20px)" }}>
+          style={{ borderRadius: "1rem", padding: "1.5rem", marginBottom: "1rem", position: "relative", overflow: "hidden", background: "var(--color-glass)", border: "1px solid var(--color-card-border)", backdropFilter: "blur(20px)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1.25rem" }}>
             <div style={{ width: "36px", height: "36px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: "linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.2))", border: "1px solid rgba(59,130,246,0.25)" }}>
               <Sparkles size={16} color="#60a5fa" />
@@ -53,7 +53,7 @@ const PublicExpertise = ({ skills, educations, experiencesCount }) => {
           <div className="expertise-grid" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1rem" }}>
             {/* Stat card */}
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7, delay: 0.1 }}
-              style={{ borderRadius: "1rem", padding: "1.5rem", position: "relative", overflow: "hidden", background: "linear-gradient(135deg, rgba(59,130,246,0.12), rgba(139,92,246,0.08))", border: "1px solid rgba(59,130,246,0.2)", backdropFilter: "blur(20px)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}>
+              style={{ borderRadius: "1rem", padding: "1.5rem", position: "relative", overflow: "hidden", background: "linear-gradient(135deg, rgba(59,130,246,0.12), rgba(139,92,246,0.08))", border: "1px solid rgba(59,130,246,0.2)", backdropFilter: "blur(20px)", boxShadow: "inset 0 1px 0 var(--color-card-border)" }}>
               <div style={{ width: "36px", height: "36px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1rem", background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.3)" }}>
                 <Award size={16} color="#60a5fa" />
               </div>
@@ -64,7 +64,7 @@ const PublicExpertise = ({ skills, educations, experiencesCount }) => {
             {/* Education cards */}
             {educations?.length > 0 ? educations.map((edu, i) => (
               <motion.div key={edu.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7, delay: 0.1 * i }}
-                style={{ borderRadius: "1rem", padding: "1.5rem", position: "relative", overflow: "hidden", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(20px)" }}>
+                style={{ borderRadius: "1rem", padding: "1.5rem", position: "relative", overflow: "hidden", background: "var(--color-glass)", border: "1px solid var(--color-card-border)", backdropFilter: "blur(20px)" }}>
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "1rem", gap: "0.5rem" }}>
                   <div style={{ width: "40px", height: "40px", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: "linear-gradient(135deg, rgba(139,92,246,0.2), rgba(59,130,246,0.1))", border: "1px solid rgba(139,92,246,0.25)" }}>
                     <GraduationCap size={18} color="#a78bfa" />

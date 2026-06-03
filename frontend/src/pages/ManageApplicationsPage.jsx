@@ -123,7 +123,7 @@ const ManageApplicationsPage = () => {
       <Flex h="100vh" align="center" justify="center" bg="var(--color-primary)">
         <VStack gap={4}>
           <Spinner size="xl" thickness="4px" color="var(--color-accent)" />
-          <Text color="rgba(255,255,255,0.5)" fontSize="xs" fontWeight="black" letterSpacing="widest">
+          <Text color="var(--color-text-muted)" fontSize="xs" fontWeight="black" letterSpacing="widest">
             LOADING CANDIDATES...
           </Text>
         </VStack>
@@ -135,7 +135,7 @@ const ManageApplicationsPage = () => {
     return (
       <Flex h="100vh" align="center" justify="center" bg="var(--color-primary)" direction="column" gap={4}>
         <AlertCircle size={48} color="#ef4444" />
-        <Text color="white" fontSize="lg" fontWeight="bold">Access Denied.</Text>
+        <Text color="var(--color-text-primary)" fontSize="lg" fontWeight="bold">Access Denied.</Text>
         <Button onClick={() => navigate("/dashboard")} colorScheme="blue">Back to Dashboard</Button>
       </Flex>
     );
@@ -165,16 +165,16 @@ const ManageApplicationsPage = () => {
           {/* Header */}
           <Flex justify="space-between" align="center" wrap="wrap" gap={4} mb={8}>
             <VStack align="start" gap={1}>
-              <Button variant="ghost" color="rgba(255,255,255,0.5)" fontWeight="bold" fontSize="2xs"
+              <Button variant="ghost" color="var(--color-text-muted)" fontWeight="bold" fontSize="2xs"
                 letterSpacing="widest" px={0} mb={2} _hover={{ color: "white", transform: "translateX(-4px)" }}
                 transition="all 0.3s" onClick={() => navigate(`/company/${id}`)}>
                 <ArrowLeft size={13} style={{ marginRight: "6px" }} />
                 BACK TO DASHBOARD
               </Button>
-              <Heading size="xl" color="white" fontWeight="black" letterSpacing="tight">
+              <Heading size="xl" color="var(--color-text-primary)" fontWeight="black" letterSpacing="tight">
                 Candidate Applications
               </Heading>
-              <Text color="rgba(255,255,255,0.4)" fontSize="xs" fontWeight="medium">
+              <Text color="var(--color-text-muted)" fontSize="xs" fontWeight="medium">
                 Review and manage applicants for <strong>{company.name}</strong>
               </Text>
             </VStack>
@@ -204,19 +204,19 @@ const ManageApplicationsPage = () => {
 
           {/* Filters Bar */}
           <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={4} p={5} borderRadius="2xl"
-            border="1px solid rgba(255,255,255,0.07)" style={{ background: "rgba(255,255,255,0.02)", backdropFilter: "blur(20px)" }} mb={8}>
+            border="1px solid var(--color-card-border)" style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }} mb={8}>
             <VStack align="stretch" gap={1}>
-              <Text color="rgba(255,255,255,0.4)" fontSize="2xs" fontWeight="black" letterSpacing="wider">FILTER BY JOB OPENING</Text>
+              <Text color="var(--color-text-muted)" fontSize="2xs" fontWeight="black" letterSpacing="wider">FILTER BY JOB OPENING</Text>
               <Box
                 as="select"
                 value={selectedJobId}
                 onChange={(e) => setSelectedJobId(e.target.value)}
                 style={{
-                  background: "rgba(0,0,0,0.3)",
+                  background: "var(--color-card-hover-bg)",
                   color: "white",
                   height: "40px",
                   borderRadius: "12px",
-                  border: "1px solid rgba(255,255,255,0.08)",
+                  border: "1px solid var(--color-card-border)",
                   fontSize: "12px",
                   padding: "0 12px",
                   outline: "none",
@@ -234,17 +234,17 @@ const ManageApplicationsPage = () => {
             </VStack>
 
             <VStack align="stretch" gap={1}>
-              <Text color="rgba(255,255,255,0.4)" fontSize="2xs" fontWeight="black" letterSpacing="wider">FILTER BY STATUS</Text>
+              <Text color="var(--color-text-muted)" fontSize="2xs" fontWeight="black" letterSpacing="wider">FILTER BY STATUS</Text>
               <Box
                 as="select"
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
                 style={{
-                  background: "rgba(0,0,0,0.3)",
+                  background: "var(--color-card-hover-bg)",
                   color: "white",
                   height: "40px",
                   borderRadius: "12px",
-                  border: "1px solid rgba(255,255,255,0.08)",
+                  border: "1px solid var(--color-card-border)",
                   fontSize: "12px",
                   padding: "0 12px",
                   outline: "none",
@@ -266,10 +266,10 @@ const ManageApplicationsPage = () => {
           <VStack gap={5} align="stretch">
             {filteredApps.length === 0 ? (
               <Flex direction="column" align="center" justify="center" py="80px" px={6} borderRadius="3xl"
-                border="1px dashed rgba(255,255,255,0.08)" bg="rgba(255,255,255,0.01)" textAlign="center">
-                <FileText size={48} color="rgba(255,255,255,0.15)" style={{ marginBottom: "16px" }} />
-                <Text color="white" fontWeight="black" fontSize="lg" mb={1}>No Applications Found</Text>
-                <Text color="rgba(255,255,255,0.4)" fontSize="xs" maxW="320px">
+                border="1px dashed var(--color-card-border)" bg="var(--color-glass)" textAlign="center">
+                <FileText size={48} color="var(--color-card-border)" style={{ marginBottom: "16px" }} />
+                <Text color="var(--color-text-primary)" fontWeight="black" fontSize="lg" mb={1}>No Applications Found</Text>
+                <Text color="var(--color-text-muted)" fontSize="xs" maxW="320px">
                   There are no candidates matching your current filter selections.
                 </Text>
               </Flex>
@@ -289,9 +289,9 @@ const ManageApplicationsPage = () => {
                       transition={{ duration: 0.3, delay: idx * 0.05 }}
                       p={{ base: 5, md: 6 }}
                       borderRadius="2xl"
-                      border="1px solid rgba(255,255,255,0.06)"
-                      style={{ background: "rgba(255,255,255,0.02)", backdropFilter: "blur(20px)" }}
-                      _hover={{ borderColor: "rgba(255,255,255,0.12)", bg: "rgba(255,255,255,0.03)" }}
+                      border="1px solid var(--color-card-border)"
+                      style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }}
+                      _hover={{ borderColor: "var(--color-card-border)", bg: "var(--color-glass)" }}
                     >
                       <Flex direction={{ base: "column", md: "row" }} justify="space-between" align={{ base: "start", md: "center" }} gap={4} mb={4}>
                         {/* Candidate Identity */}
@@ -302,13 +302,13 @@ const ManageApplicationsPage = () => {
                           </Box>
                           <VStack align="start" gap={0.5}>
                             <HStack gap={2}>
-                              <Text color="white" fontWeight="black" fontSize="sm" letterSpacing="tight">{app.full_name}</Text>
+                              <Text color="var(--color-text-primary)" fontWeight="black" fontSize="sm" letterSpacing="tight">{app.full_name}</Text>
                               <Badge px={2.5} py={0.5} borderRadius="full" fontSize="3xs" fontWeight="black"
                                 style={{ background: statusInfo.bg, color: statusInfo.text, border: `1px solid ${statusInfo.border}` }}>
                                 {STATUS_LABELS[app.status].toUpperCase()}
                               </Badge>
                             </HStack>
-                            <HStack gap={1.5} fontSize="xs" color="rgba(255,255,255,0.4)">
+                            <HStack gap={1.5} fontSize="xs" color="var(--color-text-muted)">
                               <Mail size={12} />
                               <Text>{app.email}</Text>
                             </HStack>
@@ -318,10 +318,10 @@ const ManageApplicationsPage = () => {
                         {/* Job & Time info */}
                         <VStack align={{ base: "start", md: "end" }} gap={1}>
                           <HStack gap={1.5}>
-                            <Briefcase size={12} color="rgba(255,255,255,0.4)" />
-                            <Text color="rgba(255,255,255,0.7)" fontSize="xs" fontWeight="black">{jobName}</Text>
+                            <Briefcase size={12} color="var(--color-text-muted)" />
+                            <Text color="var(--color-text-secondary)" fontSize="xs" fontWeight="black">{jobName}</Text>
                           </HStack>
-                          <HStack gap={1.5} fontSize="3xs" color="rgba(255,255,255,0.3)" fontWeight="bold" letterSpacing="wider">
+                          <HStack gap={1.5} fontSize="3xs" color="var(--color-text-muted)" fontWeight="bold" letterSpacing="wider">
                             <Clock size={10} />
                             <Text>{new Date(app.created_at).toLocaleDateString(undefined, { dateStyle: "medium" }).toUpperCase()}</Text>
                           </HStack>
@@ -329,13 +329,13 @@ const ManageApplicationsPage = () => {
                       </Flex>
 
                       {/* Cover letter & attachments */}
-                      <VStack align="stretch" gap={3.5} p={4} borderRadius="xl" bg="rgba(0,0,0,0.15)" border="1px solid rgba(255,255,255,0.04)" mb={4}>
+                      <VStack align="stretch" gap={3.5} p={4} borderRadius="xl" bg="var(--color-input-bg)" border="1px solid var(--color-glass)" mb={4}>
                         {app.cover_letter ? (
                           <Box>
-                            <Text color="rgba(255,255,255,0.35)" fontSize="3xs" fontWeight="black" letterSpacing="wider" mb={1.5}>
+                            <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="black" letterSpacing="wider" mb={1.5}>
                               COVER LETTER STATEMENT
                             </Text>
-                            <Text color="rgba(255,255,255,0.7)" fontSize="xs" lineHeight="1.6" noOfLines={isExpanded ? undefined : 3}>
+                            <Text color="var(--color-text-secondary)" fontSize="xs" lineHeight="1.6" noOfLines={isExpanded ? undefined : 3}>
                               {app.cover_letter}
                             </Text>
                             {app.cover_letter.split("\n").length > 3 || app.cover_letter.length > 250 ? (
@@ -347,11 +347,11 @@ const ManageApplicationsPage = () => {
                             ) : null}
                           </Box>
                         ) : (
-                          <Text color="rgba(255,255,255,0.25)" fontSize="xs" fontStyle="italic">No cover letter submitted.</Text>
+                          <Text color="var(--color-card-border)" fontSize="xs" fontStyle="italic">No cover letter submitted.</Text>
                         )}
 
                         {/* Attachments */}
-                        <HStack gap={3} pt={2} borderTop="1px solid rgba(255,255,255,0.06)" flexWrap="wrap">
+                        <HStack gap={3} pt={2} borderTop="1px solid var(--color-card-border)" flexWrap="wrap">
                           {app.resume ? (
                             <Button
                               as="a"
@@ -370,7 +370,7 @@ const ManageApplicationsPage = () => {
                               Download Resume
                             </Button>
                           ) : (
-                            <Badge px={2} py={1} borderRadius="md" variant="subtle" fontSize="3xs" style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.3)" }}>
+                            <Badge px={2} py={1} borderRadius="md" variant="subtle" fontSize="3xs" style={{ background: "var(--color-glass)", color: "var(--color-text-muted)" }}>
                               No Resume Attached
                             </Badge>
                           )}
@@ -398,7 +398,7 @@ const ManageApplicationsPage = () => {
 
                       {/* Status Action Buttons */}
                       <Flex direction={{ base: "column", sm: "row" }} justify="space-between" align={{ base: "stretch", sm: "center" }} gap={3}>
-                        <Text color="rgba(255,255,255,0.35)" fontSize="3xs" fontWeight="black" letterSpacing="wider">
+                        <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="black" letterSpacing="wider">
                           UPDATE APPLICATION STATUS:
                         </Text>
                         <HStack gap={2} overflowX="auto" pb={{ base: 1, sm: 0 }}>
@@ -431,13 +431,13 @@ const ManageApplicationsPage = () => {
                                         color: optionColor,
                                       }
                                     : {
-                                        background: "rgba(255,255,255,0.03)",
-                                        border: "1px solid rgba(255,255,255,0.07)",
-                                        color: "rgba(255,255,255,0.4)",
+                                        background: "var(--color-glass)",
+                                        border: "1px solid var(--color-card-border)",
+                                        color: "var(--color-text-muted)",
                                       }
                                 }
                                 _hover={{
-                                  background: isCurrent ? STATUS_COLORS[option.status].bg : "rgba(255,255,255,0.07)",
+                                  background: isCurrent ? STATUS_COLORS[option.status].bg : "var(--color-card-border)",
                                   color: isCurrent ? optionColor : "white",
                                 }}
                                 transition="all 0.2s"

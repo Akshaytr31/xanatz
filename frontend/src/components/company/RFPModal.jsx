@@ -27,20 +27,20 @@ import api from "../../api";
 const MotionBox = motion.create(Box);
 
 const fieldStyle = {
-  bg: "rgba(255,255,255,0.05)",
+  bg: "var(--color-glass)",
   color: "white",
   h: "11",
   borderRadius: "lg",
   border: "1px solid",
-  borderColor: "rgba(255,255,255,0.12)",
+  borderColor: "var(--color-card-border)",
   _focus: { borderColor: "#8b5cf6", boxShadow: "0 0 0 2px rgba(139,92,246,0.25)" },
-  _placeholder: { color: "rgba(255,255,255,0.25)" },
+  _placeholder: { color: "var(--color-card-border)" },
   fontSize: "sm",
   px: "4",
 };
 
 const labelStyle = {
-  color: "rgba(255,255,255,0.45)",
+  color: "var(--color-text-muted)",
   fontSize: "10px",
   fontWeight: "black",
   letterSpacing: "widest",
@@ -53,11 +53,11 @@ const SelectField = ({ value, onChange, options, placeholder }) => (
     value={value || ""}
     onChange={(e) => onChange(e.target.value)}
     style={{
-      background: "rgba(255,255,255,0.05)",
-      color: value ? "white" : "rgba(255,255,255,0.25)",
+      background: "var(--color-glass)",
+      color: value ? "white" : "var(--color-card-border)",
       height: "44px",
       borderRadius: "lg",
-      border: "1px solid rgba(255,255,255,0.12)",
+      border: "1px solid var(--color-card-border)",
       fontSize: "14px",
       padding: "0 16px",
       width: "100%",
@@ -170,17 +170,17 @@ const RFPModal = ({ isOpen, onClose, companyId, rfp, onSaved }) => {
               transition={{ duration: 0.3, ease: "easeOut" }}
               borderRadius="lg"
               overflow="hidden"
-              border="1px solid rgba(255,255,255,0.1)"
+              border="1px solid var(--color-card-border)"
               style={{
                 background: "linear-gradient(135deg, rgba(15,23,42,0.97) 0%, rgba(20,30,55,0.97) 100%)",
-                boxShadow: "0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05)",
+                boxShadow: "0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px var(--color-glass)",
               }}
             >
               {/* ─── Header ─── */}
               <Box
                 px={8}
                 py={6}
-                borderBottom="1px solid rgba(255,255,255,0.07)"
+                borderBottom="1px solid var(--color-card-border)"
                 style={{
                   background: "linear-gradient(90deg, rgba(139,92,246,0.08) 0%, transparent 60%)",
                 }}
@@ -199,10 +199,10 @@ const RFPModal = ({ isOpen, onClose, companyId, rfp, onSaved }) => {
                       <FileText size={20} color="#8b5cf6" />
                     </Box>
                     <VStack align="start" gap={0}>
-                      <Text color="white" fontWeight="black" fontSize="lg" letterSpacing="tight">
+                      <Text color="var(--color-text-primary)" fontWeight="black" fontSize="lg" letterSpacing="tight">
                         {rfp ? "EDIT PUBLIC RFP" : "POST PUBLIC RFP"}
                       </Text>
-                      <Text color="rgba(255,255,255,0.35)" fontSize="xs" fontWeight="medium">
+                      <Text color="var(--color-text-muted)" fontSize="xs" fontWeight="medium">
                         Request proposals from qualified vendors or individuals
                       </Text>
                     </VStack>
@@ -217,12 +217,12 @@ const RFPModal = ({ isOpen, onClose, companyId, rfp, onSaved }) => {
                       display="flex"
                       alignItems="center"
                       justifyContent="center"
-                      style={{ background: "rgba(255,255,255,0.07)" }}
-                      _hover={{ background: "rgba(255,255,255,0.12)" }}
+                      style={{ background: "var(--color-card-border)" }}
+                      _hover={{ background: "var(--color-card-border)" }}
                       transition="all 0.2s"
                       onClick={onClose}
                     >
-                      <X size={16} color="rgba(255,255,255,0.7)" />
+                      <X size={16} color="var(--color-text-secondary)" />
                     </Box>
                   </DialogCloseTrigger>
                 </Flex>
@@ -255,7 +255,7 @@ const RFPModal = ({ isOpen, onClose, companyId, rfp, onSaved }) => {
                           placeholder="Ex: $15,000 - $25,000"
                         />
                         <Box position="absolute" left="3" top="50%" transform="translateY(-50%)" pointerEvents="none">
-                          <DollarSign size={14} color="rgba(255,255,255,0.3)" />
+                          <DollarSign size={14} color="var(--color-text-muted)" />
                         </Box>
                       </Box>
                     </Box>
@@ -275,7 +275,7 @@ const RFPModal = ({ isOpen, onClose, companyId, rfp, onSaved }) => {
                           }}
                         />
                         <Box position="absolute" left="3" top="50%" transform="translateY(-50%)" pointerEvents="none">
-                          <Calendar size={14} color="rgba(255,255,255,0.3)" />
+                          <Calendar size={14} color="var(--color-text-muted)" />
                         </Box>
                       </Box>
                     </Box>
@@ -291,10 +291,10 @@ const RFPModal = ({ isOpen, onClose, companyId, rfp, onSaved }) => {
                       placeholder="Detail the scope of work, objectives, timeline requirements..."
                       rows={5}
                       style={{
-                        background: "rgba(255,255,255,0.05)",
+                        background: "var(--color-glass)",
                         color: "white",
                         borderRadius: "lg",
-                        border: "1px solid rgba(255,255,255,0.12)",
+                        border: "1px solid var(--color-card-border)",
                         fontSize: "14px",
                         padding: "12px 16px",
                         width: "100%",
@@ -315,10 +315,10 @@ const RFPModal = ({ isOpen, onClose, companyId, rfp, onSaved }) => {
                       placeholder="List criteria, experience levels, tech stacks, or proposal format guidelines..."
                       rows={3}
                       style={{
-                        background: "rgba(255,255,255,0.05)",
+                        background: "var(--color-glass)",
                         color: "white",
                         borderRadius: "lg",
-                        border: "1px solid rgba(255,255,255,0.12)",
+                        border: "1px solid var(--color-card-border)",
                         fontSize: "14px",
                         padding: "12px 16px",
                         width: "100%",
@@ -351,25 +351,25 @@ const RFPModal = ({ isOpen, onClose, companyId, rfp, onSaved }) => {
               <Flex
                 px={8}
                 py={5}
-                borderTop="1px solid rgba(255,255,255,0.07)"
+                borderTop="1px solid var(--color-card-border)"
                 justify="space-between"
                 align="center"
-                style={{ background: "rgba(255,255,255,0.02)" }}
+                style={{ background: "var(--color-glass)" }}
               >
-                <Text color="rgba(255,255,255,0.2)" fontSize="xs" fontWeight="medium">
+                <Text color="var(--color-card-border)" fontSize="xs" fontWeight="medium">
                   Visible to everyone looking for RFP listings
                 </Text>
                 <HStack gap={3}>
                   <Button
                     variant="ghost"
-                    color="rgba(255,255,255,0.45)"
+                    color="var(--color-text-muted)"
                     fontWeight="black"
                     fontSize="xs"
                     letterSpacing="widest"
                     h="10"
                     px={5}
                     borderRadius="lg"
-                    _hover={{ color: "white", bg: "rgba(255,255,255,0.07)" }}
+                    _hover={{ color: "white", bg: "var(--color-card-border)" }}
                     onClick={onClose}
                   >
                     CANCEL

@@ -34,22 +34,22 @@ const ApplicationAnalytics = ({ applications = [] }) => {
   ];
 
   return (
-    <Box p={6} borderRadius="3xl" border="1px solid rgba(255,255,255,0.06)" 
-      style={{ background: "rgba(255,255,255,0.01)", backdropFilter: "blur(20px)" }}>
+    <Box p={6} borderRadius="3xl" border="1px solid var(--color-card-border)" 
+      style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }}>
       
       {/* Donut Chart Visualization */}
-      <Flex direction="column" align="center" justify="center" p={2} borderBottom="1px solid rgba(255,255,255,0.08)" pb={6}>
-        <Text color="rgba(255,255,255,0.4)" fontSize="2xs" fontWeight="black" letterSpacing="widest" mb={4}>
+      <Flex direction="column" align="center" justify="center" p={2} borderBottom="1px solid var(--color-card-border)" pb={6}>
+        <Text color="var(--color-text-muted)" fontSize="2xs" fontWeight="black" letterSpacing="widest" mb={4}>
           STATUS DISTRIBUTION
         </Text>
         
         <Box position="relative" w="160px" h="160px" display="flex" alignItems="center" justify="center">
           <svg width="100%" height="100%" viewBox="0 0 120 120" style={{ transform: "rotate(-90deg)" }}>
             {/* Background trace circle */}
-            <circle cx="60" cy="60" r="50" fill="transparent" stroke="rgba(255,255,255,0.03)" strokeWidth="12" />
+            <circle cx="60" cy="60" r="50" fill="transparent" stroke="var(--color-glass)" strokeWidth="12" />
             
             {totalApps === 0 ? (
-              <circle cx="60" cy="60" r="50" fill="transparent" stroke="rgba(255,255,255,0.08)" strokeWidth="12" />
+              <circle cx="60" cy="60" r="50" fill="transparent" stroke="var(--color-card-border)" strokeWidth="12" />
             ) : (
               list.map((item, idx) => {
                 if (item.count === 0) return null;
@@ -77,8 +77,8 @@ const ApplicationAnalytics = ({ applications = [] }) => {
           
           {/* Centered overall count */}
           <VStack position="absolute" top="50%" left="50%" transform="translate(-50%, -50%)" align="center" justify="center" gap={0}>
-            <Text color="white" fontWeight="black" fontSize="2xl" lineHeight="1">{totalApps}</Text>
-            <Text color="rgba(255,255,255,0.4)" fontSize="9px" fontWeight="black" letterSpacing="wider">SUBMITTED</Text>
+            <Text color="var(--color-text-primary)" fontWeight="black" fontSize="2xl" lineHeight="1">{totalApps}</Text>
+            <Text color="var(--color-text-muted)" fontSize="9px" fontWeight="black" letterSpacing="wider">SUBMITTED</Text>
           </VStack>
         </Box>
         
@@ -94,9 +94,9 @@ const ApplicationAnalytics = ({ applications = [] }) => {
             <VStack key={item.label} align="start" gap={0.5}>
               <HStack gap={1.5}>
                 <Box w="2.5" h="2.5" borderRadius="full" bg={item.color} />
-                <Text color="rgba(255,255,255,0.5)" fontSize="9px" fontWeight="black">{item.label}</Text>
+                <Text color="var(--color-text-muted)" fontSize="9px" fontWeight="black">{item.label}</Text>
               </HStack>
-              <Text color="white" fontSize="xs" fontWeight="black" pl={4}>{item.count}</Text>
+              <Text color="var(--color-text-primary)" fontSize="xs" fontWeight="black" pl={4}>{item.count}</Text>
             </VStack>
           ))}
         </Grid> */}
@@ -104,7 +104,7 @@ const ApplicationAnalytics = ({ applications = [] }) => {
       
       {/* Pipeline funnel success tracking */}
       <VStack align="stretch" gap={4} pt={6}>
-        <Text color="rgba(255,255,255,0.4)" fontSize="2xs" fontWeight="black" letterSpacing="widest">
+        <Text color="var(--color-text-muted)" fontSize="2xs" fontWeight="black" letterSpacing="widest">
           RECRUITMENT FUNNEL
         </Text>
         
@@ -112,19 +112,19 @@ const ApplicationAnalytics = ({ applications = [] }) => {
           <VStack key={stage.label} align="stretch" gap={1.5}>
             <Flex justify="space-between" align="center">
               <HStack gap={2}>
-                <Box px={1.5} py={0.5} borderRadius="md" bg="rgba(255,255,255,0.05)" border="1px solid rgba(255,255,255,0.08)">
-                  <Text fontSize="8px" fontWeight="black" color="rgba(255,255,255,0.4)">0{sIdx + 1}</Text>
+                <Box px={1.5} py={0.5} borderRadius="md" bg="var(--color-glass)" border="1px solid var(--color-card-border)">
+                  <Text fontSize="8px" fontWeight="black" color="var(--color-text-muted)">0{sIdx + 1}</Text>
                 </Box>
-                <Text fontSize="11px" fontWeight="black" color="rgba(255,255,255,0.7)">{stage.label}</Text>
+                <Text fontSize="11px" fontWeight="black" color="var(--color-text-secondary)">{stage.label}</Text>
               </HStack>
               <HStack gap={2}>
-                <Text fontSize="10px" fontWeight="black" color="rgba(255,255,255,0.4)">{stage.count} {stage.count === 1 ? 'Job' : 'Jobs'}</Text>
+                <Text fontSize="10px" fontWeight="black" color="var(--color-text-muted)">{stage.count} {stage.count === 1 ? 'Job' : 'Jobs'}</Text>
                 <Text fontSize="11px" fontWeight="black" color={stage.color}>{stage.percent}%</Text>
               </HStack>
             </Flex>
             
             {/* Progress Bar Container */}
-            <Box w="100%" h="2" bg="rgba(255,255,255,0.03)" borderRadius="full" overflow="hidden" position="relative" border="1px solid rgba(255,255,255,0.04)">
+            <Box w="100%" h="2" bg="var(--color-glass)" borderRadius="full" overflow="hidden" position="relative" border="1px solid var(--color-glass)">
               <MotionBox
                 initial={{ width: 0 }}
                 animate={{ width: `${stage.percent}%` }}

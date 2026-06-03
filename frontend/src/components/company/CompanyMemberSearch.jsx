@@ -40,26 +40,26 @@ const CompanyMemberSearch = ({ company, openAddModal, accentColor }) => {
   return (
     <VStack align="stretch" gap={6} position="sticky" top="100px">
       <MotionBox initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}
-        p={7} borderRadius="lg" border="1px solid rgba(255,255,255,0.08)"
-        style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(20px)" }}
+        p={7} borderRadius="lg" border="1px solid var(--color-card-border)"
+        style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }}
         boxShadow="0 25px 50px -12px rgba(0, 0, 0, 0.5)"
       >
         <VStack align="start" gap={1} mb={6}>
-          <Text color="white" fontSize="lg" fontWeight="bold">Invite New Member</Text>
-          <Text color="rgba(255,255,255,0.5)" fontSize="xs">Search by name or email address</Text>
+          <Text color="var(--color-text-primary)" fontSize="lg" fontWeight="bold">Invite New Member</Text>
+          <Text color="var(--color-text-muted)" fontSize="xs">Search by name or email address</Text>
         </VStack>
 
         <Flex 
           mb={searchQuery.trim().length > 0 ? 5 : 0} 
           align="center" 
-          bg="rgba(0,0,0,0.2)" 
-          border="1px solid rgba(255,255,255,0.1)" 
+          bg="var(--color-input-bg)" 
+          border="1px solid var(--color-card-border)" 
           borderRadius="lg" 
           px={4} py={1}
           _focusWithin={{ borderColor: accentColor, boxShadow: `0 0 0 1px ${accentColor}`, bg: "rgba(0,0,0,0.4)" }}
           transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
         >
-          <Search size={18} color={isSearching ? accentColor : "rgba(255,255,255,0.4)"} />
+          <Search size={18} color={isSearching ? accentColor : "var(--color-text-muted)"} />
           <Input 
             placeholder="E.g. jane@example.com" 
             value={searchQuery}
@@ -81,9 +81,9 @@ const CompanyMemberSearch = ({ company, openAddModal, accentColor }) => {
           {searchQuery.trim().length === 0 && (
             <MotionBox initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} overflow="hidden">
               <Flex direction="column" align="center" py={8} opacity={0.6}>
-                <Users size={32} strokeWidth={1} style={{ marginBottom: '12px' }} color="rgba(255,255,255,0.4)" />
-                <Text color="white" fontSize="sm" fontWeight="bold" mb={1}>Find your teammates</Text>
-                <Text color="rgba(255,255,255,0.5)" fontSize="xs" textAlign="center" maxW="200px">
+                <Users size={32} strokeWidth={1} style={{ marginBottom: '12px' }} color="var(--color-text-muted)" />
+                <Text color="var(--color-text-primary)" fontSize="sm" fontWeight="bold" mb={1}>Find your teammates</Text>
+                <Text color="var(--color-text-muted)" fontSize="xs" textAlign="center" maxW="200px">
                   Type a name or email in the search box above to add them to your company.
                 </Text>
               </Flex>
@@ -94,30 +94,30 @@ const CompanyMemberSearch = ({ company, openAddModal, accentColor }) => {
             <MotionBox initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
               overflow="hidden">
               <VStack align="stretch" gap={3} mt={5} maxH="400px" overflowY="auto"
-                css={{ '&::-webkit-scrollbar': { width: '4px' }, '&::-webkit-scrollbar-thumb': { background: 'rgba(255,255,255,0.2)', borderRadius: '4px' } }}>
+                css={{ '&::-webkit-scrollbar': { width: '4px' }, '&::-webkit-scrollbar-thumb': { background: 'var(--color-card-border)', borderRadius: '4px' } }}>
                 {filteredSearchResults.map(user => (
-                  <Flex key={user.id} p={3} borderRadius="lg" border="1px solid rgba(255,255,255,0.03)"
-                    bg="rgba(255,255,255,0.02)" align="center" justify="space-between"
-                    _hover={{ bg: "rgba(255,255,255,0.05)", transform: "translateY(-2px)", borderColor: "rgba(255,255,255,0.1)" }}
+                  <Flex key={user.id} p={3} borderRadius="lg" border="1px solid var(--color-glass)"
+                    bg="var(--color-glass)" align="center" justify="space-between"
+                    _hover={{ bg: "var(--color-glass)", transform: "translateY(-2px)", borderColor: "var(--color-card-border)" }}
                     transition="all 0.2s"
                   >
                     <HStack gap={3}>
-                      <Box w="40px" h="40px" borderRadius="full" overflow="hidden" bg="rgba(255,255,255,0.1)" border={`1px solid ${accentColor}40`}>
+                      <Box w="40px" h="40px" borderRadius="full" overflow="hidden" bg="var(--color-card-border)" border={`1px solid ${accentColor}40`}>
                         {user.profile_picture ? (
                           <img src={user.profile_picture} alt={user.first_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (
                           <Flex w="full" h="full" align="center" justify="center">
-                            <Text fontWeight="bold" fontSize="sm" color="white">
+                            <Text fontWeight="bold" fontSize="sm" color="var(--color-text-primary)">
                               {user.first_name ? user.first_name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
                             </Text>
                           </Flex>
                         )}
                       </Box>
                       <VStack align="start" gap={0} maxW="140px">
-                        <Text color="white" fontSize="sm" fontWeight="bold" noOfLines={1}>
+                        <Text color="var(--color-text-primary)" fontSize="sm" fontWeight="bold" noOfLines={1}>
                           {user.first_name ? `${user.first_name} ${user.last_name}`.trim() : user.email.split('@')[0]}
                         </Text>
-                        <Text color="rgba(255,255,255,0.4)" fontSize="2xs" noOfLines={1}>{user.email}</Text>
+                        <Text color="var(--color-text-muted)" fontSize="2xs" noOfLines={1}>{user.email}</Text>
                       </VStack>
                     </HStack>
                     <Button size="sm" h="8" borderRadius="full" bg={`${accentColor}20`} color={accentColor} 
@@ -134,7 +134,7 @@ const CompanyMemberSearch = ({ company, openAddModal, accentColor }) => {
             <MotionBox initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} overflow="hidden">
               <Flex direction="column" align="center" py={8} opacity={0.5}>
                 <Search size={32} strokeWidth={1} style={{ marginBottom: '12px' }} />
-                <Text color="white" fontSize="sm">No users found.</Text>
+                <Text color="var(--color-text-primary)" fontSize="sm">No users found.</Text>
               </Flex>
             </MotionBox>
           )}

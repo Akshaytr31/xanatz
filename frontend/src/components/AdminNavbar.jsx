@@ -69,7 +69,7 @@ const AdminNavbar = ({ handleLogout }) => {
       position="sticky"
       top={0}
       zIndex={100}
-      bg="gray.900"
+      bg="var(--color-dropdown-bg)"
       borderBottom="2px solid"
       borderColor="var(--color-accent)"
       py={3}
@@ -84,7 +84,7 @@ const AdminNavbar = ({ handleLogout }) => {
               </Box>
               <VStack align="start" gap={0}>
                 <Text
-                  color="white"
+                  color="var(--color-text-primary)"
                   fontWeight="black"
                   fontSize="lg"
                   lineHeight={1}
@@ -126,11 +126,11 @@ const AdminNavbar = ({ handleLogout }) => {
               >
                 <Circle
                   size="8"
-                  bg="gray.700"
+                  bg="var(--color-card-border)"
                   border="1px solid"
-                  borderColor="whiteAlpha.300"
+                  borderColor="var(--color-card-border)"
                 >
-                  <User size={18} color="white" />
+                  <User size={18} color="var(--color-text-primary)" />
                 </Circle>
                 <ChevronDown size={14} color="gray.500" />
               </HStack>
@@ -140,9 +140,9 @@ const AdminNavbar = ({ handleLogout }) => {
                   position="absolute"
                   top="140%"
                   right="0"
-                  bg="gray.800"
+                  bg="var(--color-dropdown-bg)"
                   border="1px solid"
-                  borderColor="whiteAlpha.200"
+                  borderColor="var(--color-card-border)"
                   borderRadius="lg"
                   boxShadow="2xl"
                   w="220px"
@@ -152,9 +152,9 @@ const AdminNavbar = ({ handleLogout }) => {
                   <Box
                     p={4}
                     borderBottom="1px solid"
-                    borderColor="whiteAlpha.100"
+                    borderColor="var(--color-card-border)"
                   >
-                    <Text fontWeight="bold" color="white" fontSize="xs" mb={1}>
+                    <Text fontWeight="bold" color="var(--color-text-primary)" fontSize="xs" mb={1}>
                       {user?.email || "Administrator"}
                     </Text>
                     <Text
@@ -172,7 +172,7 @@ const AdminNavbar = ({ handleLogout }) => {
                       gap={3}
                       cursor="pointer"
                       borderRadius="md"
-                      _hover={{ bg: "whiteAlpha.100" }}
+                      _hover={{ bg: "var(--color-card-hover-bg)" }}
                       onClick={() => {
                         setIsProfileOpen(false);
                         handleLogout();

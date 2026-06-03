@@ -181,7 +181,7 @@ const ExperienceSection = ({ user, onUpdate }) => {
           <Text
             fontSize="md"
             fontWeight="black"
-            color="white"
+            color="var(--color-text-primary)"
             letterSpacing="tight"
             fontFamily="var(--font-heading)"
           >
@@ -216,7 +216,7 @@ const ExperienceSection = ({ user, onUpdate }) => {
                     <Text
                       fontSize="md"
                       fontWeight="bold"
-                      color="white"
+                      color="var(--color-text-primary)"
                       lineHeight="1.2"
                     >
                       {exp.title}
@@ -713,7 +713,7 @@ const ExperienceSection = ({ user, onUpdate }) => {
                       bg="whiteAlpha.50"
                       border="1px solid"
                       borderColor="whiteAlpha.200"
-                      color="white"
+                      color="var(--color-text-primary)"
                       placeholder="Outline your impact and achievements..."
                     />
                   </Box>

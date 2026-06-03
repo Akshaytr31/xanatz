@@ -19,10 +19,13 @@ import {
   ChevronRight,
   ClipboardList,
   FileText,
+  Sun,
+  Moon,
 } from "lucide-react";
 
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "next-themes";
 import api, { backendUrl } from "../api";
 
 /* ─── tiny helpers ─────────────────────────────────────────────────────────── */
@@ -45,8 +48,8 @@ const NavItem = ({ icon: Icon, label, active, onClick }) => {
           padding: active ? "0.45rem 0.85rem" : "0.45rem 0.6rem",
           borderRadius: "9999px",
           border: "none",
-          background: active ? "rgba(255,255,255,0.10)" : "transparent",
-          color: active ? "#fff" : "rgba(255,255,255,0.45)",
+          background: active ? "var(--color-card-border)" : "transparent",
+          color: active ? "var(--color-text-primary)" : "var(--color-text-muted)",
           fontSize: "0.78rem",
           fontWeight: active ? 700 : 500,
           cursor: "pointer",
@@ -85,7 +88,7 @@ const NavItem = ({ icon: Icon, label, active, onClick }) => {
               transform: "translateX(-50%)",
               background: "rgba(15, 23, 42, 0.92)",
               backdropFilter: "blur(8px)",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
+              border: "1px solid var(--color-card-border)",
               color: "white",
               padding: "4px 10px",
               borderRadius: "8px",
@@ -118,7 +121,7 @@ const MenuLink = ({ icon: Icon, label, onClick, danger = false }) => (
       borderRadius: "0.6rem",
       border: "none",
       background: "transparent",
-      color: danger ? "#f87171" : "rgba(255,255,255,0.75)",
+      color: danger ? "#f87171" : "var(--color-text-secondary)",
       fontSize: "0.82rem",
       fontWeight: 500,
       cursor: "pointer",
@@ -126,12 +129,12 @@ const MenuLink = ({ icon: Icon, label, onClick, danger = false }) => (
       textAlign: "left",
     }}
     onMouseEnter={(e) => {
-      e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-      e.currentTarget.style.color = danger ? "#fca5a5" : "#fff";
+      e.currentTarget.style.background = "var(--color-card-border)";
+      e.currentTarget.style.color = danger ? "#fca5a5" : "var(--color-text-primary)";
     }}
     onMouseLeave={(e) => {
       e.currentTarget.style.background = "transparent";
-      e.currentTarget.style.color = danger ? "#f87171" : "rgba(255,255,255,0.75)";
+      e.currentTarget.style.color = danger ? "#f87171" : "var(--color-text-secondary)";
     }}
   >
     <Icon size={17} strokeWidth={1.8} />
@@ -142,6 +145,7 @@ const MenuLink = ({ icon: Icon, label, onClick, danger = false }) => (
 /* ─── main component ────────────────────────────────────────────────────────── */
 
 const Navbar = () => {
+  const { theme, setTheme } = useTheme();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -218,8 +222,8 @@ const Navbar = () => {
         paddingBottom: scrolled ? "calc(0.6rem + 3px)" : "calc(1rem + 3px)",
         backdropFilter: scrolled ? "blur(24px) saturate(180%)" : "none",
         WebkitBackdropFilter: scrolled ? "blur(24px) saturate(180%)" : "none",
-        background: scrolled ? "rgba(2,6,23,0.85)" : "transparent",
-        borderBottom: scrolled ? "1px solid rgba(255,255,255,0.06)" : "none",
+        background: scrolled ? "var(--color-nav-bg)" : "transparent",
+        borderBottom: scrolled ? "1px solid var(--color-card-border)" : "none",
         boxShadow: scrolled ? "0 4px 30px rgba(0,0,0,0.5)" : "none",
         transition: "all 0.4s ease",
         fontFamily: "'Outfit', sans-serif",
@@ -231,7 +235,7 @@ const Navbar = () => {
           alignItems: "center",
           justifyContent: "space-between",
           maxWidth: "1400px",
-          margin: "0 auto",
+          margin: "-5px auto",
         }}
       >
         {/* ── Logo ── */}
@@ -244,7 +248,7 @@ const Navbar = () => {
             fontWeight: 900,
             fontSize: "1.15rem",
             letterSpacing: "-0.04em",
-            color: "white",
+            color: "var(--color-text-primary)",
             cursor: "pointer",
             userSelect: "none",
           }}
@@ -319,8 +323,8 @@ const Navbar = () => {
               alignItems: "center",
               overflow: "hidden",
               borderRadius: "9999px",
-              border: "1px solid rgba(255,255,255,0.12)",
-              background: "rgba(255,255,255,0.05)",
+              border: "1px solid var(--color-card-border)",
+              background: "var(--color-glass)",
               height: "34px",
               flexShrink: 0,
             }}
@@ -336,7 +340,7 @@ const Navbar = () => {
                 height: "32px",
                 background: "transparent",
                 border: "none",
-                color: "rgba(255,255,255,0.6)",
+                color: "var(--color-text-secondary)",
                 cursor: "pointer",
                 borderRadius: "9999px",
               }}
@@ -397,7 +401,7 @@ const Navbar = () => {
                   style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "9999px" }}
                 />
               ) : (
-                <User size={18} color="rgba(255,255,255,0.8)" />
+                <User size={18} color="var(--color-text-primary)" />
               )}
             </motion.button>
 
@@ -416,10 +420,10 @@ const Navbar = () => {
                     zIndex: 2000,
                     borderRadius: "1rem",
                     overflow: "hidden",
-                    background: "rgba(8, 12, 28, 0.96)",
+                    background: "var(--color-dropdown-bg)",
                     backdropFilter: "blur(40px)",
-                    border: "1px solid rgba(255,255,255,0.10)",
-                    boxShadow: "0 24px 48px -12px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05)",
+                    border: "1px solid var(--color-card-border)",
+                    boxShadow: "0 24px 48px -12px rgba(0,0,0,0.7), inset 0 1px 0 var(--color-glass)",
                   }}
                 >
                   {/* User info block */}
@@ -428,7 +432,7 @@ const Navbar = () => {
                       padding: "1.25rem",
                       position: "relative",
                       overflow: "hidden",
-                      borderBottom: "1px solid rgba(255,255,255,0.06)",
+                      borderBottom: "1px solid var(--color-card-border)",
                     }}
                   >
                     {/* decorative orb */}
@@ -455,7 +459,7 @@ const Navbar = () => {
                           borderRadius: "9999px",
                           border: "1.5px solid transparent",
                           background:
-                            "linear-gradient(#0d1224, #0d1224) padding-box, linear-gradient(135deg, #3b82f6, #8b5cf6) border-box",
+                            "linear-gradient(var(--color-surface), var(--color-surface)) padding-box, linear-gradient(135deg, #3b82f6, #8b5cf6) border-box",
                           overflow: "hidden",
                           display: "flex",
                           alignItems: "center",
@@ -470,7 +474,7 @@ const Navbar = () => {
                             style={{ width: "100%", height: "100%", objectFit: "cover" }}
                           />
                         ) : (
-                          <User size={24} color="rgba(255,255,255,0.8)" />
+                          <User size={24} color="var(--color-text-primary)" />
                         )}
                       </div>
 
@@ -478,7 +482,7 @@ const Navbar = () => {
                         <p
                           style={{
                             margin: 0,
-                            color: "white",
+                            color: "var(--color-text-primary)",
                             fontWeight: 700,
                             fontSize: "0.95rem",
                             lineHeight: 1.2,
@@ -523,9 +527,9 @@ const Navbar = () => {
                         marginTop: "1rem",
                         padding: "0.55rem 1rem",
                         borderRadius: "9999px",
-                        border: "1px solid rgba(255,255,255,0.12)",
-                        background: "rgba(255,255,255,0.05)",
-                        color: "rgba(255,255,255,0.85)",
+                        border: "1px solid var(--color-card-border)",
+                        background: "var(--color-glass)",
+                        color: "var(--color-text-primary)",
                         fontSize: "0.78rem",
                         fontWeight: 700,
                         letterSpacing: "0.05em",
@@ -537,12 +541,12 @@ const Navbar = () => {
                         zIndex: 1,
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "rgba(255,255,255,0.10)";
-                        e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)";
+                        e.currentTarget.style.background = "var(--color-card-border)";
+                        e.currentTarget.style.borderColor = "var(--color-card-border)";
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "rgba(255,255,255,0.05)";
-                        e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)";
+                        e.currentTarget.style.background = "var(--color-glass)";
+                        e.currentTarget.style.borderColor = "var(--color-card-border)";
                       }}
                     >
                       View Profile
@@ -569,9 +573,15 @@ const Navbar = () => {
                         navigate("/my-applications");
                       }}
                     />
-                    <MenuLink icon={Settings} label="Preferences" />
+                    <MenuLink
+                      icon={theme === "light" ? Moon : Sun}
+                      label={theme === "light" ? "Dark Mode" : "Light Mode"}
+                      onClick={() => {
+                        setTheme(theme === "light" ? "dark" : "light");
+                      }}
+                    />
                     <MenuLink icon={HelpCircle} label="Help & Support" />
-                    <div style={{ height: "1px", background: "rgba(255,255,255,0.07)", margin: "0.4rem 0.5rem" }} />
+                    <div style={{ height: "1px", background: "var(--color-card-border)", margin: "0.4rem 0.5rem" }} />
                     <MenuLink icon={LogOut} label="Sign Out" danger onClick={handleLogout} />
                   </div>
                 </motion.div>

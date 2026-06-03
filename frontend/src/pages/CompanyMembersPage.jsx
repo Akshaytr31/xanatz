@@ -121,7 +121,7 @@ const CompanyMembersPage = () => {
   if (!company) {
     return (
       <Flex h="100vh" align="center" justify="center" bg="var(--color-primary)">
-        <Text color="white">Company not found.</Text>
+        <Text color="var(--color-text-primary)">Company not found.</Text>
       </Flex>
     );
   }
@@ -136,8 +136,8 @@ const CompanyMembersPage = () => {
     return (
       <Flex h="100vh" direction="column" align="center" justify="center" bg="var(--color-primary)" gap={4}>
         <ShieldAlert size={48} color="#ef4444" />
-        <Text color="white" fontSize="xl" fontWeight="bold">Access Denied</Text>
-        <Text color="rgba(255,255,255,0.6)">Only company admins can manage members.</Text>
+        <Text color="var(--color-text-primary)" fontSize="xl" fontWeight="bold">Access Denied</Text>
+        <Text color="var(--color-text-secondary)">Only company admins can manage members.</Text>
         <Button mt={4} onClick={() => navigate(`/company/${id}`)} colorScheme="blue">
           Back to Dashboard
         </Button>
@@ -179,26 +179,26 @@ const CompanyMembersPage = () => {
           {/* Header Section */}
           <Flex direction={{ base: "column", md: "row" }} justify="space-between" align={{ base: "start", md: "end" }} mb={12} gap={6}>
             <Box>
-              <Button variant="ghost" color="rgba(255,255,255,0.5)" fontWeight="bold" fontSize="xs"
+              <Button variant="ghost" color="var(--color-text-muted)" fontWeight="bold" fontSize="xs"
                 letterSpacing="widest" px={0} mb={6} _hover={{ color: "white", transform: "translateX(-4px)" }} transition="all 0.3s"
                 onClick={() => navigate(`/company/${id}`)}>
                 <ArrowLeft size={14} style={{ marginRight: "8px" }} />
                 BACK TO DASHBOARD
               </Button>
-              <Text fontSize="4xl" fontWeight="black" color="white" letterSpacing="tight" lineHeight="1.1" mb={2}>
+              <Text fontSize="4xl" fontWeight="black" color="var(--color-text-primary)" letterSpacing="tight" lineHeight="1.1" mb={2}>
                 Team Management
               </Text>
-              <HStack gap={2} color="rgba(255,255,255,0.6)">
+              <HStack gap={2} color="var(--color-text-secondary)">
                 <Building2 size={16} />
                 <Text fontSize="md">{company.name}</Text>
               </HStack>
             </Box>
             
-            <Flex align="center" gap={4} p={4} borderRadius="2xl" border="1px solid rgba(255,255,255,0.05)"
-              bg="rgba(255,255,255,0.02)" backdropFilter="blur(10px)">
+            <Flex align="center" gap={4} p={4} borderRadius="2xl" border="1px solid var(--color-glass)"
+              bg="var(--color-glass)" backdropFilter="blur(10px)">
               <VStack align="end" gap={0}>
-                <Text color="rgba(255,255,255,0.5)" fontSize="xs" fontWeight="bold" letterSpacing="wider">TOTAL MEMBERS</Text>
-                <Text color="white" fontSize="2xl" fontWeight="black">{company.members_details?.length || 0}</Text>
+                <Text color="var(--color-text-muted)" fontSize="xs" fontWeight="bold" letterSpacing="wider">TOTAL MEMBERS</Text>
+                <Text color="var(--color-text-primary)" fontSize="2xl" fontWeight="black">{company.members_details?.length || 0}</Text>
               </VStack>
               <Box w="48px" h="48px" borderRadius="xl" display="flex" alignItems="center" justifyContent="center"
                 style={{ background: `linear-gradient(135deg, ${accentColor}40, rgba(15,23,42,0.8))` }}
@@ -222,9 +222,9 @@ const CompanyMembersPage = () => {
               <Grid templateColumns="repeat(auto-fill, minmax(280px, 1fr))" gap={5}>
                 {(company.members_details || []).map((member, i) => (
                   <MotionBox key={member.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 + (i * 0.05) }}>
-                    <Flex direction="row" p={5} borderRadius="3xl" border="1px solid rgba(255,255,255,0.06)"
-                      style={{ background: "rgba(255,255,255,0.02)", backdropFilter: "blur(20px)" }}
-                      _hover={{ borderColor: "rgba(255,255,255,0.15)", bg: "rgba(255,255,255,0.04)", transform: "translateY(-4px)", boxShadow: "0 20px 40px -10px rgba(0,0,0,0.4)" }}
+                    <Flex direction="row" p={5} borderRadius="3xl" border="1px solid var(--color-card-border)"
+                      style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }}
+                      _hover={{ borderColor: "var(--color-card-border)", bg: "var(--color-glass)", transform: "translateY(-4px)", boxShadow: "0 20px 40px -10px rgba(0,0,0,0.4)" }}
                       transition="all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)" position="relative" group
                       align="center" justify="space-between" minH="120px" gap={4}
                       cursor={member.public_id ? "pointer" : "default"}
@@ -239,7 +239,7 @@ const CompanyMembersPage = () => {
                           boxShadow={`0 4px 15px ${accentColor}60`}
                           zIndex={2}
                         >
-                          <Text fontSize="9px" fontWeight="black" color="white" letterSpacing="widest">OWNER</Text>
+                          <Text fontSize="9px" fontWeight="black" color="var(--color-text-primary)" letterSpacing="widest">OWNER</Text>
                         </Box>
                       ) : member.access_role === 'admin' ? (
                         <Box
@@ -249,20 +249,20 @@ const CompanyMembersPage = () => {
                           boxShadow="0 4px 15px rgba(239,68,68,0.5)"
                           zIndex={2}
                         >
-                          <Text fontSize="9px" fontWeight="black" color="white" letterSpacing="widest">ADMIN</Text>
+                          <Text fontSize="9px" fontWeight="black" color="var(--color-text-primary)" letterSpacing="widest">ADMIN</Text>
                         </Box>
                       ) : null}
 
                       <Flex align="center" gap={4} flex={1} overflow="hidden">
-                        <Box w="60px" h="60px" borderRadius="full" overflow="hidden" border={`2px solid rgba(255,255,255,0.1)`}
-                          p={0.5} bg="rgba(0,0,0,0.2)" flexShrink={0}
+                        <Box w="60px" h="60px" borderRadius="full" overflow="hidden" border={`2px solid var(--color-card-border)`}
+                          p={0.5} bg="var(--color-input-bg)" flexShrink={0}
                         >
-                          <Box w="full" h="full" borderRadius="full" overflow="hidden" bg="rgba(255,255,255,0.1)">
+                          <Box w="full" h="full" borderRadius="full" overflow="hidden" bg="var(--color-card-border)">
                             {member.profile_picture ? (
                               <img src={member.profile_picture} alt={member.first_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : (
                               <Flex w="full" h="full" align="center" justify="center" bg={`linear-gradient(135deg, ${accentColor}40, transparent)`}>
-                                <Text fontWeight="black" fontSize="xl" color="white">
+                                <Text fontWeight="black" fontSize="xl" color="var(--color-text-primary)">
                                   {member.first_name ? member.first_name.charAt(0).toUpperCase() : member.email.charAt(0).toUpperCase()}
                                 </Text>
                               </Flex>
@@ -271,15 +271,15 @@ const CompanyMembersPage = () => {
                         </Box>
 
                         <VStack gap={0.5} align="start" overflow="hidden">
-                          <Text color="white" fontSize="md" fontWeight="bold" letterSpacing="tight" noOfLines={1}>
+                          <Text color="var(--color-text-primary)" fontSize="md" fontWeight="bold" letterSpacing="tight" noOfLines={1}>
                             {member.first_name ? `${member.first_name} ${member.last_name}`.trim() : member.email.split('@')[0]}
                           </Text>
-                          <Text color="rgba(255,255,255,0.5)" fontSize="xs" fontWeight="medium" noOfLines={1} mb={1}>
+                          <Text color="var(--color-text-muted)" fontSize="xs" fontWeight="medium" noOfLines={1} mb={1}>
                             {member.position || member.headline || "Team Member"}
                           </Text>
-                          <HStack bg="rgba(0,0,0,0.3)" px={2.5} py={1} borderRadius="full" border="1px solid rgba(255,255,255,0.05)">
-                            <Mail size={10} color="rgba(255,255,255,0.4)" />
-                            <Text color="rgba(255,255,255,0.6)" fontSize="2xs" isTruncated maxW="150px">{member.email}</Text>
+                          <HStack bg="var(--color-card-hover-bg)" px={2.5} py={1} borderRadius="full" border="1px solid var(--color-glass)">
+                            <Mail size={10} color="var(--color-text-muted)" />
+                            <Text color="var(--color-text-secondary)" fontSize="2xs" isTruncated maxW="150px">{member.email}</Text>
                           </HStack>
                         </VStack>
                       </Flex>
@@ -288,7 +288,7 @@ const CompanyMembersPage = () => {
                       {member.id !== company.creator && hasAccess && (
                         <Flex opacity={0.3} _hover={{ opacity: 1 }} transition="all 0.2s" gap={1}>
                           <IconButton aria-label="Edit member" size="sm" borderRadius="full"
-                            bg="rgba(255,255,255,0.1)" color="white" _hover={{ bg: "rgba(255,255,255,0.2)" }} 
+                            bg="var(--color-card-border)" color="white" _hover={{ bg: "var(--color-card-border)" }} 
                             onClick={(e) => { e.stopPropagation(); openEditModal(member); }}>
                             <Settings2 size={14} />
                           </IconButton>
@@ -318,51 +318,51 @@ const CompanyMembersPage = () => {
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setModalOpen(false)} />
             
             {/* Modal Content */}
-            <MotionBox position="relative" w="full" maxW="400px" bg="rgba(15,23,42,0.9)" border="1px solid rgba(255,255,255,0.1)"
+            <MotionBox position="relative" w="full" maxW="400px" bg="rgba(15,23,42,0.9)" border="1px solid var(--color-card-border)"
               borderRadius="2xl" p={6} boxShadow="0 25px 50px -12px rgba(0,0,0,0.5)"
               initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}>
               
-              <Text fontSize="xl" fontWeight="black" color="white" mb={4}>
+              <Text fontSize="xl" fontWeight="black" color="var(--color-text-primary)" mb={4}>
                 {isEditing ? "Edit Member" : "Add Member"}
               </Text>
 
               <VStack gap={4} align="stretch">
                 {/* User Preview */}
                 {selectedUser && (
-                  <HStack gap={3} p={3} borderRadius="xl" bg="rgba(255,255,255,0.03)" border="1px solid rgba(255,255,255,0.05)">
-                    <Box w="40px" h="40px" borderRadius="full" overflow="hidden" bg="rgba(255,255,255,0.1)">
+                  <HStack gap={3} p={3} borderRadius="xl" bg="var(--color-glass)" border="1px solid var(--color-glass)">
+                    <Box w="40px" h="40px" borderRadius="full" overflow="hidden" bg="var(--color-card-border)">
                       {selectedUser.profile_picture ? (
                         <img src={selectedUser.profile_picture} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
                         <Flex w="full" h="full" align="center" justify="center">
-                          <Text fontWeight="black" color="white">{selectedUser.first_name ? selectedUser.first_name.charAt(0).toUpperCase() : selectedUser.email.charAt(0).toUpperCase()}</Text>
+                          <Text fontWeight="black" color="var(--color-text-primary)">{selectedUser.first_name ? selectedUser.first_name.charAt(0).toUpperCase() : selectedUser.email.charAt(0).toUpperCase()}</Text>
                         </Flex>
                       )}
                     </Box>
                     <VStack align="start" gap={0}>
-                      <Text color="white" fontSize="sm" fontWeight="bold">{selectedUser.first_name ? `${selectedUser.first_name} ${selectedUser.last_name}` : selectedUser.email.split('@')[0]}</Text>
-                      <Text color="rgba(255,255,255,0.5)" fontSize="xs">{selectedUser.email}</Text>
+                      <Text color="var(--color-text-primary)" fontSize="sm" fontWeight="bold">{selectedUser.first_name ? `${selectedUser.first_name} ${selectedUser.last_name}` : selectedUser.email.split('@')[0]}</Text>
+                      <Text color="var(--color-text-muted)" fontSize="xs">{selectedUser.email}</Text>
                     </VStack>
                   </HStack>
                 )}
 
                 {/* Role Selection */}
                 <Box>
-                  <Text color="rgba(255,255,255,0.6)" fontSize="xs" fontWeight="bold" mb={2} letterSpacing="widest">ACCESS ROLE</Text>
+                  <Text color="var(--color-text-secondary)" fontSize="xs" fontWeight="bold" mb={2} letterSpacing="widest">ACCESS ROLE</Text>
                   <Flex gap={2}>
                     <Button flex={1} 
                       bg={role === "user" ? accentColor : "transparent"} 
-                      color={role === "user" ? "white" : "rgba(255,255,255,0.5)"}
-                      border="1px solid" borderColor={role === "user" ? accentColor : "rgba(255,255,255,0.2)"}
-                      _hover={{ filter: role === "user" ? "brightness(1.1)" : "none", bg: role !== "user" ? "rgba(255,255,255,0.05)" : accentColor }}
+                      color={role === "user" ? "white" : "var(--color-text-muted)"}
+                      border="1px solid" borderColor={role === "user" ? accentColor : "var(--color-card-border)"}
+                      _hover={{ filter: role === "user" ? "brightness(1.1)" : "none", bg: role !== "user" ? "var(--color-glass)" : accentColor }}
                       onClick={() => setRole("user")}>
                       User
                     </Button>
                     <Button flex={1} 
                       bg={role === "admin" ? "#ef4444" : "transparent"} 
-                      color={role === "admin" ? "white" : "rgba(255,255,255,0.5)"}
-                      border="1px solid" borderColor={role === "admin" ? "#ef4444" : "rgba(255,255,255,0.2)"}
-                      _hover={{ bg: role === "admin" ? "#dc2626" : "rgba(255,255,255,0.05)" }}
+                      color={role === "admin" ? "white" : "var(--color-text-muted)"}
+                      border="1px solid" borderColor={role === "admin" ? "#ef4444" : "var(--color-card-border)"}
+                      _hover={{ bg: role === "admin" ? "#dc2626" : "var(--color-glass)" }}
                       onClick={() => setRole("admin")}>
                       Admin
                     </Button>
@@ -371,18 +371,18 @@ const CompanyMembersPage = () => {
 
                 {/* Position Input */}
                 <Box>
-                  <Text color="rgba(255,255,255,0.6)" fontSize="xs" fontWeight="bold" mb={2} letterSpacing="widest">JOB POSITION</Text>
+                  <Text color="var(--color-text-secondary)" fontSize="xs" fontWeight="bold" mb={2} letterSpacing="widest">JOB POSITION</Text>
                   <Input 
                     value={position} onChange={(e) => setPosition(e.target.value)}
                     placeholder="e.g. Full Stack Developer"
-                    bg="rgba(0,0,0,0.2)" border="1px solid rgba(255,255,255,0.1)" color="white"
-                    _hover={{ borderColor: "rgba(255,255,255,0.2)" }} _focus={{ borderColor: accentColor, boxShadow: `0 0 0 1px ${accentColor}` }}
+                    bg="var(--color-input-bg)" border="1px solid var(--color-card-border)" color="white"
+                    _hover={{ borderColor: "var(--color-card-border)" }} _focus={{ borderColor: accentColor, boxShadow: `0 0 0 1px ${accentColor}` }}
                   />
                 </Box>
               </VStack>
 
               <HStack mt={6} justify="flex-end" gap={3}>
-                <Button variant="ghost" color="white" _hover={{ bg: "rgba(255,255,255,0.1)" }} onClick={() => setModalOpen(false)}>
+                <Button variant="ghost" color="white" _hover={{ bg: "var(--color-card-border)" }} onClick={() => setModalOpen(false)}>
                   Cancel
                 </Button>
                 <Button colorScheme="blue" bg={accentColor} _hover={{ filter: "brightness(1.1)" }} onClick={handleSaveMember}>

@@ -79,7 +79,7 @@ const LoginForm = () => {
           <Heading
             size="4xl"
             fontWeight="black"
-            color="white"
+            color="var(--color-text-primary)"
             letterSpacing="tighter"
           >
             Xanatz
@@ -89,7 +89,7 @@ const LoginForm = () => {
           </Heading>
         </Box>
         <Box>
-          <Heading size="2xl" color="white" mb={2} lineHeight="tight">
+          <Heading size="2xl" color="var(--color-text-primary)" mb={2} lineHeight="tight">
             Welcome Back
           </Heading>
           <Text color="slate.400" fontSize="sm">

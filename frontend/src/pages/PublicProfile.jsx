@@ -75,7 +75,7 @@ const PublicProfile = () => {
           style={{
             fontFamily: "'Outfit', sans-serif",
             fontSize: "clamp(5rem, 20vw, 12rem)",
-            color: "rgba(255,255,255,0.04)",
+            color: "var(--color-glass)",
           }}
         >
           404

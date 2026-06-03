@@ -210,14 +210,14 @@ const ProfileHeader = ({ user, onUpdate }) => {
         </Flex>
 
         <VStack align="start" mt={4} gap={1}>
-          <Text fontSize="2xl" fontWeight="bold" color="white">
+          <Text fontSize="2xl" fontWeight="bold" color="var(--color-text-primary)">
             {user?.first_name} {user?.last_name}
           </Text>
           <Text fontSize="md" color="whiteAlpha.800">
             {user?.profile?.headline || "Add a headline to your profile"}
           </Text>
           {user?.companies?.length > 0 && (
-            <HStack color="white" mt={1} fontSize="sm">
+            <HStack color="var(--color-text-primary)" mt={1} fontSize="sm">
               <Briefcase size={14} />
               <Text fontWeight="medium">
                 {user.companies.map((c) => c.name).join(", ")}

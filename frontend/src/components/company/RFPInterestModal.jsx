@@ -30,21 +30,21 @@ import api from "../../api";
 const MotionBox = motion.create(Box);
 
 const fieldStyle = {
-  bg: "rgba(0,0,0,0.15)",
+  bg: "var(--color-input-bg)",
   color: "white",
   h: "11",
   borderRadius: "xl",
   border: "1px solid",
-  borderColor: "rgba(255,255,255,0.08)",
+  borderColor: "var(--color-card-border)",
   px: "3.5",
   fontSize: "xs",
   width: "100%",
   _focus: { borderColor: "#10b981", boxShadow: "0 0 0 1px #10b981" },
-  _placeholder: { color: "rgba(255,255,255,0.25)" },
+  _placeholder: { color: "var(--color-card-border)" },
 };
 
 const labelStyle = {
-  color: "rgba(255,255,255,0.4)",
+  color: "var(--color-text-muted)",
   fontSize: "2xs",
   fontWeight: "black",
   letterSpacing: "wider",
@@ -163,17 +163,17 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
               transition={{ duration: 0.3, ease: "easeOut" }}
               borderRadius="2xl"
               overflow="hidden"
-              border="1px solid rgba(255,255,255,0.08)"
+              border="1px solid var(--color-card-border)"
               style={{
                 background: "linear-gradient(135deg, rgba(15,23,42,0.97) 0%, rgba(20,30,55,0.97) 100%)",
-                boxShadow: "0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05)",
+                boxShadow: "0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px var(--color-glass)",
               }}
             >
               {/* ─── Header ─── */}
               <Box
                 px={8}
                 py={6}
-                borderBottom="1px solid rgba(255,255,255,0.07)"
+                borderBottom="1px solid var(--color-card-border)"
                 style={{
                   background: "linear-gradient(90deg, rgba(16,185,129,0.08) 0%, transparent 60%)",
                 }}
@@ -192,10 +192,10 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
                       <Send size={20} color="#10b981" />
                     </Box>
                     <VStack align="start" gap={0}>
-                      <Text color="white" fontWeight="black" fontSize="lg" letterSpacing="tight">
+                      <Text color="var(--color-text-primary)" fontWeight="black" fontSize="lg" letterSpacing="tight">
                         EXPRESS INTEREST
                       </Text>
-                      <Text color="rgba(255,255,255,0.35)" fontSize="xs" fontWeight="medium">
+                      <Text color="var(--color-text-muted)" fontSize="xs" fontWeight="medium">
                         Contact company about RFP: <strong>{rfp?.title}</strong>
                       </Text>
                     </VStack>
@@ -210,12 +210,12 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
                       display="flex"
                       alignItems="center"
                       justifyContent="center"
-                      style={{ background: "rgba(255,255,255,0.07)" }}
-                      _hover={{ background: "rgba(255,255,255,0.12)" }}
+                      style={{ background: "var(--color-card-border)" }}
+                      _hover={{ background: "var(--color-card-border)" }}
                       transition="all 0.2s"
                       onClick={onClose}
                     >
-                      <X size={16} color="rgba(255,255,255,0.7)" />
+                      <X size={16} color="var(--color-text-secondary)" />
                     </Box>
                   </DialogCloseTrigger>
                 </Flex>
@@ -251,10 +251,10 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
                           <CheckCircle size={30} color="#10b981" />
                         </Box>
                         <VStack gap={1}>
-                          <Text fontSize="lg" fontWeight="black" color="white" letterSpacing="tight">
+                          <Text fontSize="lg" fontWeight="black" color="var(--color-text-primary)" letterSpacing="tight">
                             Proposal Submitted!
                           </Text>
-                          <Text color="rgba(255,255,255,0.5)" fontSize="xs" maxW="380px" mx="auto">
+                          <Text color="var(--color-text-muted)" fontSize="xs" maxW="380px" mx="auto">
                             Your expressions of interest has been sent successfully to the company. They will review and contact you shortly.
                           </Text>
                         </VStack>
@@ -273,7 +273,7 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
                       <Box>
                         <Text {...labelStyle}>YOUR NAME / COMPANY NAME *</Text>
                         <HStack {...fieldStyle} _focusWithin={{ borderColor: "#10b981" }}>
-                          <User size={14} color="rgba(255,255,255,0.3)" />
+                          <User size={14} color="var(--color-text-muted)" />
                           <Input
                             placeholder="Enter your name or your company name"
                             variant="unstyled"
@@ -291,7 +291,7 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
                         <Box flex={1}>
                           <Text {...labelStyle}>EMAIL ADDRESS *</Text>
                           <HStack {...fieldStyle} _focusWithin={{ borderColor: "#10b981" }}>
-                            <Mail size={14} color="rgba(255,255,255,0.3)" />
+                            <Mail size={14} color="var(--color-text-muted)" />
                             <Input
                               type="email"
                               placeholder="you@domain.com"
@@ -307,7 +307,7 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
                         <Box flex={1}>
                           <Text {...labelStyle}>PHONE NUMBER</Text>
                           <HStack {...fieldStyle} _focusWithin={{ borderColor: "#10b981" }}>
-                            <Phone size={14} color="rgba(255,255,255,0.3)" />
+                            <Phone size={14} color="var(--color-text-muted)" />
                             <Input
                               placeholder="+1 (555) 000-0000"
                               variant="unstyled"
@@ -331,10 +331,10 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
                           placeholder="Summarize your experience, why you are qualified, and how you plan to deliver on this RFP..."
                           rows={4}
                           style={{
-                            background: "rgba(0,0,0,0.15)",
+                            background: "var(--color-input-bg)",
                             color: "white",
                             borderRadius: "xl",
-                            border: "1px solid rgba(255,255,255,0.08)",
+                            border: "1px solid var(--color-card-border)",
                             fontSize: "13px",
                             padding: "12px 14px",
                             width: "100%",
@@ -350,13 +350,13 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
                       <Box>
                         <Text {...labelStyle}>ATTACH PROPOSAL DOCUMENT (PDF/DOCX/ZIP)</Text>
                         <Box
-                          border="1px dashed rgba(255,255,255,0.12)"
+                          border="1px dashed var(--color-card-border)"
                           borderRadius="xl"
                           p={4}
-                          bg="rgba(0,0,0,0.1)"
+                          bg="var(--color-input-bg)"
                           textAlign="center"
                           position="relative"
-                          _hover={{ borderColor: "rgba(255,255,255,0.25)" }}
+                          _hover={{ borderColor: "var(--color-card-border)" }}
                           transition="all 0.2s"
                         >
                           <input
@@ -378,13 +378,13 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
                             }}
                           />
                           <Flex direction="column" align="center" gap={2}>
-                            <FileText size={20} color={attachedFile ? "#10b981" : "rgba(255,255,255,0.4)"} />
+                            <FileText size={20} color={attachedFile ? "#10b981" : "var(--color-text-muted)"} />
                             {attachedFile ? (
                               <Text color="#10b981" fontSize="xs" fontWeight="bold">
                                 Selected: {attachedFile.name} ({(attachedFile.size / 1024 / 1024).toFixed(2)} MB)
                               </Text>
                             ) : (
-                              <Text color="rgba(255,255,255,0.35)" fontSize="xs">
+                              <Text color="var(--color-text-muted)" fontSize="xs">
                                 Click or drag files to upload proposal document (max 10MB)
                               </Text>
                             )}
@@ -401,25 +401,25 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
                 <Flex
                   px={8}
                   py={5}
-                  borderTop="1px solid rgba(255,255,255,0.07)"
+                  borderTop="1px solid var(--color-card-border)"
                   justify="space-between"
                   align="center"
-                  style={{ background: "rgba(255,255,255,0.02)" }}
+                  style={{ background: "var(--color-glass)" }}
                 >
-                  <Text color="rgba(255,255,255,0.2)" fontSize="xs" fontWeight="medium">
+                  <Text color="var(--color-card-border)" fontSize="xs" fontWeight="medium">
                     Your contact information will be visible to company admins
                   </Text>
                   <HStack gap={3}>
                     <Button
                       variant="ghost"
-                      color="rgba(255,255,255,0.45)"
+                      color="var(--color-text-muted)"
                       fontWeight="black"
                       fontSize="xs"
                       letterSpacing="widest"
                       h="10"
                       px={5}
                       borderRadius="lg"
-                      _hover={{ color: "white", bg: "rgba(255,255,255,0.07)" }}
+                      _hover={{ color: "white", bg: "var(--color-card-border)" }}
                       onClick={onClose}
                     >
                       CANCEL

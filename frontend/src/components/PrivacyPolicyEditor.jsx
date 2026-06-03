@@ -36,7 +36,7 @@ const PrivacyPolicyEditor = () => {
     }
   };
 
-  if (loading) return <Text color="white">Loading editor...</Text>;
+  if (loading) return <Text color="var(--color-text-primary)">Loading editor...</Text>;
 
   return (
     <Box
@@ -49,7 +49,7 @@ const PrivacyPolicyEditor = () => {
     >
       <VStack align="stretch" gap={4}>
         <Box>
-          <Heading size="md" color="white" mb={2}>
+          <Heading size="md" color="var(--color-text-primary)" mb={2}>
             Edit Privacy Policy
           </Heading>
           <Text fontSize="sm" color="whiteAlpha.600">

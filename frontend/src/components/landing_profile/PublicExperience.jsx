@@ -18,7 +18,7 @@ const TimelineLine = ({ containerRef }) => {
       top: 0,
       bottom: 0,
       width: "2px",
-      background: "rgba(255,255,255,0.05)",
+      background: "var(--color-glass)",
       borderRadius: "9999px",
       overflow: "hidden",
     }}>
@@ -105,8 +105,8 @@ const TimelineItem = ({ exp, index }) => {
           padding: "1.25rem 1.4rem",
           position: "relative",
           overflow: "hidden",
-          background: "rgba(255,255,255,0.03)",
-          border: "1px solid rgba(255,255,255,0.08)",
+          background: "var(--color-glass)",
+          border: "1px solid var(--color-card-border)",
           backdropFilter: "blur(20px)",
           boxShadow: "0 6px 24px -8px rgba(0,0,0,0.4)",
           transition: "transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease",
@@ -119,7 +119,7 @@ const TimelineItem = ({ exp, index }) => {
         onMouseLeave={e => {
           e.currentTarget.style.transform = "translateX(0)";
           e.currentTarget.style.boxShadow = "0 6px 24px -8px rgba(0,0,0,0.4)";
-          e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+          e.currentTarget.style.borderColor = "var(--color-card-border)";
         }}
       >
         {/* Right accent */}
@@ -241,7 +241,7 @@ const PublicExperience = ({ experiences }) => {
             style={{
               display: "flex", flexDirection: "column", alignItems: "center",
               gap: "1rem", padding: "4rem 1rem", borderRadius: "1rem",
-              background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)",
+              background: "var(--color-glass)", border: "1px solid var(--color-card-border)",
             }}
           >
             <Briefcase size={28} color="#374151" />

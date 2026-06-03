@@ -121,7 +121,7 @@ const CompanySection = ({ user, refreshTrigger, onCompanyChange }) => {
             <Text
               fontSize="md"
               fontWeight="black"
-              color="white"
+              color="var(--color-text-primary)"
               letterSpacing="tight"
               fontFamily="var(--font-heading)"
             >
@@ -172,8 +172,8 @@ const CompanySection = ({ user, refreshTrigger, onCompanyChange }) => {
                   borderColor={isCreator ? "rgba(66,153,225,0.2)" : "whiteAlpha.100"}
                   style={{
                     background: isCreator
-                      ? "linear-gradient(135deg, rgba(66,153,225,0.06) 0%, rgba(255,255,255,0.04) 100%)"
-                      : "rgba(255,255,255,0.04)",
+                      ? "linear-gradient(135deg, rgba(66,153,225,0.06) 0%, var(--color-glass) 100%)"
+                      : "var(--color-glass)",
                     transition: "all 0.2s",
                   }}
                   _hover={{ borderColor: isCreator ? "rgba(66,153,225,0.4)" : "whiteAlpha.300" }}
@@ -188,8 +188,8 @@ const CompanySection = ({ user, refreshTrigger, onCompanyChange }) => {
                         flexShrink={0}
                         borderRadius="lg"
                         overflow="hidden"
-                        border="1px solid rgba(255,255,255,0.1)"
-                        style={{ background: "rgba(255,255,255,0.05)" }}
+                        border="1px solid var(--color-card-border)"
+                        style={{ background: "var(--color-glass)" }}
                       >
                         {company.logo_url ? (
                           <Box
@@ -203,7 +203,7 @@ const CompanySection = ({ user, refreshTrigger, onCompanyChange }) => {
                         ) : (
                           <Flex w="full" h="full" align="center" justify="center">
                             <Text
-                              color="rgba(255,255,255,0.4)"
+                              color="var(--color-text-muted)"
                               fontWeight="black"
                               fontSize="lg"
                               letterSpacing="tight"
@@ -217,7 +217,7 @@ const CompanySection = ({ user, refreshTrigger, onCompanyChange }) => {
                       <VStack align="start" gap={1} flex={1} minW={0}>
                         <HStack gap={2} flexWrap="wrap">
                           <Text
-                            color="white"
+                            color="var(--color-text-primary)"
                             fontWeight="black"
                             fontSize="sm"
                             letterSpacing="tight"
@@ -243,7 +243,7 @@ const CompanySection = ({ user, refreshTrigger, onCompanyChange }) => {
                         {/* Tagline */}
                         {company.tagline && (
                           <Text
-                            color="rgba(255,255,255,0.45)"
+                            color="var(--color-text-muted)"
                             fontSize="xs"
                             fontStyle="italic"
                             noOfLines={1}
@@ -255,9 +255,9 @@ const CompanySection = ({ user, refreshTrigger, onCompanyChange }) => {
                         {/* Meta chips */}
                         <HStack gap={3} flexWrap="wrap" mt={1}>
                           <HStack gap={1}>
-                            <Users size={10} color="rgba(255,255,255,0.3)" />
+                            <Users size={10} color="var(--color-text-muted)" />
                             <Text
-                              color="rgba(255,255,255,0.4)"
+                              color="var(--color-text-muted)"
                               fontSize="10px"
                               fontWeight="bold"
                               letterSpacing="widest"
@@ -271,10 +271,10 @@ const CompanySection = ({ user, refreshTrigger, onCompanyChange }) => {
                                 w="3px"
                                 h="3px"
                                 borderRadius="full"
-                                bg="rgba(255,255,255,0.2)"
+                                bg="var(--color-card-border)"
                               />
                               <Text
-                                color="rgba(255,255,255,0.4)"
+                                color="var(--color-text-muted)"
                                 fontSize="10px"
                                 fontWeight="bold"
                                 letterSpacing="widest"
@@ -285,9 +285,9 @@ const CompanySection = ({ user, refreshTrigger, onCompanyChange }) => {
                           )}
                           {company.location && (
                             <HStack gap={1}>
-                              <MapPin size={10} color="rgba(255,255,255,0.3)" />
+                              <MapPin size={10} color="var(--color-text-muted)" />
                               <Text
-                                color="rgba(255,255,255,0.4)"
+                                color="var(--color-text-muted)"
                                 fontSize="10px"
                                 fontWeight="bold"
                                 letterSpacing="widest"
@@ -353,14 +353,14 @@ const CompanySection = ({ user, refreshTrigger, onCompanyChange }) => {
                           size="sm"
                           h="8"
                           px={4}
-                          bg="rgba(255,255,255,0.07)"
-                          color="rgba(255,255,255,0.7)"
+                          bg="var(--color-card-border)"
+                          color="var(--color-text-secondary)"
                           borderRadius="lg"
                           fontWeight="black"
                           fontSize="10px"
                           letterSpacing="widest"
-                          border="1px solid rgba(255,255,255,0.12)"
-                          _hover={{ bg: "rgba(255,255,255,0.12)", color: "white" }}
+                          border="1px solid var(--color-card-border)"
+                          _hover={{ bg: "var(--color-card-border)", color: "white" }}
                           onClick={() => handleAttachUser(company.id, user.id)}
                         >
                           <UserPlus size={11} style={{ marginRight: "5px" }} />
@@ -393,7 +393,7 @@ const CompanySection = ({ user, refreshTrigger, onCompanyChange }) => {
 
           {filteredCompanies.length === 0 && (
             <Flex direction="column" align="center" py={12} gap={4}>
-              <Building2 size={48} color="rgba(255,255,255,0.05)" />
+              <Building2 size={48} color="var(--color-glass)" />
               <Text
                 color="whiteAlpha.400"
                 fontSize="sm"

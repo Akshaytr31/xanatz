@@ -46,7 +46,7 @@ const AdminDashboard = () => {
           <Box>
             <Heading
               size="xl"
-              color="white"
+              color="var(--color-text-primary)"
               fontWeight="black"
               letterSpacing="tight"
             >
@@ -74,35 +74,35 @@ const AdminDashboard = () => {
                 border="1px solid"
                 borderColor="whiteAlpha.200"
               >
-                <Heading size="sm" color="white" mb={4}>
+                <Heading size="sm" color="var(--color-text-primary)" mb={4}>
                   System Overview
                 </Heading>
                 <VStack align="stretch" gap={4}>
                   <HStack justify="space-between">
                     <HStack gap={3}>
-                      <Users size={16} color="rgba(255,255,255,0.4)" />
+                      <Users size={16} color="var(--color-text-muted)" />
                       <Text color="whiteAlpha.700" fontSize="sm">
                         Total Users
                       </Text>
                     </HStack>
-                    <Text color="white" fontWeight="bold">
+                    <Text color="var(--color-text-primary)" fontWeight="bold">
                       1,284
                     </Text>
                   </HStack>
                   <HStack justify="space-between">
                     <HStack gap={3}>
-                      <ShieldCheck size={16} color="rgba(255,255,255,0.4)" />
+                      <ShieldCheck size={16} color="var(--color-text-muted)" />
                       <Text color="whiteAlpha.700" fontSize="sm">
                         Active Sessions
                       </Text>
                     </HStack>
-                    <Text color="white" fontWeight="bold">
+                    <Text color="var(--color-text-primary)" fontWeight="bold">
                       42
                     </Text>
                   </HStack>
                   <HStack justify="space-between">
                     <HStack gap={3}>
-                      <Settings size={16} color="rgba(255,255,255,0.4)" />
+                      <Settings size={16} color="var(--color-text-muted)" />
                       <Text color="whiteAlpha.700" fontSize="sm">
                         Server Status
                       </Text>

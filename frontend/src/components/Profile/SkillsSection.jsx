@@ -59,7 +59,7 @@ const SkillsSection = ({ user, onUpdate }) => {
           <Circle size="32px" bg="yellow.500/10" color="yellow.400">
             <Zap size={16} />
           </Circle>
-          <Text fontSize="md" fontWeight="black" color="white" letterSpacing="tight" fontFamily="var(--font-heading)">
+          <Text fontSize="md" fontWeight="black" color="var(--color-text-primary)" letterSpacing="tight" fontFamily="var(--font-heading)">
             CORE COMPETENCIES
           </Text>
         </HStack>

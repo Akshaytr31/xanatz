@@ -13,7 +13,7 @@ const clientId =
 
 createRoot(document.getElementById("root")).render(
   <ChakraProvider value={defaultSystem}>
-    <ThemeProvider attribute="class" disableTransitionOnChange>
+    <ThemeProvider attribute="class" defaultTheme="dark" disableTransitionOnChange>
       <GoogleOAuthProvider clientId={clientId}>
         <App />
       </GoogleOAuthProvider>

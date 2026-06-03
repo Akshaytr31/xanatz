@@ -176,7 +176,7 @@ const RegisterWizard = () => {
           <Heading
             size="4xl"
             fontWeight="black"
-            color="white"
+            color="var(--color-text-primary)"
             letterSpacing="tighter"
           >
             Xanatz
@@ -185,7 +185,7 @@ const RegisterWizard = () => {
             </Text>
           </Heading>
         </Box>
-        <Heading size="2xl" color="white" mb={1}>
+        <Heading size="2xl" color="var(--color-text-primary)" mb={1}>
           {stepTitles[step]}
         </Heading>
         <Text color="slate.400" fontSize="xs" letterSpacing="wide">
