@@ -217,13 +217,14 @@ class CompanySerializer(serializers.ModelSerializer):
 class JobOpeningSerializer(serializers.ModelSerializer):
     company_name = serializers.ReadOnlyField(source='company.name')
     company_logo_url = serializers.SerializerMethodField()
+    industry = serializers.ReadOnlyField(source='company.industry')
 
     class Meta:
         model = JobOpening
         fields = [
-            'id', 'company', 'company_name', 'company_logo_url',
+            'id', 'company', 'company_name', 'company_logo_url', 'industry',
             'title', 'description', 'requirements', 'location',
-            'job_type', 'salary_range', 'category', 'sub_category',
+            'job_type', 'salary_range',
             'is_active', 'created_at', 'updated_at'
         ]
 

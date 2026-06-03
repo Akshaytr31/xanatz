@@ -238,8 +238,6 @@ class JobOpening(models.Model):
     location = models.CharField(max_length=255, blank=True, null=True)
     job_type = models.CharField(max_length=50, choices=JOB_TYPE_CHOICES, default='full_time')
     salary_range = models.CharField(max_length=100, blank=True, null=True)
-    category = models.CharField(max_length=100, blank=True, null=True)
-    sub_category = models.CharField(max_length=100, blank=True, null=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

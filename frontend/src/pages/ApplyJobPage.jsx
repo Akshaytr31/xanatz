@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import api from "../api";
-import { ALL_CATEGORY_LABELS, ALL_SUBCATEGORY_LABELS } from "../components/company/JobOpeningModal";
+import { INDUSTRY_LABELS } from "../components/company/JobOpeningModal";
 
 const MotionBox = motion.create(Box);
 const MotionFlex = motion.create(Flex);
@@ -55,35 +55,23 @@ const ApplyJobPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [jobRes, userRes, jobsRes] = await Promise.all([
+        const [jobRes, jobsRes] = await Promise.all([
           api.get(`jobs/${id}/`),
-          api.get("me/"),
           api.get("jobs/")
         ]);
+        console.log("jobRes", jobRes.data);
+        console.log("jobsRes", jobsRes.data);
         setJob(jobRes.data);
-        setCurrentUser(userRes.data);
 
-        // Pre-fill fields from user profile
-        if (userRes.data) {
-          const name = `${userRes.data.first_name || ""} ${userRes.data.last_name || ""}`.trim();
-          setFullName(name || userRes.data.email.split("@")[0]);
-          setEmail(userRes.data.email);
-        }
-
-        // Compute similar jobs
+        // Compute similar jobs by industry — across ALL companies
         if (jobsRes.data && jobRes.data) {
           const currentJob = jobRes.data;
-          const matches = jobsRes.data.filter(j => 
-            j.id !== currentJob.id && 
-            j.category === currentJob.category
+          const matches = jobsRes.data.filter(j =>
+            j.id !== currentJob.id &&
+            j.industry &&
+            j.industry === currentJob.industry
           );
-          // Sort matching sub_category first
-          matches.sort((a, b) => {
-            const aSub = a.sub_category === currentJob.sub_category ? 1 : 0;
-            const bSub = b.sub_category === currentJob.sub_category ? 1 : 0;
-            return bSub - aSub;
-          });
-          setSimilarJobs(matches.slice(0, 4));
+          setSimilarJobs(matches.slice(0, 6));
         }
       } catch (err) {
         console.error(err);
@@ -92,7 +80,26 @@ const ApplyJobPage = () => {
         setLoading(false);
       }
     };
+
+    // Fetch user separately so it doesn't block job loading
+    const fetchUser = async () => {
+      const token = localStorage.getItem("access");
+      if (!token) return; // not logged in — skip the call entirely
+      try {
+        const userRes = await api.get("me/");
+        setCurrentUser(userRes.data);
+        if (userRes.data) {
+          const name = `${userRes.data.first_name || ""} ${userRes.data.last_name || ""}`.trim();
+          setFullName(name || userRes.data.email.split("@")[0]);
+          setEmail(userRes.data.email);
+        }
+      } catch {
+        // Token expired or invalid — form will be empty
+      }
+    };
+
     fetchData();
+    fetchUser();
   }, [id]);
 
   const handleSubmit = async (e) => {
@@ -193,7 +200,7 @@ const ApplyJobPage = () => {
       <Box position="relative" zIndex={1}>
         <Navbar handleLogout={handleLogout} />
 
-        <Container maxW="1350px" px={{ base: 5, md: 8 }} pt="120px">
+        <Container maxW="1350px" px={{ base: 5, md: 8 }} pt="80px">
           {/* Back button */}
           <Button
             variant="unstyled"
@@ -324,14 +331,9 @@ const ApplyJobPage = () => {
                               <Badge px={2.5} py={0.5} fontSize="xs" fontWeight="bold" borderRadius="md" style={{ background: "var(--color-card-border)", color: "var(--color-text-secondary)" }}>
                                 {JOB_TYPE_LABELS[job.job_type] || job.job_type}
                               </Badge>
-                              {job.category && (
-                                <Badge px={2.5} py={0.5} fontSize="xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(59, 130, 246, 0.15)", color: "rgba(147, 197, 253, 0.9)", border: "1px solid rgba(59, 130, 246, 0.25)" }}>
-                                  {ALL_CATEGORY_LABELS[job.category] || job.category}
-                                </Badge>
-                              )}
-                              {job.sub_category && (
-                                <Badge px={2.5} py={0.5} fontSize="xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(139, 92, 246, 0.15)", color: "rgba(196, 181, 253, 0.9)", border: "1px solid rgba(139, 92, 246, 0.25)" }}>
-                                  {ALL_SUBCATEGORY_LABELS[job.sub_category] || job.sub_category}
+                              {job.industry && (
+                                <Badge px={2.5} py={0.5} fontSize="xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(205, 36, 38, 0.12)", color: "rgba(255, 130, 130, 0.9)", border: "1px solid rgba(205, 36, 38, 0.25)" }}>
+                                  {INDUSTRY_LABELS[job.industry] || job.industry}
                                 </Badge>
                               )}
                             </HStack>
@@ -423,7 +425,8 @@ const ApplyJobPage = () => {
                           </Text>
                         </VStack>
                       ) : (
-                        <VStack gap={4} align="stretch">
+                        <VStack gap={4} align="stretch" maxH="420px" overflowY="auto" pr={1}
+                          css={{ '&::-webkit-scrollbar': { width: '4px' }, '&::-webkit-scrollbar-track': { background: 'transparent' }, '&::-webkit-scrollbar-thumb': { background: 'var(--color-card-border)', borderRadius: '4px' } }}>
                           {similarJobs.map((simJob) => (
                             <Box
                               key={simJob.id}
@@ -515,14 +518,9 @@ const ApplyJobPage = () => {
                         <Badge px={2} py={0.5} fontSize="2xs" fontWeight="bold" borderRadius="md" style={{ background: "var(--color-card-border)", color: "var(--color-text-secondary)" }}>
                           {JOB_TYPE_LABELS[job.job_type] || job.job_type}
                         </Badge>
-                        {job.category && (
-                          <Badge px={2} py={0.5} fontSize="2xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(59, 130, 246, 0.15)", color: "rgba(147, 197, 253, 0.9)", border: "1px solid rgba(59, 130, 246, 0.25)" }}>
-                            {ALL_CATEGORY_LABELS[job.category] || job.category}
-                          </Badge>
-                        )}
-                        {job.sub_category && (
-                          <Badge px={2} py={0.5} fontSize="2xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(139, 92, 246, 0.15)", color: "rgba(196, 181, 253, 0.9)", border: "1px solid rgba(139, 92, 246, 0.25)" }}>
-                            {ALL_SUBCATEGORY_LABELS[job.sub_category] || job.sub_category}
+                        {job.industry && (
+                          <Badge px={2} py={0.5} fontSize="2xs" fontWeight="bold" borderRadius="md" style={{ background: "rgba(205, 36, 38, 0.12)", color: "rgba(255, 130, 130, 0.9)", border: "1px solid rgba(205, 36, 38, 0.25)" }}>
+                            {INDUSTRY_LABELS[job.industry] || job.industry}
                           </Badge>
                         )}
                       </HStack>

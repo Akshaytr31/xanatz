@@ -287,9 +287,8 @@ const RFPsPage = () => {
                           p={{ base: 5, md: 6 }}
                           borderRadius="2xl"
                           border="1px solid var(--color-card-border)"
-                          style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }}
+                          style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)", transition: "all 0.25s ease" }}
                           _hover={{ borderColor: "var(--color-card-hover-border)", transform: "translateY(-1px)" }}
-                          transition="all 0.25s ease"
                         >
                           {/* Post Header: Creator Identity */}
                           <Flex justify="space-between" align="start" mb={4}>

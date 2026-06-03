@@ -263,6 +263,22 @@ export const ALL_SUBCATEGORY_LABELS = {
   others: "Others",
 };
 
+export const INDUSTRY_LABELS = {
+  technology: "Technology",
+  finance: "Finance",
+  healthcare: "Healthcare",
+  education: "Education",
+  retail: "Retail & E-commerce",
+  manufacturing: "Manufacturing",
+  media: "Media & Entertainment",
+  real_estate: "Real Estate",
+  consulting: "Consulting",
+  logistics: "Logistics & Supply Chain",
+  hospitality: "Hospitality & Tourism",
+  energy: "Energy & Utilities",
+  other: "Other",
+};
+
 const fieldStyle = {
   bg: "var(--color-glass)",
   color: "white",
@@ -448,15 +464,13 @@ const SelectField = ({ value, onChange, options, placeholder }) => (
   </Box>
 );
 
-const JobOpeningModal = ({ isOpen, onClose, companyId, job, onSaved }) => {
+const JobOpeningModal = ({ isOpen, onClose, companyId, company, job, onSaved }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [form, setForm] = useState({
     title: "",
     job_type: "full_time",
     location: "",
     salary_range: "",
-    category: "",
-    sub_category: "",
     description: "",
     requirements: "",
     is_active: true,
@@ -469,8 +483,6 @@ const JobOpeningModal = ({ isOpen, onClose, companyId, job, onSaved }) => {
         job_type: job.job_type || "full_time",
         location: job.location || "",
         salary_range: job.salary_range || "",
-        category: job.category || "",
-        sub_category: job.sub_category || "",
         description: job.description || "",
         requirements: job.requirements || "",
         is_active: job.is_active !== undefined ? job.is_active : true,
@@ -481,8 +493,6 @@ const JobOpeningModal = ({ isOpen, onClose, companyId, job, onSaved }) => {
         job_type: "full_time",
         location: "",
         salary_range: "",
-        category: "",
-        sub_category: "",
         description: "",
         requirements: "",
         is_active: true,
@@ -630,28 +640,6 @@ const JobOpeningModal = ({ isOpen, onClose, companyId, job, onSaved }) => {
                     </Box>
                   </Flex>
 
-                  {/* Category & Sub-category */}
-                  <Flex gap={4} direction={{ base: "column", sm: "row" }}>
-                    <Box flex={1}>
-                      <Text {...labelStyle}>CATEGORY</Text>
-                      <SearchableSelect
-                        value={form.category}
-                        onChange={(val) => setForm(prev => ({ ...prev, category: val, sub_category: "" }))}
-                        options={CATEGORY_OPTIONS}
-                        placeholder="Select category..."
-                      />
-                    </Box>
-                    <Box flex={1}>
-                      <Text {...labelStyle}>SUB-CATEGORY</Text>
-                      <SearchableSelect
-                        value={form.sub_category}
-                        onChange={set("sub_category")}
-                        options={form.category ? (SUBCATEGORY_OPTIONS[form.category] || []) : []}
-                        placeholder="Select sub-category..."
-                        isDisabled={!form.category}
-                      />
-                    </Box>
-                  </Flex>
 
                   {/* Location & Salary */}
                   <Flex gap={4} direction={{ base: "column", sm: "row" }}>

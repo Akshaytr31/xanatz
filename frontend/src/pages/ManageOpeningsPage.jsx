@@ -9,7 +9,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import JobOpeningModal, { ALL_CATEGORY_LABELS, ALL_SUBCATEGORY_LABELS } from "../components/company/JobOpeningModal";
+import JobOpeningModal, { INDUSTRY_LABELS } from "../components/company/JobOpeningModal";
 import api from "../api";
 
 const MotionBox = motion.create(Box);
@@ -309,6 +309,7 @@ const ManageOpeningsPage = () => {
         isOpen={isJobModalOpen}
         onClose={() => setIsJobModalOpen(false)}
         companyId={company.id}
+        company={company}
         job={selectedJob}
         onSaved={() => { fetchData(); showSuccess("Job opening saved."); }}
       />
@@ -356,16 +357,10 @@ const JobCard = ({ job, index, hasAccess, accentColor, onEdit, onDelete, onToggl
             style={{ background: "var(--color-card-border)", color: "var(--color-text-secondary)" }}>
             {JOB_TYPE_LABELS[job.job_type] || job.job_type}
           </Badge>
-          {job.category && (
+          {job.industry && (
             <Badge px={2} py={0.5} fontSize="2xs" fontWeight="bold" borderRadius="md"
-              style={{ background: "rgba(59, 130, 246, 0.15)", color: "rgba(147, 197, 253, 0.9)", border: "1px solid rgba(59, 130, 246, 0.25)" }}>
-              {ALL_CATEGORY_LABELS[job.category] || job.category}
-            </Badge>
-          )}
-          {job.sub_category && (
-            <Badge px={2} py={0.5} fontSize="2xs" fontWeight="bold" borderRadius="md"
-              style={{ background: "rgba(139, 92, 246, 0.15)", color: "rgba(196, 181, 253, 0.9)", border: "1px solid rgba(139, 92, 246, 0.25)" }}>
-              {ALL_SUBCATEGORY_LABELS[job.sub_category] || job.sub_category}
+              style={{ background: "rgba(205, 36, 38, 0.12)", color: "rgba(255, 130, 130, 0.9)", border: "1px solid rgba(205, 36, 38, 0.25)" }}>
+              {INDUSTRY_LABELS[job.industry] || job.industry}
             </Badge>
           )}
           {job.location && (

@@ -282,21 +282,26 @@ class UserSearchView(APIView):
 
 
 class JobOpeningViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = JobOpeningSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
     def get_queryset(self):
         queryset = JobOpening.objects.all()
         company_id = self.request.query_params.get('company_id')
-        category = self.request.query_params.get('category')
-        sub_category = self.request.query_params.get('sub_category')
 
         if company_id:
             queryset = queryset.filter(company_id=company_id)
             try:
                 company = Company.objects.get(id=company_id)
-                is_owner = company.creator == self.request.user
-                is_admin = CompanyMember.objects.filter(company=company, user=self.request.user, access_role='admin').exists()
+                is_owner = self.request.user.is_authenticated and company.creator == self.request.user
+                is_admin = self.request.user.is_authenticated and CompanyMember.objects.filter(
+                    company=company, user=self.request.user, access_role='admin'
+                ).exists()
                 if not (is_owner or is_admin):
                     queryset = queryset.filter(is_active=True)
             except Company.DoesNotExist:
@@ -304,11 +309,6 @@ class JobOpeningViewSet(viewsets.ModelViewSet):
         else:
             queryset = queryset.filter(is_active=True)
 
-        if category:
-            queryset = queryset.filter(category=category)
-        if sub_category:
-            queryset = queryset.filter(sub_category=sub_category)
-            
         return queryset.order_by('-created_at')
 
     def check_company_access(self, company):
