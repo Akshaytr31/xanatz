@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Shield, Briefcase, MapPin, DollarSign, Search, Building2, ExternalLink, ChevronDown } from "lucide-react";
+import { Briefcase, SlidersHorizontal, X as XIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -8,32 +8,79 @@ import {
   Text,
   VStack,
   HStack,
-  Grid,
-  GridItem,
-  Input,
   Badge,
   Spinner,
 } from "@chakra-ui/react";
 import Navbar from "../components/Navbar";
-import DashboardCard from "../components/DashboardCard";
 import JobOpeningCard from "../components/JobOpeningCard";
+import FilterSidebar, {
+  SALARY_BUCKETS,
+  JOB_TYPE_OPTIONS,
+  INDUSTRY_OPTIONS,
+  SORT_OPTIONS,
+  DEFAULT_FILTERS,
+} from "../components/FilterSidebar";
 import api from "../api";
 
+/* ─── helper: parse salary string like "$120k – $150k" ─────────────────── */
+const parseSalaryNum = (str) => {
+  if (!str) return null;
+  const nums = str.replace(/[$,]/g, "").match(/\d+k?/gi);
+  if (!nums || nums.length === 0) return null;
+  const avg =
+    nums.reduce((acc, n) => {
+      const val = n.toLowerCase().endsWith("k")
+        ? parseFloat(n)
+        : parseFloat(n) / 1000;
+      return acc + val;
+    }, 0) / nums.length;
+  return avg;
+};
+
+/* ─── Small filter chip ─────────────────────────────────────────────────── */
+const FilterChip = ({ label, onRemove }) => (
+  <HStack
+    gap={1.5} px={2.5} py={1} borderRadius="full"
+    border="1px solid rgba(59,130,246,0.3)"
+    style={{ background: "rgba(59,130,246,0.1)" }}
+    fontSize="11px" fontWeight="bold" color="rgba(147,197,253,0.9)"
+  >
+    <Text>{label}</Text>
+    <Box
+      as="button" onClick={onRemove}
+      display="flex" alignItems="center"
+      _hover={{ color: "white" }} transition="color 0.15s"
+    >
+      <XIcon size={11} />
+    </Box>
+  </HStack>
+);
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Dashboard
+═══════════════════════════════════════════════════════════════════════════ */
 const Dashboard = () => {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
-  const [titleSearch, setTitleSearch] = useState("");
-  const [companySearch, setCompanySearch] = useState("");
-  const [locationSearch, setLocationSearch] = useState("");
-  const [jobTypeFilter, setJobTypeFilter] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
+
+  const handleFilterChange = (key, value) =>
+    setFilters((prev) => ({ ...prev, [key]: value }));
+
+  const handleReset = () => setFilters(DEFAULT_FILTERS);
+
+  const activeFilterCount = Object.entries(filters).filter(([k, v]) => {
+    if (k === "sortBy") return v !== "newest";
+    return v !== "all" && v !== "";
+  }).length;
 
   useEffect(() => {
     if (!localStorage.getItem("access")) {
       navigate("/login");
       return;
     }
-
     const fetchJobs = async () => {
       try {
         const response = await api.get("jobs/");
@@ -52,177 +99,173 @@ const Dashboard = () => {
     navigate("/login");
   };
 
-  const filteredJobs = jobs.filter(job => {
-    const matchesTitle = job.title.toLowerCase().includes(titleSearch.toLowerCase());
-    const matchesCompany = job.company_name.toLowerCase().includes(companySearch.toLowerCase());
-    const matchesLocation = !locationSearch || (job.location && job.location.toLowerCase().includes(locationSearch.toLowerCase()));
-    const matchesType = jobTypeFilter === "all" || job.job_type === jobTypeFilter;
-    
-    return matchesTitle && matchesCompany && matchesLocation && matchesType;
+  /* ── Filter ── */
+  let filteredJobs = jobs.filter((job) => {
+    const { titleSearch, companySearch, locationSearch, jobTypeFilter, salaryBucket, industryFilter } = filters;
+
+    if (titleSearch && !job.title.toLowerCase().includes(titleSearch.toLowerCase())) return false;
+    if (companySearch && !job.company_name.toLowerCase().includes(companySearch.toLowerCase())) return false;
+    if (locationSearch && !(job.location && job.location.toLowerCase().includes(locationSearch.toLowerCase()))) return false;
+    if (jobTypeFilter !== "all" && job.job_type !== jobTypeFilter) return false;
+    if (industryFilter !== "all" && job.industry !== industryFilter) return false;
+
+    if (salaryBucket !== "all") {
+      const [minK, maxK] = salaryBucket.split("-").map(Number);
+      const salaryNum = parseSalaryNum(job.salary_range);
+      if (salaryNum === null) return false;
+      if (salaryNum < minK) return false;
+      if (maxK < 999 && salaryNum > maxK) return false;
+    }
+
+    return true;
+  });
+
+  /* ── Sort ── */
+  filteredJobs = [...filteredJobs].sort((a, b) => {
+    switch (filters.sortBy) {
+      case "oldest":     return new Date(a.created_at) - new Date(b.created_at);
+      case "title_asc":  return a.title.localeCompare(b.title);
+      case "title_desc": return b.title.localeCompare(a.title);
+      default:           return new Date(b.created_at) - new Date(a.created_at);
+    }
   });
 
   return (
-    <Box
-      minH="100vh"
-      bg="var(--color-primary)"
-      position="relative"
-      overflow="hidden"
-      marginTop={'50px'}
-    >
+    <Box minH="100vh" bg="var(--color-primary)" marginTop="50px">
       <Navbar handleLogout={handleLogout} />
 
-      <Box p={{ base: 6, md: 10 }} position="relative">
-        {/* Explore Job Openings Section */}
-        <Box mt={1} position="relative" zIndex={10}>
+      <Flex align="start" minH="calc(100vh - 50px)">
 
-          {/* Filters Panel */} 
-          <Box p={5} borderRadius="2xl" border="1px solid var(--color-card-border)" mb={8}
-            style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }}>
-            <Grid templateColumns={{ base: "1fr", sm: "repeat(2, 1fr)", md: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }} gap={4}>
-              {/* Title Filter */}
-              <VStack align="start" gap={1.5}>
-                <Text fontSize="xs" fontWeight="black" color="var(--color-text-muted)" letterSpacing="wider">JOB TITLE</Text>
-                <HStack
-                  bg="var(--color-input-bg)"
-                  borderRadius="xl"
-                  px={3.5}
-                  border="1px solid var(--color-card-border)"
-                  w="full"
-                  _hover={{ borderColor: "var(--color-card-border)", bg: "var(--color-card-hover-bg)" }}
-                  _focusWithin={{ borderColor: "var(--color-accent)", boxShadow: "0 0 10px rgba(59, 130, 246, 0.2)", bg: "var(--color-card-hover-bg)" }}
-                  transition="all 0.3s"
+        {/* ── Sidebar ── */}
+        <FilterSidebar
+          filters={filters}
+          onChange={handleFilterChange}
+          onReset={handleReset}
+          activeCount={activeFilterCount}
+          mobileOpen={mobileSidebarOpen}
+          onMobileClose={() => setMobileSidebarOpen(false)}
+        />
+
+        {/* ── Main content ── */}
+        <Box flex={1} p={{ base: 4, md: 6, lg: 8 }} minW={0}>
+
+          {/* Top bar */}
+          <Flex align="center" justify="space-between" mb={6}>
+            <VStack align="start" gap={0}>
+              <Heading size="md" color="var(--color-text-primary)" fontWeight="black" letterSpacing="tight">
+                Job Openings
+              </Heading>
+              <Text fontSize="xs" color="var(--color-text-muted)">
+                {loading
+                  ? "Loading..."
+                  : `${filteredJobs.length} result${filteredJobs.length !== 1 ? "s" : ""} found`}
+              </Text>
+            </VStack>
+
+            {/* Mobile filter toggle */}
+            <Box
+              as="button"
+              display={{ base: "flex", lg: "none" }}
+              alignItems="center"
+              gap={2}
+              px={3} py={2}
+              borderRadius="xl"
+              border="1px solid var(--color-card-border)"
+              style={{ background: "var(--color-glass)", backdropFilter: "blur(12px)" }}
+              onClick={() => setMobileSidebarOpen(true)}
+              cursor="pointer"
+            >
+              <SlidersHorizontal size={14} color="var(--color-accent)" />
+              <Text fontSize="xs" fontWeight="bold" color="var(--color-text-secondary)">
+                Filters
+              </Text>
+              {activeFilterCount > 0 && (
+                <Badge
+                  px={1.5} py={0} fontSize="10px" borderRadius="full"
+                  style={{ background: "var(--color-accent)", color: "white" }}
                 >
-                  <Search size={14} color="#3b82f6" />
-                  <Input
-                    placeholder="e.g. Software Engineer"
-                    variant="unstyled"
-                    color="var(--color-text-primary)"
-                    fontSize="xs"
-                    value={titleSearch}
-                    onChange={(e) => setTitleSearch(e.target.value)}
-                    py={3}
-                    _placeholder={{ color: "var(--color-text-muted)" }}
-                  />
-                </HStack>
-              </VStack>
+                  {activeFilterCount}
+                </Badge>
+              )}
+            </Box>
+          </Flex>
 
-              {/* Company Filter */}
-              <VStack align="start" gap={1.5}>
-                <Text fontSize="xs" fontWeight="black" color="var(--color-text-muted)" letterSpacing="wider">COMPANY</Text>
-                <HStack
-                  bg="var(--color-input-bg)"
-                  borderRadius="xl"
-                  px={3.5}
-                  border="1px solid var(--color-card-border)"
-                  w="full"
-                  _hover={{ borderColor: "var(--color-card-border)", bg: "var(--color-card-hover-bg)" }}
-                  _focusWithin={{ borderColor: "var(--color-accent)", boxShadow: "0 0 10px rgba(59, 130, 246, 0.2)", bg: "var(--color-card-hover-bg)" }}
-                  transition="all 0.3s"
-                >
-                  <Building2 size={14} color="#3b82f6" />
-                  <Input
-                    placeholder="e.g. Appzia"
-                    variant="unstyled"
-                    color="var(--color-text-primary)"
-                    fontSize="xs"
-                    value={companySearch}
-                    onChange={(e) => setCompanySearch(e.target.value)}
-                    py={3}
-                    _placeholder={{ color: "var(--color-text-muted)" }}
-                  />
-                </HStack>
-              </VStack>
+          {/* Active filter chips */}
+          {activeFilterCount > 0 && (
+            <Flex wrap="wrap" gap={2} mb={5}>
+              {filters.titleSearch && (
+                <FilterChip label={`Title: ${filters.titleSearch}`} onRemove={() => handleFilterChange("titleSearch", "")} />
+              )}
+              {filters.companySearch && (
+                <FilterChip label={`Company: ${filters.companySearch}`} onRemove={() => handleFilterChange("companySearch", "")} />
+              )}
+              {filters.locationSearch && (
+                <FilterChip label={`Location: ${filters.locationSearch}`} onRemove={() => handleFilterChange("locationSearch", "")} />
+              )}
+              {filters.jobTypeFilter !== "all" && (
+                <FilterChip
+                  label={JOB_TYPE_OPTIONS.find((o) => o.value === filters.jobTypeFilter)?.label}
+                  onRemove={() => handleFilterChange("jobTypeFilter", "all")}
+                />
+              )}
+              {filters.salaryBucket !== "all" && (
+                <FilterChip
+                  label={SALARY_BUCKETS.find((o) => o.value === filters.salaryBucket)?.label}
+                  onRemove={() => handleFilterChange("salaryBucket", "all")}
+                />
+              )}
+              {filters.industryFilter !== "all" && (
+                <FilterChip
+                  label={INDUSTRY_OPTIONS.find((o) => o.value === filters.industryFilter)?.label}
+                  onRemove={() => handleFilterChange("industryFilter", "all")}
+                />
+              )}
+              {filters.sortBy !== "newest" && (
+                <FilterChip
+                  label={`Sort: ${SORT_OPTIONS.find((o) => o.value === filters.sortBy)?.label}`}
+                  onRemove={() => handleFilterChange("sortBy", "newest")}
+                />
+              )}
+              <Box
+                as="button"
+                onClick={handleReset}
+                px={2.5} py={1} borderRadius="full"
+                fontSize="11px" fontWeight="bold"
+                color="var(--color-text-muted)"
+                border="1px solid var(--color-card-border)"
+                _hover={{ color: "var(--color-text-primary)", borderColor: "var(--color-accent)" }}
+                transition="all 0.2s"
+              >
+                Clear all
+              </Box>
+            </Flex>
+          )}
 
-              {/* Location Filter */}
-              <VStack align="start" gap={1.5}>
-                <Text fontSize="xs" fontWeight="black" color="var(--color-text-muted)" letterSpacing="wider">LOCATION</Text>
-                <HStack
-                  bg="var(--color-input-bg)"
-                  borderRadius="xl"
-                  px={3.5}
-                  border="1px solid var(--color-card-border)"
-                  w="full"
-                  _hover={{ borderColor: "var(--color-card-border)", bg: "var(--color-card-hover-bg)" }}
-                  _focusWithin={{ borderColor: "var(--color-accent)", boxShadow: "0 0 10px rgba(59, 130, 246, 0.2)", bg: "var(--color-card-hover-bg)" }}
-                  transition="all 0.3s"
-                >
-                  <MapPin size={14} color="#3b82f6" />
-                  <Input
-                    placeholder="e.g. Remote / Austin"
-                    variant="unstyled"
-                    color="var(--color-text-primary)"
-                    fontSize="xs"
-                    value={locationSearch}
-                    onChange={(e) => setLocationSearch(e.target.value)}
-                    py={3}
-                    _placeholder={{ color: "var(--color-text-muted)" }}
-                  />
-                </HStack>
-              </VStack>
-
-              {/* Job Type Filter */}
-              <VStack align="start" gap={1.5}>
-                <Text fontSize="xs" fontWeight="black" color="var(--color-text-muted)" letterSpacing="wider">JOB TYPE</Text>
-                <Box position="relative" w="full" transition="all 0.3s">
-                  <Box
-                    as="select"
-                    value={jobTypeFilter}
-                    onChange={(e) => setJobTypeFilter(e.target.value)}
-                    style={{
-                      width: "100%",
-                      height: "42px",
-                      background: "var(--color-input-bg)",
-                      border: "1px solid var(--color-card-border)",
-                      borderRadius: "12px",
-                      color: "var(--color-text-primary)",
-                      fontSize: "12px",
-                      padding: "0 36px 0 14px",
-                      outline: "none",
-                      cursor: "pointer",
-                      appearance: "none",
-                      WebkitAppearance: "none",
-                      transition: "all 0.3s",
-                      fontFamily: "inherit",
-                    }}
-                    _hover={{ borderColor: "var(--color-card-border)", bg: "var(--color-card-hover-bg)" }}
-                    _focus={{ borderColor: "var(--color-accent)", boxShadow: "0 0 10px rgba(59, 130, 246, 0.2)", bg: "var(--color-card-hover-bg)" }}
-                  >
-                    <option value="all" style={{ background: "var(--color-dropdown-bg)", color: "var(--color-text-primary)" }}>All Job Types</option>
-                    <option value="full_time" style={{ background: "var(--color-dropdown-bg)", color: "var(--color-text-primary)" }}>Full-time</option>
-                    <option value="part_time" style={{ background: "var(--color-dropdown-bg)", color: "var(--color-text-primary)" }}>Part-time</option>
-                    <option value="contract" style={{ background: "var(--color-dropdown-bg)", color: "var(--color-text-primary)" }}>Contract</option>
-                    <option value="internship" style={{ background: "var(--color-dropdown-bg)", color: "var(--color-text-primary)" }}>Internship</option>
-                    <option value="remote" style={{ background: "var(--color-dropdown-bg)", color: "var(--color-text-primary)" }}>Remote</option>
-                  </Box>
-                  <Box position="absolute" right="3.5" top="50%" transform="translateY(-50%)" pointerEvents="none" color="var(--color-text-muted)">
-                    <ChevronDown size={14} />
-                  </Box>
-                </Box>
-              </VStack>
-            </Grid>
-          </Box>
-
+          {/* Job grid */}
           {loading ? (
-            <Flex justify="center" align="center" py={12}>
+            <Flex justify="center" align="center" py={16}>
               <Spinner size="lg" color="var(--color-accent)" />
             </Flex>
           ) : filteredJobs.length === 0 ? (
             <Flex
-              direction="column"
-              align="center"
-              justify="center"
-              py={12}
-              borderRadius="lg"
-              border="1px dashed var(--color-card-border)"
-              bg="var(--color-glass)"
+              direction="column" align="center" justify="center" py={16}
+              borderRadius="xl" border="1px dashed var(--color-card-border)"
+              style={{ background: "var(--color-glass)", backdropFilter: "blur(12px)" }}
             >
-              <Briefcase size={36} color="var(--color-card-border)" style={{ marginBottom: "12px" }} />
-              <Text color="var(--color-text-muted)" fontSize="sm" fontWeight="bold">
+              <Briefcase size={40} color="var(--color-card-border)" style={{ marginBottom: "12px" }} />
+              <Text color="var(--color-text-muted)" fontSize="sm" fontWeight="bold" mb={1}>
                 No job openings found
+              </Text>
+              <Text color="var(--color-text-muted)" fontSize="xs">
+                Try adjusting your filters
               </Text>
             </Flex>
           ) : (
-            <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }} gap={6}>
+            <Box
+              display="grid"
+              gridTemplateColumns={{ base: "1fr", md: "repeat(2, 1fr)", xl: "repeat(3, 1fr)" }}
+              gap={5}
+            >
               {filteredJobs.map((job) => (
                 <JobOpeningCard
                   key={job.id}
@@ -230,10 +273,10 @@ const Dashboard = () => {
                   onClick={() => navigate(`/jobs/${job.id}/apply`)}
                 />
               ))}
-            </Grid>
+            </Box>
           )}
         </Box>
-      </Box>
+      </Flex>
     </Box>
   );
 };
