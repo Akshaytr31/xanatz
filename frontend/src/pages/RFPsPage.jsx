@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import RFPInterestModal from "../components/company/RFPInterestModal";
+import { ALL_CATEGORY_LABELS, ALL_SUBCATEGORY_LABELS, CATEGORY_OPTIONS } from "../components/company/JobOpeningModal";
 import api, { backendUrl } from "../api";
 
 const MotionBox = motion.create(Box);
@@ -27,6 +28,7 @@ const RFPsPage = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [expandedRfps, setExpandedRfps] = useState({});
 
   // Modal Control
@@ -93,23 +95,27 @@ const RFPsPage = () => {
   // Filter RFPs
   const filteredRfps = rfps.filter((rfp) => {
     const q = searchQuery.toLowerCase();
-    return (
+    const matchesSearch = !q || (
       rfp.title.toLowerCase().includes(q) ||
       rfp.company_name.toLowerCase().includes(q) ||
       (rfp.description && rfp.description.toLowerCase().includes(q)) ||
       (rfp.requirements && rfp.requirements.toLowerCase().includes(q))
     );
+    const matchesCategory = !selectedCategory || rfp.category === selectedCategory;
+    return matchesSearch && matchesCategory;
   });
 
   return (
-    <Box minH="100vh" bg="var(--color-primary)" position="relative" overflow="visible" pb="100px">
-      {/* Ambient glowing blobs */}
-      <Box position="absolute" top="-20%" left="-10%" w="60%" h="60%"
-        style={{ background: `${accentColor}06`, filter: "blur(150px)" }}
-        borderRadius="full" zIndex={0} pointerEvents="none" />
-      <Box position="absolute" bottom="-10%" right="-5%" w="40%" h="40%"
-        style={{ background: "rgba(59, 130, 246, 0.04)", filter: "blur(120px)" }}
-        borderRadius="full" zIndex={0} pointerEvents="none" />
+    <Box minH="100vh" bg="var(--color-primary)" position="relative" pb="80px">
+      {/* Ambient glowing blobs — isolated in a clip wrapper so they don't cause horizontal scroll */}
+      <Box position="fixed" inset="0" overflow="hidden" zIndex={0} pointerEvents="none">
+        <Box position="absolute" top="0" left="0" w="50%" h="50%"
+          style={{ background: `${accentColor}06`, filter: "blur(150px)" }}
+          borderRadius="full" />
+        <Box position="absolute" bottom="0" right="0" w="40%" h="40%"
+          style={{ background: "rgba(59, 130, 246, 0.04)", filter: "blur(120px)" }}
+          borderRadius="full" />
+      </Box>
 
       <Box position="relative" zIndex={1}>
         <Navbar handleLogout={handleLogout} />
@@ -350,6 +356,20 @@ const RFPsPage = () => {
 
                           {/* Post Meta Badges */}
                           <HStack gap={3.5} py={3.5} borderTop="1px solid var(--color-card-border)" wrap="wrap">
+                            {rfp.category && (
+                              <HStack gap={1.5} px={3} py={1.5} borderRadius="lg" bg="rgba(59,130,246,0.08)" border="1px solid rgba(59,130,246,0.18)">
+                                <Text color="rgba(147,197,253,0.9)" fontSize="3xs" fontWeight="black" letterSpacing="wider">
+                                  {ALL_CATEGORY_LABELS[rfp.category] || rfp.category}
+                                </Text>
+                              </HStack>
+                            )}
+                            {rfp.sub_category && (
+                              <HStack gap={1.5} px={3} py={1.5} borderRadius="lg" bg="rgba(139,92,246,0.08)" border="1px solid rgba(139,92,246,0.18)">
+                                <Text color="rgba(196,181,253,0.9)" fontSize="3xs" fontWeight="black" letterSpacing="wider">
+                                  {ALL_SUBCATEGORY_LABELS[rfp.sub_category] || rfp.sub_category}
+                                </Text>
+                              </HStack>
+                            )}
                             {rfp.budget && (
                               <HStack gap={1.5} px={3} py={1.5} borderRadius="lg" bg="rgba(16, 185, 129, 0.08)" border="1px solid rgba(16, 185, 129, 0.15)">
                                 <DollarSign size={13} color="#10b981" />
@@ -498,27 +518,36 @@ const RFPsPage = () => {
                     </Text>
                   </HStack>
                   <Flex wrap="wrap" gap={2}>
-                    {["All RFPs", "Development", "Design", "Consulting", "Marketing", "Writing"].map((cat) => {
-                      const isActive = cat === "All RFPs" ? searchQuery === "" : searchQuery.toLowerCase() === cat.toLowerCase();
+                    {/* All RFPs reset badge */}
+                    <Badge
+                      px={2.5} py={1.5} borderRadius="lg" cursor="pointer"
+                      fontSize="4xs" fontWeight="black" letterSpacing="wider"
+                      bg={selectedCategory === "" ? accentColor : "var(--color-input-bg)"}
+                      color={selectedCategory === "" ? "white" : "var(--color-text-secondary)"}
+                      border="1px solid"
+                      borderColor={selectedCategory === "" ? accentColor : "var(--color-card-border)"}
+                      _hover={{ bg: selectedCategory === "" ? accentColor : "var(--color-card-hover-bg)" }}
+                      transition="all 0.2s"
+                      onClick={() => setSelectedCategory("")}
+                    >
+                      ALL RFPs
+                    </Badge>
+                    {CATEGORY_OPTIONS.map((cat) => {
+                      const isActive = selectedCategory === cat.value;
                       return (
                         <Badge
-                          key={cat}
-                          px={2.5}
-                          py={1.5}
-                          borderRadius="lg"
-                          cursor="pointer"
-                          fontSize="4xs"
-                          fontWeight="black"
-                          letterSpacing="wider"
+                          key={cat.value}
+                          px={2.5} py={1.5} borderRadius="lg" cursor="pointer"
+                          fontSize="4xs" fontWeight="black" letterSpacing="wider"
                           bg={isActive ? accentColor : "var(--color-input-bg)"}
                           color={isActive ? "white" : "var(--color-text-secondary)"}
                           border="1px solid"
                           borderColor={isActive ? accentColor : "var(--color-card-border)"}
                           _hover={{ bg: isActive ? accentColor : "var(--color-card-hover-bg)", borderColor: isActive ? accentColor : "var(--color-card-hover-border)" }}
                           transition="all 0.2s"
-                          onClick={() => setSearchQuery(cat === "All RFPs" ? "" : cat)}
+                          onClick={() => setSelectedCategory(isActive ? "" : cat.value)}
                         >
-                          {cat.toUpperCase()}
+                          {cat.label.toUpperCase()}
                         </Badge>
                       );
                     })}

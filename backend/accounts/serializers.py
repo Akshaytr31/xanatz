@@ -259,7 +259,7 @@ class RFPSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'company', 'company_name', 'company_logo_url',
             'title', 'description', 'requirements', 'budget',
-            'deadline', 'is_active', 'created_at', 'updated_at'
+            'deadline', 'category', 'sub_category', 'is_active', 'created_at', 'updated_at'
         ]
 
     def get_company_logo_url(self, obj):

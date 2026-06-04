@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../../api";
+import { SearchableSelect, CATEGORY_OPTIONS, SUBCATEGORY_OPTIONS } from "./JobOpeningModal";
 
 const MotionBox = motion.create(Box);
 
@@ -84,6 +85,8 @@ const RFPModal = ({ isOpen, onClose, companyId, rfp, onSaved }) => {
     title: "",
     budget: "",
     deadline: "",
+    category: "",
+    sub_category: "",
     description: "",
     requirements: "",
     is_active: true,
@@ -95,6 +98,8 @@ const RFPModal = ({ isOpen, onClose, companyId, rfp, onSaved }) => {
         title: rfp.title || "",
         budget: rfp.budget || "",
         deadline: rfp.deadline || "",
+        category: rfp.category || "",
+        sub_category: rfp.sub_category || "",
         description: rfp.description || "",
         requirements: rfp.requirements || "",
         is_active: rfp.is_active !== undefined ? rfp.is_active : true,
@@ -104,6 +109,8 @@ const RFPModal = ({ isOpen, onClose, companyId, rfp, onSaved }) => {
         title: "",
         budget: "",
         deadline: "",
+        category: "",
+        sub_category: "",
         description: "",
         requirements: "",
         is_active: true,
@@ -118,7 +125,6 @@ const RFPModal = ({ isOpen, onClose, companyId, rfp, onSaved }) => {
       const payload = {
         ...form,
         company: companyId,
-        // If deadline is empty string, serialize it as null for django DateField
         deadline: form.deadline ? form.deadline : null,
       };
 
@@ -241,6 +247,29 @@ const RFPModal = ({ isOpen, onClose, companyId, rfp, onSaved }) => {
                       placeholder="Ex: Redesign E-Commerce Platform"
                     />
                   </Box>
+
+                  {/* Category & Sub-category */}
+                  <Flex gap={4} direction={{ base: "column", sm: "row" }}>
+                    <Box flex={1}>
+                      <Text {...labelStyle}>CATEGORY</Text>
+                      <SearchableSelect
+                        value={form.category}
+                        onChange={(val) => setForm(prev => ({ ...prev, category: val, sub_category: "" }))}
+                        options={CATEGORY_OPTIONS}
+                        placeholder="Select category..."
+                      />
+                    </Box>
+                    <Box flex={1}>
+                      <Text {...labelStyle}>SUB-CATEGORY</Text>
+                      <SearchableSelect
+                        value={form.sub_category}
+                        onChange={set("sub_category")}
+                        options={form.category ? (SUBCATEGORY_OPTIONS[form.category] || []) : []}
+                        placeholder="Select sub-category..."
+                        isDisabled={!form.category}
+                      />
+                    </Box>
+                  </Flex>
 
                   {/* Budget & Deadline */}
                   <Flex gap={4} direction={{ base: "column", sm: "row" }}>

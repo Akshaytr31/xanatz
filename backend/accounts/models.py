@@ -277,6 +277,8 @@ class RFP(models.Model):
     budget = models.CharField(max_length=100, blank=True, null=True)
     deadline = models.DateField(blank=True, null=True)
     requirements = models.TextField(blank=True, null=True)
+    category = models.CharField(max_length=100, blank=True, null=True)
+    sub_category = models.CharField(max_length=100, blank=True, null=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

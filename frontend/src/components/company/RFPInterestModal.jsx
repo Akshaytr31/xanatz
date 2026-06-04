@@ -51,6 +51,37 @@ const labelStyle = {
   mb: "2",
 };
 
+const SelectField = ({ value, onChange, options, placeholder }) => (
+  <Box
+    as="select"
+    value={value || ""}
+    onChange={(e) => onChange(e.target.value)}
+    style={{
+      background: "var(--color-input-bg)",
+      color: value ? "white" : "var(--color-text-muted)",
+      height: "44px",
+      borderRadius: "xl",
+      border: "1px solid var(--color-card-border)",
+      fontSize: "12px",
+      padding: "0 14px",
+      width: "100%",
+      outline: "none",
+      cursor: "pointer",
+      appearance: "none",
+      WebkitAppearance: "none",
+    }}
+  >
+    <option value="" disabled style={{ background: "#0f172a" }}>
+      {placeholder}
+    </option>
+    {options.map((opt) => (
+      <option key={opt.value} value={opt.value} style={{ background: "#0f172a", color: "white" }}>
+        {opt.label}
+      </option>
+    ))}
+  </Box>
+);
+
 const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -64,20 +95,33 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
   });
   const [attachedFile, setAttachedFile] = useState(null);
 
+  const [profileType, setProfileType] = useState("personal"); // 'personal' or 'company'
+  const [myCompanies, setMyCompanies] = useState([]);
+  const [selectedCompanyId, setSelectedCompanyId] = useState("");
+  const [userInfo, setUserInfo] = useState(null);
+
   useEffect(() => {
     if (isOpen) {
       setSuccess(false);
       setErrorMsg("");
       setAttachedFile(null);
+      setProfileType("personal");
+      setSelectedCompanyId("");
       
-      // Attempt to load current user details to pre-fill
-      const loadUser = async () => {
+      const loadData = async () => {
         try {
-          const res = await api.get("me/");
-          const name = `${res.data.first_name || ""} ${res.data.last_name || ""}`.trim();
+          const [userRes, companiesRes] = await Promise.all([
+            api.get("me/"),
+            api.get("companies/my-companies/")
+          ]);
+          setUserInfo(userRes.data);
+          const companies = companiesRes.data || [];
+          setMyCompanies(companies);
+          
+          const name = `${userRes.data.first_name || ""} ${userRes.data.last_name || ""}`.trim();
           setForm({
-            company_name: name || res.data.email.split("@")[0],
-            email: res.data.email || "",
+            company_name: name || userRes.data.email.split("@")[0],
+            email: userRes.data.email || "",
             phone_number: "",
             proposal_summary: "",
           });
@@ -85,14 +129,20 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
           console.error(err);
         }
       };
-      loadUser();
+      loadData();
     }
   }, [isOpen]);
 
   const handleSave = async (e) => {
     e.preventDefault();
+    
+    if (profileType === "company" && !selectedCompanyId) {
+      setErrorMsg("Please select a company profile.");
+      return;
+    }
+
     if (!form.company_name.trim() || !form.email.trim() || !form.proposal_summary.trim()) {
-      setErrorMsg("Company/Individual name, email and proposal summary are required.");
+      setErrorMsg("Name, email and proposal summary are required.");
       return;
     }
     
@@ -269,19 +319,166 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
                         </Flex>
                       )}
 
-                      {/* Company Name */}
+                      {/* Profile Type Selector */}
                       <Box>
-                        <Text {...labelStyle}>YOUR NAME / COMPANY NAME *</Text>
+                        <Text {...labelStyle}>EXPRESS INTEREST AS *</Text>
+                        <Flex gap={4} direction={{ base: "column", sm: "row" }}>
+                          {/* Personal Option */}
+                          <Flex
+                            flex={1}
+                            align="center"
+                            gap={3}
+                            p={4.5}
+                            borderRadius="xl"
+                            border="1px solid"
+                            borderColor={profileType === "personal" ? "#10b981" : "var(--color-card-border)"}
+                            bg={profileType === "personal" ? "rgba(16, 185, 129, 0.08)" : "var(--color-glass)"}
+                            cursor="pointer"
+                            transition="all 0.2s"
+                            _hover={{ borderColor: profileType === "personal" ? "#10b981" : "var(--color-text-muted)" }}
+                            onClick={() => {
+                              setProfileType("personal");
+                              setSelectedCompanyId("");
+                              if (userInfo) {
+                                const name = `${userInfo.first_name || ""} ${userInfo.last_name || ""}`.trim();
+                                setForm(prev => ({
+                                  ...prev,
+                                  company_name: name || userInfo.email.split("@")[0],
+                                }));
+                              }
+                            }}
+                          >
+                            <Box
+                              w="4"
+                              h="4"
+                              borderRadius="full"
+                              border="2px solid"
+                              borderColor={profileType === "personal" ? "#10b981" : "var(--color-text-muted)"}
+                              display="flex"
+                              alignItems="center"
+                              justifyContent="center"
+                            >
+                              {profileType === "personal" && (
+                                <Box w="2" h="2" borderRadius="full" bg="#10b981" />
+                              )}
+                            </Box>
+                            <VStack align="start" gap={0}>
+                              <Text color="white" fontSize="xs" fontWeight="black">
+                                Personal Profile
+                              </Text>
+                              <Text color="var(--color-text-muted)" fontSize="3xs">
+                                Individual capacity (Freelancer / Consultant)
+                              </Text>
+                            </VStack>
+                          </Flex>
+
+                          {/* Company Option */}
+                          <Flex
+                            flex={1}
+                            align="center"
+                            gap={3}
+                            p={4.5}
+                            borderRadius="xl"
+                            border="1px solid"
+                            borderColor={profileType === "company" ? "#10b981" : "var(--color-card-border)"}
+                            bg={profileType === "company" ? "rgba(16, 185, 129, 0.08)" : "var(--color-glass)"}
+                            cursor="pointer"
+                            transition="all 0.2s"
+                            _hover={{ borderColor: profileType === "company" ? "#10b981" : "var(--color-text-muted)" }}
+                            onClick={() => {
+                              setProfileType("company");
+                              if (myCompanies.length > 0) {
+                                const defaultComp = myCompanies[0];
+                                setSelectedCompanyId(defaultComp.id.toString());
+                                setForm(prev => ({
+                                  ...prev,
+                                  company_name: defaultComp.name,
+                                }));
+                              } else {
+                                setSelectedCompanyId("");
+                                setForm(prev => ({
+                                  ...prev,
+                                  company_name: "",
+                                }));
+                              }
+                            }}
+                          >
+                            <Box
+                              w="4"
+                              h="4"
+                              borderRadius="full"
+                              border="2px solid"
+                              borderColor={profileType === "company" ? "#10b981" : "var(--color-text-muted)"}
+                              display="flex"
+                              alignItems="center"
+                              justifyContent="center"
+                            >
+                              {profileType === "company" && (
+                                <Box w="2" h="2" borderRadius="full" bg="#10b981" />
+                              )}
+                            </Box>
+                            <VStack align="start" gap={0}>
+                              <Text color="white" fontSize="xs" fontWeight="black">
+                                Company Profile
+                              </Text>
+                              <Text color="var(--color-text-muted)" fontSize="3xs">
+                                Represent a registered corporate entity
+                              </Text>
+                            </VStack>
+                          </Flex>
+                        </Flex>
+                      </Box>
+
+                      {/* Company Selection Dropdown */}
+                      {profileType === "company" && (
+                        <Box>
+                          {myCompanies.length === 0 ? (
+                            <Flex bg="rgba(245, 158, 11, 0.1)" border="1px solid rgba(245, 158, 11, 0.2)" p={3.5} borderRadius="xl" align="center" gap={3}>
+                              <AlertCircle size={16} color="#f59e0b" />
+                              <Text color="#fbbf24" fontSize="3xs" fontWeight="bold">
+                                You have no company profiles created yet. Please use your Personal Profile or register a company first.
+                              </Text>
+                            </Flex>
+                          ) : (
+                            <Box>
+                              <Text {...labelStyle}>SELECT COMPANY *</Text>
+                              <SelectField
+                                value={selectedCompanyId}
+                                onChange={(val) => {
+                                  setSelectedCompanyId(val);
+                                  const comp = myCompanies.find(c => c.id.toString() === val);
+                                  if (comp) {
+                                    setForm(prev => ({
+                                      ...prev,
+                                      company_name: comp.name,
+                                    }));
+                                  }
+                                }}
+                                options={myCompanies.map(c => ({ value: c.id.toString(), label: c.name }))}
+                                placeholder="Choose a company profile..."
+                              />
+                            </Box>
+                          )}
+                        </Box>
+                      )}
+
+                      {/* Profile / Company Name Display */}
+                      <Box>
+                        <Text {...labelStyle}>
+                          {profileType === "company" ? "COMPANY NAME *" : "YOUR NAME *"}
+                        </Text>
                         <HStack {...fieldStyle} _focusWithin={{ borderColor: "#10b981" }}>
                           <User size={14} color="var(--color-text-muted)" />
                           <Input
-                            placeholder="Enter your name or your company name"
+                            placeholder={profileType === "company" ? "Enter company name" : "Enter your name"}
                             variant="unstyled"
                             color="white"
                             fontSize="xs"
                             py={2.5}
                             value={form.company_name}
                             onChange={setE("company_name")}
+                            readOnly={profileType === "company" && selectedCompanyId !== ""}
+                            style={profileType === "company" && selectedCompanyId !== "" ? { opacity: 0.7 } : {}}
                           />
                         </HStack>
                       </Box>
@@ -342,7 +539,6 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
                             resize: "vertical",
                             fontFamily: "inherit",
                           }}
-                          _focus={{ borderColor: "#10b981" }}
                         />
                       </Box>
 
@@ -435,7 +631,12 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
                       loading={isLoading}
                       loadingText="SUBMITTING..."
                       onClick={handleSave}
-                      disabled={!form.company_name.trim() || !form.email.trim() || !form.proposal_summary.trim()}
+                      disabled={
+                        !form.company_name.trim() || 
+                        !form.email.trim() || 
+                        !form.proposal_summary.trim() ||
+                        (profileType === "company" && !selectedCompanyId)
+                      }
                       style={{
                         background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
                         boxShadow: "0 4px 20px rgba(16,185,129,0.25)",
