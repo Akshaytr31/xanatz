@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Briefcase, SlidersHorizontal, X as XIcon } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { Briefcase, SlidersHorizontal, X as XIcon, LayoutGrid, List, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -59,17 +59,26 @@ const FilterChip = ({ label, onRemove }) => (
 /* ═══════════════════════════════════════════════════════════════════════════
    Dashboard
 ═══════════════════════════════════════════════════════════════════════════ */
+const JOBS_PER_PAGE = 8;
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  const [viewMode, setViewMode] = useState("grid"); // "grid" | "list"
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const handleFilterChange = (key, value) =>
+  const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
+    setCurrentPage(1);
+  };
 
-  const handleReset = () => setFilters(DEFAULT_FILTERS);
+  const handleReset = () => {
+    setFilters(DEFAULT_FILTERS);
+    setCurrentPage(1);
+  };
 
   const activeFilterCount = Object.entries(filters).filter(([k, v]) => {
     if (k === "sortBy") return v !== "newest";
@@ -130,11 +139,30 @@ const Dashboard = () => {
     }
   });
 
+  const totalPages = Math.max(1, Math.ceil(filteredJobs.length / JOBS_PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pagedJobs = filteredJobs.slice((safePage - 1) * JOBS_PER_PAGE, safePage * JOBS_PER_PAGE);
+
+  /* Page numbers with ellipsis */
+  const getPageNumbers = () => {
+    const delta = 2;
+    const range = [];
+    for (let i = Math.max(2, safePage - delta); i <= Math.min(totalPages - 1, safePage + delta); i++) {
+      range.push(i);
+    }
+    const pages = [1];
+    if (range[0] > 2) pages.push("...");
+    pages.push(...range);
+    if (range[range.length - 1] < totalPages - 1) pages.push("...");
+    if (totalPages > 1) pages.push(totalPages);
+    return pages;
+  };
+
   return (
     <Box minH="100vh" bg="var(--color-primary)" marginTop="50px">
       <Navbar handleLogout={handleLogout} />
 
-      <Flex align="start" minH="calc(100vh - 50px)">
+      <Flex align="start" minH="calc(100vh - 50px)" pl={{ base: 0, lg: "260px" }}>
 
         {/* ── Sidebar ── */}
         <FilterSidebar
@@ -150,44 +178,87 @@ const Dashboard = () => {
         <Box flex={1} p={{ base: 4, md: 6, lg: 8 }} minW={0}>
 
           {/* Top bar */}
-          <Flex align="center" justify="space-between" mb={6}>
+          <Flex align="center" justify="space-between" mb={6} gap={3}>
             <VStack align="start" gap={0}>
               <Heading size="md" color="var(--color-text-primary)" fontWeight="black" letterSpacing="tight">
-                Job Openings
+                Job Openings For You
               </Heading>
               <Text fontSize="xs" color="var(--color-text-muted)">
                 {loading
                   ? "Loading..."
-                  : `${filteredJobs.length} result${filteredJobs.length !== 1 ? "s" : ""} found`}
+                  : `${filteredJobs.length} result${filteredJobs.length !== 1 ? "s" : ""} found${totalPages > 1 ? ` · page ${safePage} of ${totalPages}` : ""}`}
               </Text>
             </VStack>
 
-            {/* Mobile filter toggle */}
-            <Box
-              as="button"
-              display={{ base: "flex", lg: "none" }}
-              alignItems="center"
-              gap={2}
-              px={3} py={2}
-              borderRadius="xl"
-              border="1px solid var(--color-card-border)"
-              style={{ background: "var(--color-glass)", backdropFilter: "blur(12px)" }}
-              onClick={() => setMobileSidebarOpen(true)}
-              cursor="pointer"
-            >
-              <SlidersHorizontal size={14} color="var(--color-accent)" />
-              <Text fontSize="xs" fontWeight="bold" color="var(--color-text-secondary)">
-                Filters
-              </Text>
-              {activeFilterCount > 0 && (
-                <Badge
-                  px={1.5} py={0} fontSize="10px" borderRadius="full"
-                  style={{ background: "var(--color-accent)", color: "white" }}
+            <HStack gap={2} ml="auto">
+              {/* View mode toggle */}
+              <HStack
+                gap={0}
+                borderRadius="xl"
+                border="1px solid var(--color-card-border)"
+                overflow="hidden"
+                style={{ background: "var(--color-glass)", backdropFilter: "blur(12px)" }}
+              >
+                <Box
+                  as="button"
+                  px={3} py={2}
+                  display="flex" alignItems="center" justifyContent="center"
+                  onClick={() => setViewMode("grid")}
+                  cursor="pointer"
+                  style={{
+                    background: viewMode === "grid" ? "rgba(59,130,246,0.18)" : "transparent",
+                    borderRight: "1px solid var(--color-card-border)",
+                  }}
+                  _hover={{ background: viewMode === "grid" ? "rgba(59,130,246,0.22)" : "var(--color-card-hover-bg)" }}
+                  transition="background 0.2s"
+                  title="Grid view"
                 >
-                  {activeFilterCount}
-                </Badge>
-              )}
-            </Box>
+                  <LayoutGrid size={15} color={viewMode === "grid" ? "var(--color-accent)" : "var(--color-text-muted)"} />
+                </Box>
+                <Box
+                  as="button"
+                  px={3} py={2}
+                  display="flex" alignItems="center" justifyContent="center"
+                  onClick={() => setViewMode("list")}
+                  cursor="pointer"
+                  style={{
+                    background: viewMode === "list" ? "rgba(59,130,246,0.18)" : "transparent",
+                  }}
+                  _hover={{ background: viewMode === "list" ? "rgba(59,130,246,0.22)" : "var(--color-card-hover-bg)" }}
+                  transition="background 0.2s"
+                  title="List view"
+                >
+                  <List size={15} color={viewMode === "list" ? "var(--color-accent)" : "var(--color-text-muted)"} />
+                </Box>
+              </HStack>
+
+              {/* Mobile filter toggle */}
+              <Box
+                as="button"
+                display={{ base: "flex", lg: "none" }}
+                alignItems="center"
+                gap={2}
+                px={3} py={2}
+                borderRadius="xl"
+                border="1px solid var(--color-card-border)"
+                style={{ background: "var(--color-glass)", backdropFilter: "blur(12px)" }}
+                onClick={() => setMobileSidebarOpen(true)}
+                cursor="pointer"
+              >
+                <SlidersHorizontal size={14} color="var(--color-accent)" />
+                <Text fontSize="xs" fontWeight="bold" color="var(--color-text-secondary)">
+                  Filters
+                </Text>
+                {activeFilterCount > 0 && (
+                  <Badge
+                    px={1.5} py={0} fontSize="10px" borderRadius="full"
+                    style={{ background: "var(--color-accent)", color: "white" }}
+                  >
+                    {activeFilterCount}
+                  </Badge>
+                )}
+              </Box>
+            </HStack>
           </Flex>
 
           {/* Active filter chips */}
@@ -260,20 +331,139 @@ const Dashboard = () => {
                 Try adjusting your filters
               </Text>
             </Flex>
+          ) : viewMode === "list" ? (
+            <VStack align="stretch" gap={3}>
+              {pagedJobs.map((job) => (
+                <JobOpeningCard
+                  key={job.id}
+                  job={job}
+                  viewMode="list"
+                  onClick={() => navigate(`/jobs/${job.id}/apply`)}
+                />
+              ))}
+            </VStack>
           ) : (
             <Box
               display="grid"
               gridTemplateColumns={{ base: "1fr", md: "repeat(2, 1fr)", xl: "repeat(3, 1fr)" }}
               gap={5}
             >
-              {filteredJobs.map((job) => (
+              {pagedJobs.map((job) => (
                 <JobOpeningCard
                   key={job.id}
                   job={job}
+                  viewMode="grid"
                   onClick={() => navigate(`/jobs/${job.id}/apply`)}
                 />
               ))}
             </Box>
+          )}
+
+          {/* ── Pagination ── */}
+          {!loading && totalPages > 1 && (
+            <Flex align="center" justify="center" gap={1} mt={10} mb={4} wrap="wrap">
+              {/* First */}
+              <Box
+                as="button"
+                onClick={() => setCurrentPage(1)}
+                disabled={safePage === 1}
+                p={2} borderRadius="lg"
+                color={safePage === 1 ? "var(--color-text-muted)" : "var(--color-text-secondary)"}
+                opacity={safePage === 1 ? 0.35 : 1}
+                cursor={safePage === 1 ? "not-allowed" : "pointer"}
+                _hover={{ bg: safePage === 1 ? "transparent" : "var(--color-card-hover-bg)" }}
+                transition="all 0.2s"
+                display="flex" alignItems="center"
+              >
+                <ChevronsLeft size={15} />
+              </Box>
+
+              {/* Prev */}
+              <Box
+                as="button"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={safePage === 1}
+                p={2} borderRadius="lg"
+                color={safePage === 1 ? "var(--color-text-muted)" : "var(--color-text-secondary)"}
+                opacity={safePage === 1 ? 0.35 : 1}
+                cursor={safePage === 1 ? "not-allowed" : "pointer"}
+                _hover={{ bg: safePage === 1 ? "transparent" : "var(--color-card-hover-bg)" }}
+                transition="all 0.2s"
+                display="flex" alignItems="center"
+              >
+                <ChevronLeft size={15} />
+              </Box>
+
+              {/* Page numbers */}
+              {getPageNumbers().map((page, idx) =>
+                page === "..." ? (
+                  <Text key={`ellipsis-${idx}`} fontSize="xs" color="var(--color-text-muted)" px={2}>
+                    …
+                  </Text>
+                ) : (
+                  <Box
+                    key={page}
+                    as="button"
+                    onClick={() => setCurrentPage(page)}
+                    minW="32px" h="32px"
+                    display="flex" alignItems="center" justifyContent="center"
+                    borderRadius="lg"
+                    fontSize="xs"
+                    fontWeight={safePage === page ? "black" : "medium"}
+                    color={safePage === page ? "white" : "var(--color-text-secondary)"}
+                    style={{
+                      background: safePage === page
+                        ? "var(--color-accent)"
+                        : "transparent",
+                      border: safePage === page
+                        ? "1px solid var(--color-accent)"
+                        : "1px solid transparent",
+                      boxShadow: safePage === page ? "0 0 12px rgba(59,130,246,0.35)" : "none",
+                    }}
+                    _hover={{
+                      bg: safePage === page ? "var(--color-accent)" : "var(--color-card-hover-bg)",
+                      borderColor: "var(--color-accent)",
+                    }}
+                    transition="all 0.2s"
+                    cursor="pointer"
+                  >
+                    {page}
+                  </Box>
+                )
+              )}
+
+              {/* Next */}
+              <Box
+                as="button"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={safePage === totalPages}
+                p={2} borderRadius="lg"
+                color={safePage === totalPages ? "var(--color-text-muted)" : "var(--color-text-secondary)"}
+                opacity={safePage === totalPages ? 0.35 : 1}
+                cursor={safePage === totalPages ? "not-allowed" : "pointer"}
+                _hover={{ bg: safePage === totalPages ? "transparent" : "var(--color-card-hover-bg)" }}
+                transition="all 0.2s"
+                display="flex" alignItems="center"
+              >
+                <ChevronRight size={15} />
+              </Box>
+
+              {/* Last */}
+              <Box
+                as="button"
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={safePage === totalPages}
+                p={2} borderRadius="lg"
+                color={safePage === totalPages ? "var(--color-text-muted)" : "var(--color-text-secondary)"}
+                opacity={safePage === totalPages ? 0.35 : 1}
+                cursor={safePage === totalPages ? "not-allowed" : "pointer"}
+                _hover={{ bg: safePage === totalPages ? "transparent" : "var(--color-card-hover-bg)" }}
+                transition="all 0.2s"
+                display="flex" alignItems="center"
+              >
+                <ChevronsRight size={15} />
+              </Box>
+            </Flex>
           )}
         </Box>
       </Flex>

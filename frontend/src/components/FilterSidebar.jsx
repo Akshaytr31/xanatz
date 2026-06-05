@@ -225,14 +225,15 @@ const FilterSidebar = ({
       <Box
         w={{ base: "280px", lg: "260px" }}
         flexShrink={0}
-        position={{ base: "fixed", lg: "sticky" }}
-        top={{ base: 0, lg: "80px" }}
+        position="fixed"
+        top={{ base: 0, lg: "60px" }}
         left={{ base: mobileOpen ? "0" : "-320px", lg: "0" }}
-        h={{ base: "100vh", lg: "calc(100vh - 80px)" }}
+        h={{ base: "100vh", lg: "calc(100vh - 60px)" }}
         overflowY="auto"
         zIndex={{ base: 200, lg: 10 }}
         transition="left 0.3s cubic-bezier(0.4,0,0.2,1)"
         p={4}
+        pt={10}
         borderRight={{ base: "none", lg: "1px solid var(--color-card-border)" }}
         style={{
           background: "var(--color-glass)",
