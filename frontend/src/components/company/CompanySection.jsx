@@ -130,23 +130,23 @@ const CompanySection = ({ user, refreshTrigger, onCompanyChange }) => {
           </HStack>
 
           <HStack
-            bg="whiteAlpha.50"
+            bg="var(--color-input-bg)"
             px={3}
             py={1.5}
             borderRadius="full"
             border="1px solid"
-            borderColor="whiteAlpha.200"
+            borderColor="var(--color-input-border)"
             w={{ base: "full", sm: "220px" }}
           >
-            <Search size={14} className="text-white/40" />
+            <Search size={14} color="var(--color-text-muted)" />
             <Input
               placeholder="Search..."
               variant="unstyled"
               fontSize="xs"
-              color="white"
+              color="var(--color-text-primary)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              _placeholder={{ color: "whiteAlpha.300" }}
+              _placeholder={{ color: "var(--color-text-muted)" }}
             />
           </HStack>
         </Flex>
@@ -176,7 +176,7 @@ const CompanySection = ({ user, refreshTrigger, onCompanyChange }) => {
                       : "var(--color-glass)",
                     transition: "all 0.2s",
                   }}
-                  _hover={{ borderColor: isCreator ? "rgba(66,153,225,0.4)" : "whiteAlpha.300" }}
+                  _hover={{ borderColor: isCreator ? "rgba(59,130,246,0.4)" : "var(--color-card-hover-border)" }}
                 >
                   <Flex justify="space-between" align="start" gap={3}>
                     {/* Left: Logo + Info */}
@@ -353,14 +353,14 @@ const CompanySection = ({ user, refreshTrigger, onCompanyChange }) => {
                           size="sm"
                           h="8"
                           px={4}
-                          bg="var(--color-card-border)"
-                          color="var(--color-text-secondary)"
+                          bg="var(--color-bg-subtle)"
+                          color="var(--color-text-primary)"
                           borderRadius="lg"
                           fontWeight="black"
                           fontSize="10px"
                           letterSpacing="widest"
                           border="1px solid var(--color-card-border)"
-                          _hover={{ bg: "var(--color-card-border)", color: "white" }}
+                          _hover={{ bg: "var(--color-card-border)" }}
                           onClick={() => handleAttachUser(company.id, user.id)}
                         >
                           <UserPlus size={11} style={{ marginRight: "5px" }} />
@@ -393,9 +393,9 @@ const CompanySection = ({ user, refreshTrigger, onCompanyChange }) => {
 
           {filteredCompanies.length === 0 && (
             <Flex direction="column" align="center" py={12} gap={4}>
-              <Building2 size={48} color="var(--color-glass)" />
+              <Building2 size={48} color="var(--color-text-muted)" style={{ opacity: 0.2 }} />
               <Text
-                color="whiteAlpha.400"
+                color="var(--color-text-muted)"
                 fontSize="sm"
                 fontWeight="medium"
                 textAlign="center"

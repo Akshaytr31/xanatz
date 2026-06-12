@@ -66,7 +66,7 @@ const SkillsSection = ({ user, onUpdate }) => {
         <IconButton
           aria-label="Toggle add skill"
           variant="ghost"
-          color="whiteAlpha.400"
+          color="var(--color-text-muted)"
           _hover={{ color: "yellow.400", bg: "yellow.400/10" }}
           onClick={() => setIsAdding(!isAdding)}
           borderRadius="full"
@@ -91,10 +91,10 @@ const SkillsSection = ({ user, onUpdate }) => {
                   value={newSkill}
                   onChange={(e) => setNewSkill(e.target.value)}
                   placeholder="Master a new skill..."
-                  bg="whiteAlpha.50"
+                  bg="var(--color-input-bg)"
                   border="1px solid"
-                  borderColor="whiteAlpha.200"
-                  color="white"
+                  borderColor="var(--color-input-border)"
+                  color="var(--color-text-primary)"
                   autoFocus
                   h="10"
                   fontSize="sm"
@@ -132,16 +132,16 @@ const SkillsSection = ({ user, onUpdate }) => {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
                   transition={{ duration: 0.2 }}
-                  bg="whiteAlpha.50"
+                  bg="var(--color-card-bg)"
                   border="1px solid"
-                  borderColor="whiteAlpha.100"
-                  color="white"
+                  borderColor="var(--color-card-border)"
+                  color="var(--color-text-primary)"
                   px={3}
                   py={1.5}
                   borderRadius="sm"
                   fontSize="xs"
                   fontWeight="bold"
-                  _hover={{ borderColor: "yellow.400/50", bg: "whiteAlpha.100" }}
+                  _hover={{ borderColor: "yellow.400/50", bg: "var(--color-card-hover-bg)" }}
                   cursor="default"
                 >
                   <Sparkles size={10} className="text-yellow-400" />
@@ -162,8 +162,8 @@ const SkillsSection = ({ user, onUpdate }) => {
             ) : (
               !isAdding && (
                 <Flex direction="column" align="center" w="full" py={8} gap={3}>
-                  <Zap size={32} className="text-white/5" />
-                  <Text color="whiteAlpha.400" fontSize="xs" fontWeight="medium">Quantify your unique skill set...</Text>
+                  <Zap size={32} color="var(--color-text-muted)" style={{ opacity: 0.15 }} />
+                  <Text color="var(--color-text-muted)" fontSize="xs" fontWeight="medium">Quantify your unique skill set...</Text>
                 </Flex>
               )
             )}

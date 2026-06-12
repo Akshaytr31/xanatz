@@ -4,7 +4,7 @@ import {
 } from "@chakra-ui/react";
 import {
   ArrowLeft, FileText, Link2, AlertCircle, Building2, CheckCircle,
-  Briefcase, Mail, User, Clock, ChevronDown, ChevronUp, Download
+  Briefcase, Mail, User, Clock, ChevronDown, ChevronUp, Download, Sparkles
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
@@ -348,6 +348,37 @@ const ManageApplicationsPage = () => {
                           </Box>
                         ) : (
                           <Text color="var(--color-card-border)" fontSize="xs" fontStyle="italic">No cover letter submitted.</Text>
+                        )}
+
+                        {app.key_skills && (
+                          <Box pt={2} borderTop="1px solid var(--color-card-border)">
+                            <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="black" letterSpacing="wider" mb={2}>
+                              KEY SKILLS
+                            </Text>
+                            <HStack gap={2} flexWrap="wrap">
+                              {app.key_skills.split(",").map((skill, sIdx) => {
+                                const trimmedSkill = skill.trim();
+                                if (!trimmedSkill) return null;
+                                return (
+                                  <Badge
+                                    key={sIdx}
+                                    px={2.5}
+                                    py={0.5}
+                                    fontSize="2xs"
+                                    fontWeight="bold"
+                                    borderRadius="md"
+                                    style={{
+                                      background: "rgba(59, 130, 246, 0.12)",
+                                      color: "#3b82f6",
+                                      border: "1px solid rgba(59, 130, 246, 0.2)",
+                                    }}
+                                  >
+                                    {trimmedSkill}
+                                  </Badge>
+                                );
+                              })}
+                            </HStack>
+                          </Box>
                         )}
 
                         {/* Attachments */}

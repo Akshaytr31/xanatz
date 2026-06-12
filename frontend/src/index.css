@@ -105,6 +105,17 @@ body {
   box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
 }
 
+/* Light mode overrides for glass-card */
+.light .glass-card {
+  box-shadow: 0 4px 24px -4px rgba(15, 23, 42, 0.12);
+}
+
+.light .glass-card:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(15, 23, 42, 0.16);
+  box-shadow: 0 8px 32px -4px rgba(15, 23, 42, 0.18);
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
@@ -189,5 +200,114 @@ body {
   align-items: center;
   position: relative;
   overflow: hidden;
+}
+
+/* ─── Light Mode: Profile Page Fixes ────────────────────────────────────────
+   The Profile components use Chakra's whiteAlpha tokens which are
+   invisible on a light background. These overrides restore visibility. */
+
+/* Text that uses whiteAlpha.* colors */
+.light [style*="whiteAlpha"],
+.light [class*="whiteAlpha"] {
+  --chakra-colors-whiteAlpha-50:  rgba(15, 23, 42, 0.03);
+  --chakra-colors-whiteAlpha-100: rgba(15, 23, 42, 0.06);
+  --chakra-colors-whiteAlpha-200: rgba(15, 23, 42, 0.10);
+  --chakra-colors-whiteAlpha-300: rgba(15, 23, 42, 0.16);
+  --chakra-colors-whiteAlpha-400: rgba(15, 23, 42, 0.36);
+  --chakra-colors-whiteAlpha-500: rgba(15, 23, 42, 0.48);
+  --chakra-colors-whiteAlpha-600: rgba(15, 23, 42, 0.58);
+  --chakra-colors-whiteAlpha-700: rgba(15, 23, 42, 0.72);
+  --chakra-colors-whiteAlpha-800: rgba(15, 23, 42, 0.84);
+  --chakra-colors-whiteAlpha-900: rgba(15, 23, 42, 0.92);
+}
+
+/* Profile page: override Chakra's whiteAlpha CSS variables globally in light mode */
+.light {
+  --chakra-colors-whiteAlpha-50:  rgba(15, 23, 42, 0.03);
+  --chakra-colors-whiteAlpha-100: rgba(15, 23, 42, 0.06);
+  --chakra-colors-whiteAlpha-200: rgba(15, 23, 42, 0.10);
+  --chakra-colors-whiteAlpha-300: rgba(15, 23, 42, 0.16);
+  --chakra-colors-whiteAlpha-400: rgba(15, 23, 42, 0.36);
+  --chakra-colors-whiteAlpha-500: rgba(15, 23, 42, 0.48);
+  --chakra-colors-whiteAlpha-600: rgba(15, 23, 42, 0.58);
+  --chakra-colors-whiteAlpha-700: rgba(15, 23, 42, 0.72);
+  --chakra-colors-whiteAlpha-800: rgba(15, 23, 42, 0.84);
+  --chakra-colors-whiteAlpha-900: rgba(15, 23, 42, 0.92);
+  --chakra-colors-blackAlpha-900: rgba(255, 255, 255, 0.85);
+}
+
+/* Profile page header share/edit buttons */
+.light .profile-header-btn {
+  border-color: rgba(15, 23, 42, 0.15) !important;
+  background: rgba(15, 23, 42, 0.04) !important;
+  color: rgba(15, 23, 42, 0.7) !important;
+}
+
+/* Career Timeline: cards inside the chart */
+.light [style*="bg-blob"] {
+  opacity: 0.05;
+}
+
+/* Modals / dialogs that use hardcoded #1a1a1a dark bg for dropdowns */
+.light [style*="background: rgb(26, 26, 26)"],
+.light [style*="background: #1a1a1a"],
+.light [style*="background:rgb(26, 26, 26)"] {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+/* Timeline axis / chart text */
+.light .profile-timeline-year {
+  color: rgba(15, 23, 42, 0.45) !important;
+}
+
+/* Profile strength progress bar track in light mode */
+.light .profile-strength-track {
+  background: rgba(15, 23, 42, 0.08) !important;
+  border-color: rgba(15, 23, 42, 0.10) !important;
+}
+
+/* Skills tags */
+.light .skill-tag {
+  background: rgba(15, 23, 42, 0.05) !important;
+  border-color: rgba(15, 23, 42, 0.10) !important;
+  color: var(--color-text-primary) !important;
+}
+
+/* Dialog modal content in light mode */
+.light [data-scope="dialog"][data-part="content"],
+.light [role="dialog"] {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.10) !important;
+  color: var(--color-text-primary) !important;
+}
+
+/* Input fields inside modals */
+.light [role="dialog"] input,
+.light [role="dialog"] textarea {
+  background: rgba(15, 23, 42, 0.03) !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  color: var(--color-text-primary) !important;
+}
+
+/* Company account card gradient override */
+.light .company-switcher-card {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.06) 0%, rgba(255, 255, 255, 0.8) 100%) !important;
+  border-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+/* Company picker dropdown in light mode */
+.light .company-picker-dropdown {
+  background: rgba(255, 255, 255, 0.97) !important;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.15) !important;
+  border-color: rgba(59, 130, 246, 0.15) !important;
+}
+
+/* Scrollbar in light mode */
+.light ::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.15);
+}
+.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 23, 42, 0.25);
 }
 

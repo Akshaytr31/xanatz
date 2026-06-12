@@ -79,17 +79,15 @@ const CareerTimeline = ({ user, onUpdate }) => {
 
   const handleSubmit = async () => {
     const today = new Date().toISOString().split("T")[0];
-    
+
     if (!formData.title || !formData.company || !formData.start_date) {
       alert("Please fill in all required fields (*)");
       return;
     }
-
     if (formData.start_date > today) {
       alert("Start date cannot be in the future.");
       return;
     }
-    
     if (!formData.current && formData.end_date && formData.end_date > today) {
       alert("End date cannot be in the future.");
       return;
@@ -111,7 +109,6 @@ const CareerTimeline = ({ user, onUpdate }) => {
           const prevEndDate = new Date(newStartDate);
           prevEndDate.setDate(prevEndDate.getDate() - 1);
           const formattedEndDate = prevEndDate.toISOString().split("T")[0];
-
           await api.patch(`experience/${currentExp.id}/`, {
             current: false,
             end_date: formattedEndDate,
@@ -142,23 +139,31 @@ const CareerTimeline = ({ user, onUpdate }) => {
   const experiences = user?.profile?.experiences || [];
 
   return (
-    <Box 
-      className="glass-card"
-      p={{ base: 5, md: 8 }} 
-      mt={6} 
-      position="relative" 
-    >
+    <Box className="glass-card" p={{ base: 5, md: 8 }} mt={6} position="relative">
+      {/* ── Section Header ── */}
       <Flex justify="space-between" align="center" mb={8}>
         <HStack gap={3}>
-          <Box p={2} bgGradient="linear(to-br, var(--color-accent), purple.500)" borderRadius="md" color="var(--color-text-primary)" boxShadow="0 0 15px rgba(59, 130, 246, 0.3)">
+          <Box
+            p={2}
+            borderRadius="md"
+            color="white"
+            style={{ background: "linear-gradient(135deg, var(--color-accent), #8b5cf6)" }}
+            boxShadow="0 0 15px rgba(59, 130, 246, 0.3)"
+          >
             <Target size={20} />
           </Box>
           <VStack align="start" gap={0}>
-            <Text fontSize="lg" fontWeight="black" color="var(--color-text-primary)" letterSpacing="tight" fontFamily="var(--font-heading)">
+            <Text
+              fontSize="lg"
+              fontWeight="black"
+              color="var(--color-text-primary)"
+              letterSpacing="tight"
+              fontFamily="var(--font-heading)"
+            >
               CAREER ARCHITECTURE
             </Text>
-            <Text fontSize="10px" color="whiteAlpha.500" fontWeight="bold" letterSpacing="widest">
-              PROFESSIONAL MILESTONES & GROWTH
+            <Text fontSize="10px" color="var(--color-text-muted)" fontWeight="bold" letterSpacing="widest">
+              PROFESSIONAL MILESTONES &amp; GROWTH
             </Text>
           </VStack>
         </HStack>
@@ -171,96 +176,229 @@ const CareerTimeline = ({ user, onUpdate }) => {
           px={4}
           h="8"
           onClick={() => handleOpen()}
-          _hover={{ bg: "var(--color-accent)", transform: "translateY(-1px)" }}
+          _hover={{ opacity: 0.9, transform: "translateY(-1px)" }}
           transition="all 0.2s"
           fontSize="10px"
           fontWeight="black"
         >
-          <Plus size={14} style={{ marginRight: '6px' }} /> NEW MILESTONE
+          <Plus size={14} style={{ marginRight: "6px" }} /> NEW MILESTONE
         </Button>
       </Flex>
 
-      <Box overflowX="auto" pb={4} css={{
-        '&::-webkit-scrollbar': { height: '6px' },
-        '&::-webkit-scrollbar-thumb': { background: 'var(--color-card-border)', borderRadius: '10px' }
-      }}>
+      {/* ── Timeline Area ── */}
+      <Box
+        overflowX="auto"
+        pb={4}
+        css={{
+          "&::-webkit-scrollbar": { height: "6px" },
+          "&::-webkit-scrollbar-thumb": {
+            background: "var(--color-card-border)",
+            borderRadius: "10px",
+          },
+        }}
+      >
         {experiences.length === 0 ? (
           <Flex h="200px" align="center" justify="center" direction="column" gap={4}>
-            <Calendar size={48} className="text-white/10" />
-            <Text color="whiteAlpha.400" fontWeight="medium">Start building your career timeline...</Text>
+            <Calendar size={48} color="var(--color-text-muted)" style={{ opacity: 0.25 }} />
+            <Text color="var(--color-text-muted)" fontWeight="medium">
+              Start building your career timeline...
+            </Text>
           </Flex>
         ) : (
           <TimelineChart experiences={experiences} handleOpen={handleOpen} />
         )}
       </Box>
 
-      {/* Edit Modal */}
+      {/* ── Edit Modal ── */}
       <Dialog open={isDialogOpen} onOpenChange={(e) => setIsDialogOpen(e.open)} size="md">
         <Portal>
-          <DialogBackdrop bg="blackAlpha.900" backdropFilter="blur(10px)" zIndex={99999} />
+          <DialogBackdrop
+            backdropFilter="blur(10px)"
+            zIndex={99999}
+            style={{ background: "rgba(0,0,0,0.5)" }}
+          />
           <DialogPositioner display="flex" alignItems="center" justifyContent="center" zIndex={100000}>
-            <DialogContent bg="var(--color-primary)" border="1px solid" borderColor="whiteAlpha.300" borderRadius="lg" maxW="550px" m="auto" overflow="hidden">
-              <DialogHeader color="white" py={6} px={8} borderBottom="1px solid" borderColor="whiteAlpha.100">
+            <DialogContent
+              bg="var(--color-surface)"
+              border="1px solid"
+              borderColor="var(--color-card-border)"
+              borderRadius="xl"
+              maxW="550px"
+              m="auto"
+              overflow="hidden"
+              boxShadow="0 25px 60px rgba(0,0,0,0.25)"
+            >
+              <DialogHeader
+                color="var(--color-text-primary)"
+                py={6}
+                px={8}
+                borderBottom="1px solid"
+                borderColor="var(--color-card-border)"
+                fontWeight="bold"
+                fontSize="lg"
+              >
                 {editingItem ? "Refine Experience" : "Add New Milestone"}
               </DialogHeader>
-              <DialogCloseTrigger color="whiteAlpha.600" top={6} right={6} />
-              <DialogBody p={8}>
+              <DialogCloseTrigger color="var(--color-text-muted)" top={6} right={6} />
+
+              <DialogBody p={8} bg="var(--color-surface)">
                 <VStack gap={6}>
+                  {/* Role Title */}
                   <Box w="full">
-                    <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">ROLE TITLE *</Text>
-                    <Input name="title" value={formData.title} onChange={handleChange} placeholder="Ex: Lead Solutions Architect" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" />
+                    <Text mb={2} color="var(--color-text-muted)" fontSize="xs" fontWeight="bold" letterSpacing="widest">
+                      ROLE TITLE *
+                    </Text>
+                    <Input
+                      name="title"
+                      value={formData.title}
+                      onChange={handleChange}
+                      placeholder="Ex: Lead Solutions Architect"
+                      bg="var(--color-input-bg)"
+                      border="1px solid"
+                      borderColor="var(--color-input-border)"
+                      color="var(--color-text-primary)"
+                      _focus={{ borderColor: "var(--color-accent)", boxShadow: "0 0 0 1px var(--color-accent)" }}
+                    />
                   </Box>
+
+                  {/* Organization */}
                   <Box w="full">
-                    <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">ORGANIZATION *</Text>
-                    <Input name="company" value={formData.company} onChange={handleChange} placeholder="Ex: Global Tech Corp" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" />
+                    <Text mb={2} color="var(--color-text-muted)" fontSize="xs" fontWeight="bold" letterSpacing="widest">
+                      ORGANIZATION *
+                    </Text>
+                    <Input
+                      name="company"
+                      value={formData.company}
+                      onChange={handleChange}
+                      placeholder="Ex: Global Tech Corp"
+                      bg="var(--color-input-bg)"
+                      border="1px solid"
+                      borderColor="var(--color-input-border)"
+                      color="var(--color-text-primary)"
+                      _focus={{ borderColor: "var(--color-accent)", boxShadow: "0 0 0 1px var(--color-accent)" }}
+                    />
                   </Box>
+
+                  {/* Company Website */}
                   <Box w="full">
-                    <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">COMPANY WEBSITE</Text>
-                    <Input name="company_website" value={formData.company_website} onChange={handleChange} placeholder="https://example.com" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" />
+                    <Text mb={2} color="var(--color-text-muted)" fontSize="xs" fontWeight="bold" letterSpacing="widest">
+                      COMPANY WEBSITE
+                    </Text>
+                    <Input
+                      name="company_website"
+                      value={formData.company_website}
+                      onChange={handleChange}
+                      placeholder="https://example.com"
+                      bg="var(--color-input-bg)"
+                      border="1px solid"
+                      borderColor="var(--color-input-border)"
+                      color="var(--color-text-primary)"
+                      _focus={{ borderColor: "var(--color-accent)", boxShadow: "0 0 0 1px var(--color-accent)" }}
+                    />
                   </Box>
+
+                  {/* Dates */}
                   <HStack w="full" gap={6}>
                     <Box flex="1">
-                      <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">START DATE *</Text>
-                      <Input 
-                        name="start_date" 
-                        type="date" 
-                        value={formData.start_date} 
-                        onChange={handleChange} 
+                      <Text mb={2} color="var(--color-text-muted)" fontSize="xs" fontWeight="bold" letterSpacing="widest">
+                        START DATE *
+                      </Text>
+                      <Input
+                        name="start_date"
+                        type="date"
+                        value={formData.start_date}
+                        onChange={handleChange}
                         max={new Date().toISOString().split("T")[0]}
-                        bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white"
+                        bg="var(--color-input-bg)"
+                        border="1px solid"
+                        borderColor="var(--color-input-border)"
+                        color="var(--color-text-primary)"
+                        _focus={{ borderColor: "var(--color-accent)" }}
                       />
                     </Box>
                     {!formData.current && (
                       <Box flex="1">
-                        <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">END DATE</Text>
-                        <Input 
-                          name="end_date" 
-                          type="date" 
-                          value={formData.end_date} 
-                          onChange={handleChange} 
+                        <Text mb={2} color="var(--color-text-muted)" fontSize="xs" fontWeight="bold" letterSpacing="widest">
+                          END DATE
+                        </Text>
+                        <Input
+                          name="end_date"
+                          type="date"
+                          value={formData.end_date}
+                          onChange={handleChange}
                           max={new Date().toISOString().split("T")[0]}
-                          bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white"
+                          bg="var(--color-input-bg)"
+                          border="1px solid"
+                          borderColor="var(--color-input-border)"
+                          color="var(--color-text-primary)"
+                          _focus={{ borderColor: "var(--color-accent)" }}
                         />
                       </Box>
                     )}
                   </HStack>
+
+                  {/* Current role checkbox */}
                   <HStack w="full" px={1} gap={3}>
-                    <input type="checkbox" name="current" checked={formData.current} onChange={handleChange} style={{ width: '18px', height: '18px' }} />
-                    <Text fontSize="sm" color="whiteAlpha.700" fontWeight="medium">I am currently navigating this role</Text>
+                    <input
+                      type="checkbox"
+                      name="current"
+                      checked={formData.current}
+                      onChange={handleChange}
+                      style={{ width: "18px", height: "18px", accentColor: "var(--color-accent)" }}
+                    />
+                    <Text fontSize="sm" color="var(--color-text-secondary)" fontWeight="medium">
+                      I am currently navigating this role
+                    </Text>
                   </HStack>
+
+                  {/* Description */}
                   <Box w="full">
-                    <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">IMPACT & RESPONSIBILITIES</Text>
-                    <Textarea name="description" value={formData.description} onChange={handleChange} minH="120px" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="var(--color-text-primary)" placeholder="Describe your key achievements..." />
+                    <Text mb={2} color="var(--color-text-muted)" fontSize="xs" fontWeight="bold" letterSpacing="widest">
+                      IMPACT &amp; RESPONSIBILITIES
+                    </Text>
+                    <Textarea
+                      name="description"
+                      value={formData.description}
+                      onChange={handleChange}
+                      minH="120px"
+                      bg="var(--color-input-bg)"
+                      border="1px solid"
+                      borderColor="var(--color-input-border)"
+                      color="var(--color-text-primary)"
+                      placeholder="Describe your key achievements..."
+                      _focus={{ borderColor: "var(--color-accent)", boxShadow: "0 0 0 1px var(--color-accent)" }}
+                    />
                   </Box>
+
                   {editingItem && (
-                    <Button mt={2} w="full" colorPalette="red" variant="ghost" onClick={() => handleDelete(editingItem.id)} _hover={{ bg: "rgba(var(--color-accent-rgb), 0.1)" }}>
+                    <Button
+                      mt={2}
+                      w="full"
+                      colorPalette="red"
+                      variant="ghost"
+                      onClick={() => handleDelete(editingItem.id)}
+                      _hover={{ bg: "rgba(239,68,68,0.1)" }}
+                    >
                       Remove Milestone
                     </Button>
                   )}
                 </VStack>
               </DialogBody>
-              <DialogFooter p={8} bg="whiteAlpha.50">
-                <Button bg="var(--color-accent)" color="white" w="full" size="lg" onClick={handleSubmit} isLoading={loading}>
+
+              <DialogFooter
+                p={8}
+                bg="var(--color-card-bg)"
+                borderTop="1px solid"
+                borderColor="var(--color-card-border)"
+              >
+                <Button
+                  bg="var(--color-accent)"
+                  color="white"
+                  w="full"
+                  size="lg"
+                  onClick={handleSubmit}
+                  isLoading={loading}
+                >
                   {editingItem ? "Save Refinements" : "Launch Milestone"}
                 </Button>
               </DialogFooter>
@@ -272,175 +410,210 @@ const CareerTimeline = ({ user, onUpdate }) => {
   );
 };
 
+/* ─── Timeline Chart ─────────────────────────────────────────────────────── */
 const TimelineChart = ({ experiences, handleOpen }) => {
-  const parsedExps = experiences.map((exp) => {
-    const startDate = new Date(exp.start_date);
-    const endDate = exp.current || !exp.end_date ? new Date() : new Date(exp.end_date);
-    
-    const startFraction = startDate.getFullYear() + (startDate.getMonth() / 12);
-    const endFraction = endDate.getFullYear() + ((endDate.getMonth() + 1) / 12);
-
-    return { ...exp, startFraction, endFraction };
-  }).sort((a, b) => a.startFraction - b.startFraction);
+  const parsedExps = experiences
+    .map((exp) => {
+      const startDate = new Date(exp.start_date);
+      const endDate = exp.current || !exp.end_date ? new Date() : new Date(exp.end_date);
+      const startFraction = startDate.getFullYear() + startDate.getMonth() / 12;
+      const endFraction = endDate.getFullYear() + (endDate.getMonth() + 1) / 12;
+      return { ...exp, startFraction, endFraction };
+    })
+    .sort((a, b) => a.startFraction - b.startFraction);
 
   const currentYear = new Date().getFullYear();
-  const minYear = Math.floor(Math.min(...parsedExps.map(e => e.startFraction)));
-  let maxYear = Math.max(...parsedExps.map(e => Math.ceil(e.endFraction)));
-  
+  const minYear = Math.floor(Math.min(...parsedExps.map((e) => e.startFraction)));
+  let maxYear = Math.max(...parsedExps.map((e) => Math.ceil(e.endFraction)));
   if (maxYear > currentYear) maxYear = currentYear;
-  
+
   const startAxis = minYear;
   const endAxis = maxYear > minYear ? maxYear : minYear + 1;
   const totalYears = endAxis - startAxis + 1;
-
   const years = Array.from({ length: totalYears }, (_, i) => startAxis + i);
 
-  // Dynamic Level calculation to prevent overlap
-  const labelWidthPercent = 18; // Estimate based on minW=140px on minW=800px chart
-  const occupiedUntil = []; // Tracks the right-most edge of labels per level
-
+  // Prevent label overlap
+  const labelWidthPercent = 18;
+  const occupiedUntil = [];
   const experiencesWithLevels = parsedExps.map((exp) => {
     const leftPercent = ((exp.startFraction - startAxis) / totalYears) * 100;
-    
     let level = 0;
-    // Find the first level where this label won't overlap with others
-    while (occupiedUntil[level] !== undefined && leftPercent < occupiedUntil[level]) {
-      level++;
-    }
+    while (occupiedUntil[level] !== undefined && leftPercent < occupiedUntil[level]) level++;
     occupiedUntil[level] = leftPercent + labelWidthPercent;
-    
     return { ...exp, leftPercent, level };
   });
 
-  const maxLevel = Math.max(...experiencesWithLevels.map(e => e.level), 1);
+  const maxLevel = Math.max(...experiencesWithLevels.map((e) => e.level), 1);
 
-  // Premium palette
   const colors = [
-    "linear-gradient(90deg, var(--color-accent), #60a5fa)",
+    "linear-gradient(90deg, #3b82f6, #60a5fa)",
     "linear-gradient(90deg, #8b5cf6, #a78bfa)",
     "linear-gradient(90deg, #06b6d4, #22d3ee)",
     "linear-gradient(90deg, #10b981, #34d399)",
+  ];
+  const glowColors = [
+    "rgba(59, 130, 246, 0.35)",
+    "rgba(139, 92, 246, 0.35)",
+    "rgba(6, 182, 212, 0.35)",
+    "rgba(16, 185, 129, 0.35)",
   ];
 
   return (
     <Box position="relative" minW="800px" minH={`${220 + maxLevel * 70}px`} mt={4}>
       {experiencesWithLevels.map((exp, index) => {
-        const leftPercent = exp.leftPercent;
         let widthPercent = ((exp.endFraction - exp.startFraction) / totalYears) * 100;
-        
         if (widthPercent < (1.5 / 12 / totalYears) * 100) {
           widthPercent = (1.5 / 12 / totalYears) * 100;
         }
-        
         const color = colors[index % colors.length];
-        const level = exp.level;
+        const glow = glowColors[index % glowColors.length];
+        const { leftPercent, level } = exp;
 
         return (
-          <Box key={exp.id} position="absolute" left={`${leftPercent}%`} bottom="50px" width={`${widthPercent}%`} h="100%">
-            <MotionBox 
-              position="absolute" 
-              bottom={`${80 + level * 70}px`} 
-              left="0" 
+          <Box
+            key={exp.id}
+            position="absolute"
+            left={`${leftPercent}%`}
+            bottom="50px"
+            width={`${widthPercent}%`}
+            h="100%"
+          >
+            {/* Label Card */}
+            <MotionBox
+              position="absolute"
+              bottom={`${80 + level * 70}px`}
+              left="0"
               zIndex={10}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <VStack align="start" gap={2} bg="whiteAlpha.50" p={3} borderRadius="md" border="1px solid" borderColor="whiteAlpha.100" backdropFilter="blur(10px)" minW="140px">
+              <VStack
+                align="start"
+                gap={1.5}
+                p={3}
+                borderRadius="lg"
+                border="1px solid"
+                borderColor="var(--color-card-border)"
+                backdropFilter="blur(12px)"
+                minW="145px"
+                style={{
+                  background: "var(--color-surface)",
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
+                }}
+              >
                 <HStack w="full" justify="space-between" align="center">
-                  <Text fontWeight="black" color="var(--color-text-primary)" fontSize="10px" letterSpacing="tight">{exp.company.toUpperCase()}</Text>
+                  <Text fontWeight="black" color="var(--color-text-primary)" fontSize="10px" letterSpacing="tight">
+                    {exp.company.toUpperCase()}
+                  </Text>
                   <IconButton
                     aria-label="Edit milestone"
                     variant="ghost"
                     size="xs"
-                    color="whiteAlpha.400"
+                    color="var(--color-text-muted)"
                     h="16px"
                     w="16px"
                     minW="16px"
-                    _hover={{ color: "white", bg: "whiteAlpha.100" }}
+                    _hover={{ color: "var(--color-text-primary)", bg: "var(--color-card-hover-bg)" }}
                     onClick={() => handleOpen(exp)}
                   >
                     <Edit2 size={10} />
                   </IconButton>
                 </HStack>
-                <Text color="var(--color-accent)" fontSize="9px" fontWeight="bold" lineHeight="1.1">{exp.title}</Text>
+                <Text color="var(--color-accent)" fontSize="9px" fontWeight="bold" lineHeight="1.2">
+                  {exp.title}
+                </Text>
               </VStack>
             </MotionBox>
 
             {/* Connector Line */}
-            <Box 
-              position="absolute" 
-              left="0" 
-              bottom="20px" 
-              height={`${65 + level * 70}px`} 
-              borderLeft="2px solid" 
-              borderColor="whiteAlpha.200"
+            <Box
+              position="absolute"
+              left="0"
+              bottom="20px"
+              height={`${65 + level * 70}px`}
+              borderLeft="2px solid"
+              style={{ borderLeftColor: "var(--color-accent)", opacity: 0.5 }}
               _after={{
                 content: '""',
-                position: 'absolute',
+                position: "absolute",
                 top: 0,
-                left: '-4px',
-                width: '6px',
-                height: '6px',
-                borderRadius: 'full',
-                bg: 'var(--color-accent)'
+                left: "-4px",
+                width: "6px",
+                height: "6px",
+                borderRadius: "full",
+                bg: "var(--color-accent)",
               }}
             />
-            
-            {/* Timeline Bar with Glow */}
-            <MotionBox 
-              position="absolute" 
-              bottom="0" 
-              left="0" 
-              w="100%" 
-              h="12px" 
-              bg={color} 
+
+            {/* Timeline Bar */}
+            <MotionBox
+              position="absolute"
+              bottom="0"
+              left="0"
+              w="100%"
+              h="14px"
               borderRadius="md"
-              zIndex={2} 
+              zIndex={2}
               initial={{ width: 0 }}
               animate={{ width: "100%" }}
               transition={{ duration: 1, delay: index * 0.1 }}
-              boxShadow="0 0 15px rgba(59, 130, 246, 0.2)"
+              style={{ background: color, boxShadow: `0 0 18px ${glow}` }}
             />
           </Box>
         );
       })}
 
       {/* Background Track */}
-      <Box position="absolute" bottom="50px" left="0" w="100%" h="10px" bg="whiteAlpha.50" borderRadius="md" zIndex={1} />
+      <Box
+        position="absolute"
+        bottom="50px"
+        left="0"
+        w="100%"
+        h="14px"
+        borderRadius="md"
+        zIndex={1}
+        style={{ background: "var(--color-card-bg)", border: "1px solid var(--color-card-border)" }}
+      />
 
-      {/* Axis */}
-      <Flex position="absolute" bottom="0" left="0" w="100%" h="32px" bg="whiteAlpha.50" align="stretch" borderRadius="md" border="1px solid" borderColor="whiteAlpha.100">
+      {/* Axis Bar */}
+      <Flex
+        position="absolute"
+        bottom="0"
+        left="0"
+        w="100%"
+        h="34px"
+        align="stretch"
+        borderRadius="md"
+        border="1px solid"
+        borderColor="var(--color-card-border)"
+        overflow="hidden"
+        style={{ background: "var(--color-card-bg)" }}
+      >
         {years.map((year, index) => (
-          <Box 
-            key={year} 
-            flex={1} 
+          <Box
+            key={year}
+            flex={1}
             position="relative"
-            borderRight={index < years.length - 1 ? "1px solid" : "none"} 
-            borderColor="whiteAlpha.100"
+            borderRight={index < years.length - 1 ? "1px solid" : "none"}
+            borderColor="var(--color-card-border)"
           >
-            {/* 12 Month Ticks */}
+            {/* Month sub-ticks */}
             <Flex position="absolute" top="0" left="0" w="100%" h="100%">
               {Array.from({ length: 12 }).map((_, mIndex) => (
-                <Box 
-                  key={mIndex} 
-                  flex={1} 
-                  borderRight={mIndex < 11 ? "1px solid" : "none"} 
-                  borderColor="whiteAlpha.100" 
-                  opacity={0.2}
+                <Box
+                  key={mIndex}
+                  flex={1}
+                  borderRight={mIndex < 11 ? "1px solid" : "none"}
+                  borderColor="var(--color-card-border)"
+                  opacity={0.4}
                 />
               ))}
             </Flex>
-            
-            {/* Year Text centered */}
+
+            {/* Year Label */}
             <Flex position="absolute" top="0" left="0" w="100%" h="100%" align="center" justify="center">
-              <Text 
-                fontSize="xs" 
-                fontWeight="black" 
-                color="whiteAlpha.400" 
-                letterSpacing="widest"
-                zIndex={1}
-              >
+              <Text fontSize="xs" fontWeight="black" color="var(--color-text-muted)" letterSpacing="widest" zIndex={1}>
                 {year}
               </Text>
             </Flex>

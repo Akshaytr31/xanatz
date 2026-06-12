@@ -191,9 +191,9 @@ const Profile = () => {
                     className="glass-card"
                     p={5}
                     border="1px solid"
-                    borderColor="rgba(66,153,225,0.3)"
+                    borderColor="rgba(59,130,246,0.25)"
                     style={{
-                      background: "linear-gradient(135deg, rgba(66,153,225,0.08) 0%, rgba(15,23,42,0.6) 100%)",
+                      background: "linear-gradient(135deg, rgba(59,130,246,0.07) 0%, var(--color-glass) 100%)",
                     }}
                   >
                     <Text
@@ -219,12 +219,12 @@ const Profile = () => {
                         onClick={() => navigate(`/company/${accessibleCompanies[0].id}`)}
                         style={{
                           background:
-                            "linear-gradient(135deg, var(--color-accent) 0%, rgba(100,150,255,0.9) 100%)",
-                          boxShadow: "0 4px 20px rgba(66,153,225,0.3)",
+                            "linear-gradient(135deg, var(--color-accent) 0%, #60a5fa 100%)",
+                          boxShadow: "0 4px 20px rgba(59,130,246,0.3)",
                         }}
                         _hover={{
                           transform: "translateY(-1px)",
-                          boxShadow: "0 6px 25px rgba(66,153,225,0.5)",
+                          boxShadow: "0 6px 25px rgba(59,130,246,0.5)",
                         }}
                         transition="all 0.2s"
                       >
@@ -245,12 +245,12 @@ const Profile = () => {
                           onClick={() => setShowCompanyPicker((v) => !v)}
                           style={{
                             background:
-                              "linear-gradient(135deg, var(--color-accent) 0%, rgba(100,150,255,0.9) 100%)",
-                            boxShadow: "0 4px 20px rgba(66,153,225,0.3)",
+                              "linear-gradient(135deg, var(--color-accent) 0%, #60a5fa 100%)",
+                            boxShadow: "0 4px 20px rgba(59,130,246,0.3)",
                           }}
                           _hover={{
                             transform: "translateY(-1px)",
-                            boxShadow: "0 6px 25px rgba(66,153,225,0.5)",
+                            boxShadow: "0 6px 25px rgba(59,130,246,0.5)",
                           }}
                           transition="all 0.2s"
                         >
@@ -267,13 +267,14 @@ const Profile = () => {
                             left={0}
                             right={0}
                             borderRadius="xl"
-                            border="1px solid rgba(66,153,225,0.25)"
+                            border="1px solid"
+                            borderColor="var(--color-card-border)"
                             overflow="hidden"
                             zIndex={10}
                             style={{
-                              background: "rgba(15,23,42,0.97)",
+                              background: "var(--color-surface)",
                               backdropFilter: "blur(16px)",
-                              boxShadow: "0 20px 50px rgba(0,0,0,0.6)",
+                              boxShadow: "0 16px 48px rgba(0,0,0,0.15)",
                             }}
                           >
                             {accessibleCompanies.map((company) => (
@@ -300,8 +301,11 @@ const Profile = () => {
                                       borderRadius="lg"
                                       style={{
                                         background: company.is_owner
-                                          ? "rgba(66,153,225,0.15)"
-                                          : "rgba(239,68,68,0.15)",
+                                          ? "rgba(59,130,246,0.12)"
+                                          : "rgba(239,68,68,0.12)",
+                                        border: company.is_owner
+                                          ? "1px solid rgba(59,130,246,0.25)"
+                                          : "1px solid rgba(239,68,68,0.25)",
                                       }}
                                       display="flex"
                                       alignItems="center"
@@ -309,7 +313,7 @@ const Profile = () => {
                                       flexShrink={0}
                                     >
                                       <Text
-                                        color={company.is_owner ? "rgba(66,153,225,0.9)" : "rgba(239,68,68,0.9)"}
+                                        color={company.is_owner ? "var(--color-accent)" : "#ef4444"}
                                         fontWeight="black"
                                         fontSize="sm"
                                       >
@@ -328,7 +332,10 @@ const Profile = () => {
                                   {!company.is_owner && (
                                     <Box
                                       px={1.5} py={0.5} borderRadius="md"
-                                      bg="rgba(239,68,68,0.2)" border="1px solid rgba(239,68,68,0.4)"
+                                      style={{
+                                        background: "rgba(239,68,68,0.1)",
+                                        border: "1px solid rgba(239,68,68,0.3)",
+                                      }}
                                       flexShrink={0}
                                     >
                                       <Text fontSize="8px" fontWeight="black" color="#ef4444" letterSpacing="widest">
@@ -368,12 +375,12 @@ const Profile = () => {
                 <Box
                   position="relative"
                   h="3.5"
-                  bg="whiteAlpha.100"
+                  bg="var(--color-card-bg)"
                   borderRadius="md"
                   mb={4}
                   overflow="hidden"
                   border="1px solid"
-                  borderColor="whiteAlpha.200"
+                  borderColor="var(--color-card-border)"
                 >
                   {/* Base track for visibility */}
                   <Box
@@ -382,7 +389,7 @@ const Profile = () => {
                     left={0}
                     h="full"
                     w="100%"
-                    bg="whiteAlpha.50"
+                    bg="var(--color-card-bg)"
                   />
                   <MotionBox
                     bg="var(--color-accent)"
@@ -408,7 +415,7 @@ const Profile = () => {
                       {user?.profile_completion_percentage || 0}%
                     </Text>
                     <Text
-                      color="whiteAlpha.400"
+                      color="var(--color-text-muted)"
                       fontSize="9px"
                       fontWeight="bold"
                       letterSpacing="widest"

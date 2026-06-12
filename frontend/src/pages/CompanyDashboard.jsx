@@ -41,13 +41,13 @@ const StatCard = ({ icon: Icon, label, value, color = "rgba(66,153,225,0.8)", de
     minW="160px"
     p={6}
     borderRadius="2xl"
-    border="1px solid var(--color-glass)"
+    border="1px solid var(--color-card-border)"
     position="relative"
     overflow="hidden"
     style={{
-      background: "linear-gradient(135deg, var(--color-glass) 0%, rgba(255,255,255,0.005) 100%)",
+      background: "var(--color-surface)",
       backdropFilter: "blur(24px)",
-      boxShadow: "0 8px 32px 0 var(--color-card-hover-bg)"
+      boxShadow: "0 8px 32px 0 rgba(0,0,0,0.08)"
     }}
     _hover={{ 
       borderColor: `${color}40`,
@@ -181,13 +181,13 @@ const CompanyDashboard = () => {
           {/* Banner bg */}
           <Box position="absolute" inset={0}
             style={{
-              background: `linear-gradient(180deg, ${accentColor}25 0%, rgba(15,23,42,0.95) 100%)`,
+              background: `linear-gradient(180deg, ${accentColor}18 0%, var(--color-primary) 100%)`,
             }}
           />
           {/* Grid pattern overlay */}
-          <Box position="absolute" inset={0} opacity={0.06}
+          <Box position="absolute" inset={0} opacity={0.12}
             style={{
-              backgroundImage: "linear-gradient(var(--color-card-border) 1px, transparent 1px), linear-gradient(90deg, var(--color-card-border) 1px, transparent 1px)",
+              backgroundImage: `linear-gradient(${accentColor}55 1px, transparent 1px), linear-gradient(90deg, ${accentColor}55 1px, transparent 1px)`,
               backgroundSize: "45px 45px",
             }}
           />
@@ -212,7 +212,7 @@ const CompanyDashboard = () => {
                   border="1px solid var(--color-card-border)"
                   bg="var(--color-input-bg)"
                   backdropFilter="blur(10px)"
-                  _hover={{ color: "white", bg: "var(--color-card-border)", transform: "translateX(-3px)", borderColor: "var(--color-card-border)" }} 
+                  _hover={{ color: "var(--color-text-primary)", bg: "var(--color-card-hover-bg)", transform: "translateX(-3px)", borderColor: "var(--color-card-border)" }} 
                   transition="all 0.3s"
                   onClick={() => navigate("/profile")}
                 >
@@ -235,8 +235,8 @@ const CompanyDashboard = () => {
                   <Box w="110px" h="110px" borderRadius="2xl" overflow="hidden" flexShrink={0}
                     border="3px solid var(--color-card-border)"
                     style={{
-                      background: `linear-gradient(135deg, ${accentColor}25, rgba(15,23,42,0.98))`,
-                      boxShadow: `0 20px 50px rgba(0,0,0,0.5), 0 0 0 1px var(--color-glass)`,
+                      background: `linear-gradient(135deg, ${accentColor}10, var(--color-surface))`,
+                      boxShadow: "0 20px 50px rgba(0,0,0,0.05)",
                     }}
                   >
                     {company.logo_url ? (
@@ -252,8 +252,8 @@ const CompanyDashboard = () => {
                   {/* Active dot */}
                   {company.is_active && (
                     <Box position="absolute" bottom="5px" right="5px" w="15px" h="15px" borderRadius="full" bg="green.400"
-                      border="2px solid rgba(15,23,42,1)"
-                      style={{ boxShadow: "0 0 12px rgba(72,199,116,0.8)" }}
+                      border="2px solid var(--color-primary)"
+                      style={{ boxShadow: "0 0 12px rgba(72,199,116,0.5)" }}
                     />
                   )}
                 </Box>
@@ -262,19 +262,19 @@ const CompanyDashboard = () => {
                   <HStack gap={2} flexWrap="wrap">
                     {isOwner && (
                       <Badge px={2.5} py={0.5} fontSize="3xs" fontWeight="black" borderRadius="full"
-                        style={{ background: `linear-gradient(135deg, ${accentColor}30, ${accentColor}10)`, color: accentColor, border: `1px solid ${accentColor}40` }}>
+                        style={{ background: `${accentColor}10`, color: accentColor, border: `1px solid ${accentColor}20` }}>
                         OWNER
                       </Badge>
                     )}
                     {isAdmin && !isOwner && (
                       <Badge px={2.5} py={0.5} fontSize="3xs" fontWeight="black" borderRadius="full"
-                        style={{ background: `linear-gradient(135deg, rgba(239,68,68,0.25), rgba(239,68,68,0.08))`, color: "#ef4444", border: `1px solid rgba(239,68,68,0.35)` }}>
+                        style={{ background: "rgba(239,68,68,0.08)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.2)" }}>
                         ADMIN
                       </Badge>
                     )}
                     {company.industry && (
                       <Badge px={2.5} py={0.5} fontSize="3xs" fontWeight="black" borderRadius="full"
-                        style={{ background: "linear-gradient(135deg, var(--color-card-border), var(--color-glass))", color: "var(--color-text-secondary)", border: "1px solid var(--color-card-border)" }}>
+                        style={{ background: "var(--color-card-bg)", color: "var(--color-text-secondary)", border: "1px solid var(--color-card-border)" }}>
                         {INDUSTRY_LABELS[company.industry] || company.industry}
                       </Badge>
                     )}
@@ -296,23 +296,22 @@ const CompanyDashboard = () => {
                   <Box as="a" href={company.website} target="_blank" rel="noopener noreferrer"
                     w="44px" h="44px" borderRadius="full" display="flex" alignItems="center" justifyContent="center"
                     border="1px solid var(--color-card-border)"
-                    style={{ background: "var(--color-input-bg)", backdropFilter: "blur(10px)", cursor: "pointer", transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" }}
-                    _hover={{ borderColor: "var(--color-card-border)", background: "var(--color-card-border)", transform: "translateY(-3px)" }}
+                    style={{ background: "var(--color-card-bg)", backdropFilter: "blur(10px)", cursor: "pointer", transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" }}
+                    _hover={{ borderColor: "var(--color-text-muted)", background: "var(--color-card-hover-bg)", transform: "translateY(-3px)" }}
                     title="Visit Website"
                   >
-                    <Globe size={18} color="var(--color-text-secondary)" />
+                    <Globe size={18} color="var(--color-text-muted)" />
                   </Box>
                 )}
                 {isOwner && (
                   <Box as="button" onClick={() => setIsModalOpen(true)}
                     w="44px" h="44px" borderRadius="full" display="flex" alignItems="center" justifyContent="center"
                     border="1px solid var(--color-card-border)"
-                    style={{ background: "var(--color-input-bg)", backdropFilter: "blur(10px)", cursor: "pointer", transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" }}
+                    style={{ background: "var(--color-card-bg)", backdropFilter: "blur(10px)", cursor: "pointer", transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" }}
                     _hover={{ 
                       borderColor: accentColor, 
-                      background: `${accentColor}20`, 
+                      background: `${accentColor}10`, 
                       transform: "translateY(-3px)",
-                      boxShadow: `0 8px 25px ${accentColor}30`
                     }}
                     title="Edit Profile"
                   >
@@ -328,13 +327,13 @@ const CompanyDashboard = () => {
             <Flex gap={4} flexWrap="wrap">
               <StatCard icon={Users} label="MEMBERS" value={company.members.length} color={accentColor} delay={0.1} />
               {company.founded_year && (
-                <StatCard icon={Calendar} label="FOUNDED" value={company.founded_year} color="rgba(139,92,246,0.9)" delay={0.15} />
+                <StatCard icon={Calendar} label="FOUNDED" value={company.founded_year} color="rgba(139,92,246,0.6)" delay={0.15} />
               )}
               {company.company_size && (
-                <StatCard icon={TrendingUp} label="TEAM SIZE" value={SIZE_LABELS[company.company_size]} color="rgba(16,185,129,0.9)" delay={0.2} />
+                <StatCard icon={TrendingUp} label="TEAM SIZE" value={SIZE_LABELS[company.company_size]} color="rgba(16,185,129,0.6)" delay={0.2} />
               )}
               {company.location && (
-                <StatCard icon={MapPin} label="LOCATION" value={company.location} color="rgba(245,158,11,0.9)" delay={0.25} />
+                <StatCard icon={MapPin} label="LOCATION" value={company.location} color="rgba(245,158,11,0.6)" delay={0.25} />
               )}
             </Flex>
           </MotionBox>
@@ -346,11 +345,11 @@ const CompanyDashboard = () => {
               <GridItem colSpan={{ base: 2, md: 1 }}>
                 <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}
                   h="full"
-                  p={7} borderRadius="2xl" border="1px solid var(--color-glass)"
-                  style={{ background: "linear-gradient(135deg, var(--color-glass) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
+                  p={7} borderRadius="2xl" border="1px solid var(--color-card-border)"
+                  style={{ background: "var(--color-surface)" }}
                 >
                   <HStack gap={3} mb={5}>
-                    <Box w="3px" h="18px" borderRadius="full" style={{ background: `linear-gradient(to bottom, ${accentColor}, transparent)` }} />
+                    <Box w="3px" h="18px" borderRadius="full" style={{ background: accentColor }} />
                     <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest">ABOUT</Text>
                   </HStack>
                   <Text color="var(--color-text-secondary)" fontSize="sm" lineHeight="1.95" fontWeight="normal">
@@ -363,8 +362,8 @@ const CompanyDashboard = () => {
             <GridItem colSpan={{ base: 2, md: company.description ? 1 : 2 }}>
               <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}
                 h="full"
-                p={6} borderRadius="2xl" border="1px solid var(--color-glass)"
-                style={{ background: "linear-gradient(135deg, var(--color-glass) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
+                p={6} borderRadius="2xl" border="1px solid var(--color-card-border)"
+                style={{ background: "var(--color-surface)" }}
               >
                 <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest" mb={5}>COMPANY INFO</Text>
                 <VStack align="stretch" gap={4.5}>
@@ -376,7 +375,7 @@ const CompanyDashboard = () => {
                   ].filter(i => i.value).map(({ icon: Icon, label, value }) => (
                     <Flex key={label} align="center" gap={3.5}>
                       <Box w="36px" h="36px" borderRadius="xl" display="flex" alignItems="center" justifyContent="center" flexShrink={0}
-                        style={{ background: "var(--color-glass)", border: "1px solid var(--color-glass)" }}>
+                      style={{ background: "var(--color-card-bg)", border: "1px solid var(--color-card-border)" }}>
                         <Icon size={14} color="var(--color-text-muted)" />
                       </Box>
                       <VStack align="start" gap={0.5}>
@@ -393,14 +392,14 @@ const CompanyDashboard = () => {
             <GridItem colSpan={{ base: 2, md: hasAccess ? 1 : 2 }}>
               <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.22 }}
                 h="full"
-                p={7} borderRadius="2xl" border="1px solid var(--color-glass)"
-                style={{ background: "linear-gradient(135deg, var(--color-glass) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
+                p={7} borderRadius="2xl" border="1px solid var(--color-card-border)"
+                style={{ background: "var(--color-surface)" }}
               >
                 <HStack gap={3} mb={5} justify="space-between">
                   <HStack gap={3}>
-                    <Box w="3px" h="18px" borderRadius="full" style={{ background: `linear-gradient(to bottom, ${accentColor}, transparent)` }} />
+                    <Box w="3px" h="18px" borderRadius="full" style={{ background: accentColor }} />
                     <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest">JOB OPENINGS</Text>
-                    <Box px={2} py={0.5} borderRadius="full" style={{ background: `${accentColor}18`, border: `1px solid ${accentColor}30` }}>
+                    <Box px={2} py={0.5} borderRadius="full" style={{ background: `${accentColor}10`, border: `1px solid ${accentColor}20` }}>
                       <Text fontSize="10px" fontWeight="black" style={{ color: accentColor }}>{jobs.length}</Text>
                     </Box>
                   </HStack>
@@ -409,8 +408,8 @@ const CompanyDashboard = () => {
                     <Button h="7" px={3.5} borderRadius="full" fontWeight="black" fontSize="3xs" letterSpacing="widest"
                       color="var(--color-text-secondary)"
                       border="1px solid var(--color-card-border)"
-                      bg="var(--color-glass)"
-                      _hover={{ bg: "var(--color-card-border)", color: "white", borderColor: "var(--color-card-border)" }}
+                      bg="var(--color-card-bg)"
+                      _hover={{ bg: "var(--color-card-hover-bg)", color: "var(--color-text-primary)", borderColor: "var(--color-card-border)" }}
                       transition="all 0.2s"
                       onClick={() => navigate(`/company/${id}/openings`)}
                     >
@@ -420,10 +419,10 @@ const CompanyDashboard = () => {
                       <Button h="7" px={3.5} borderRadius="full" fontWeight="black" fontSize="3xs" letterSpacing="widest" color="white"
                         onClick={handleAddJob}
                         style={{
-                          background: `linear-gradient(135deg, ${accentColor}95, ${accentColor}50)`,
-                          border: `1px solid ${accentColor}40`
+                          background: accentColor,
+                          border: `1px solid ${accentColor}`
                         }}
-                        _hover={{ transform: "translateY(-1px)", background: `${accentColor}` }}
+                        _hover={{ transform: "translateY(-1px)", filter: "brightness(1.1)" }}
                         transition="all 0.2s"
                         leftIcon={<Plus size={11} />}
                       >
@@ -436,16 +435,16 @@ const CompanyDashboard = () => {
                 {jobs.length === 0 ? (
                   <Flex direction="column" align="center" py={8} gap={3}>
                     <Box w="60px" h="60px" borderRadius="xl" display="flex" alignItems="center" justifyContent="center"
-                      style={{ background: "var(--color-glass)", border: "1px solid var(--color-glass)" }}>
-                      <Briefcase size={22} color="var(--color-card-border)" />
+                      style={{ background: "var(--color-card-bg)", border: "1px solid var(--color-card-border)" }}>
+                      <Briefcase size={22} color="var(--color-text-muted)" />
                     </Box>
-                    <Text color="var(--color-card-border)" fontSize="sm" fontWeight="medium">No job openings posted yet</Text>
+                    <Text color="var(--color-text-muted)" fontSize="sm" fontWeight="medium">No job openings posted yet</Text>
                   </Flex>
                 ) : (
                   <Flex
                     align="center" gap={6} p={5} borderRadius="xl"
-                    border={`1px solid ${accentColor}18`}
-                    style={{ background: `linear-gradient(135deg, ${accentColor}06 0%, var(--color-glass) 100%)` }}
+                    border="1px solid var(--color-card-border)"
+                    style={{ background: "var(--color-card-bg)" }}
                   >
                     {/* Big count */}
                     <Box textAlign="center" flexShrink={0}>
@@ -464,7 +463,7 @@ const CompanyDashboard = () => {
                     <HStack gap={6} flex={1} flexWrap="wrap">
                       <VStack align="start" gap={0.5}>
                         <HStack gap={1.5} align="center">
-                          <Box w="6px" h="6px" borderRadius="full" bg="green.400" />
+                          <Box w="6px" h="6px" borderRadius="full" bg="green.500" />
                           <Text fontWeight="black" fontSize="xl" lineHeight="1" color="var(--color-text-primary)">
                             {jobs.filter(j => j.is_active).length}
                           </Text>
@@ -483,18 +482,6 @@ const CompanyDashboard = () => {
                         </VStack>
                       )}
                     </HStack>
-
-                    {/* View all arrow — only for admins/owners who can manage */}
-                    {hasAccess && (
-                      <Button
-                        variant="ghost" size="sm" color="var(--color-text-muted)" flexShrink={0}
-                        _hover={{ color: "white", bg: "var(--color-card-border)" }}
-                        onClick={handleAddJob}
-                        title="Manage openings"
-                      >
-                        <Plus size={14} />
-                      </Button>
-                    )}
                   </Flex>
                 )}
               </MotionBox>
@@ -504,14 +491,14 @@ const CompanyDashboard = () => {
               <GridItem colSpan={{ base: 2, md: 1 }}>
                 <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.24 }}
                   h="full"
-                  p={7} borderRadius="2xl" border="1px solid var(--color-glass)"
-                  style={{ background: "linear-gradient(135deg, var(--color-glass) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
+                  p={7} borderRadius="2xl" border="1px solid var(--color-card-border)"
+                  style={{ background: "var(--color-surface)" }}
                 >
                   <HStack gap={3} mb={5} justify="space-between">
                     <HStack gap={3}>
-                      <Box w="3px" h="18px" borderRadius="full" style={{ background: `linear-gradient(to bottom, var(--color-accent), transparent)` }} />
+                      <Box w="3px" h="18px" borderRadius="full" style={{ background: "var(--color-accent)" }} />
                       <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest">JOB APPLICATIONS</Text>
-                      <Box px={2} py={0.5} borderRadius="full" style={{ background: "rgba(59,130,246,0.12)", border: "1px solid rgba(59,130,246,0.25)" }}>
+                      <Box px={2} py={0.5} borderRadius="full" style={{ background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)" }}>
                         <Text fontSize="10px" fontWeight="black" color="var(--color-accent)">{applications.length}</Text>
                       </Box>
                     </HStack>
@@ -519,8 +506,8 @@ const CompanyDashboard = () => {
                     <Button h="7" px={3.5} borderRadius="full" fontWeight="black" fontSize="3xs" letterSpacing="widest"
                       color="var(--color-text-secondary)"
                       border="1px solid var(--color-card-border)"
-                      bg="var(--color-glass)"
-                      _hover={{ bg: "var(--color-card-border)", color: "white", borderColor: "var(--color-card-border)" }}
+                      bg="var(--color-card-bg)"
+                      _hover={{ bg: "var(--color-card-hover-bg)", color: "var(--color-text-primary)", borderColor: "var(--color-card-border)" }}
                       transition="all 0.2s"
                       onClick={() => navigate(`/company/${id}/applications`)}
                     >
@@ -531,18 +518,17 @@ const CompanyDashboard = () => {
                   {applications.length === 0 ? (
                     <Flex direction="column" align="center" py={8} gap={3}>
                       <Box w="60px" h="60px" borderRadius="xl" display="flex" alignItems="center" justifyContent="center"
-                        style={{ background: "var(--color-glass)", border: "1px solid var(--color-glass)" }}>
-                        <FileText size={22} color="var(--color-card-border)" />
+                        style={{ background: "var(--color-card-bg)", border: "1px solid var(--color-card-border)" }}>
+                        <FileText size={22} color="var(--color-text-muted)" />
                       </Box>
-                      <Text color="var(--color-card-border)" fontSize="sm" fontWeight="medium">No applications received yet</Text>
+                      <Text color="var(--color-text-muted)" fontSize="sm" fontWeight="medium">No applications received yet</Text>
                     </Flex>
                   ) : (
                     <Flex
                       align="center" gap={6} p={5} borderRadius="xl"
-                      border="1px solid rgba(59,130,246,0.18)"
-                      style={{ background: "linear-gradient(135deg, rgba(59,130,246,0.05), var(--color-glass))" }}
+                      border="1px solid var(--color-card-border)"
+                      style={{ background: "var(--color-card-bg)" }}
                     >
-                      {/* Big count */}
                       <Box textAlign="center" flexShrink={0}>
                         <Text fontWeight="black" fontSize="4xl" lineHeight="1" letterSpacing="tight" color="var(--color-accent)">
                           {applications.length}
@@ -552,10 +538,8 @@ const CompanyDashboard = () => {
                         </Text>
                       </Box>
 
-                      {/* Divider */}
                       <Box w="1px" h="48px" borderRadius="full" bg="var(--color-card-border)" flexShrink={0} />
 
-                      {/* Breakdown by status */}
                       <HStack gap={6} flex={1} flexWrap="wrap">
                         <VStack align="start" gap={0.5}>
                           <Text fontWeight="black" fontSize="xl" lineHeight="1" color="#3b82f6">
@@ -586,8 +570,8 @@ const CompanyDashboard = () => {
             <GridItem colSpan={{ base: 2, md: hasAccess ? 1 : 2 }}>
               <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.23 }}
                 h="full"
-                p={7} borderRadius="2xl" border="1px solid var(--color-glass)"
-                style={{ background: "linear-gradient(135deg, var(--color-glass) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
+                p={7} borderRadius="2xl" border="1px solid var(--color-card-border)"
+                style={{ background: "var(--color-surface)" }}
               >
                 <HStack gap={3} mb={5} justify="space-between">
                   <HStack gap={3}>
@@ -602,8 +586,8 @@ const CompanyDashboard = () => {
                     <Button h="7" px={3.5} borderRadius="full" fontWeight="black" fontSize="3xs" letterSpacing="widest"
                       color="var(--color-text-secondary)"
                       border="1px solid var(--color-card-border)"
-                      bg="var(--color-glass)"
-                      _hover={{ bg: "var(--color-card-border)", color: "white", borderColor: "var(--color-card-border)" }}
+                      bg="var(--color-card-bg)"
+                      _hover={{ bg: "var(--color-card-hover-bg)", color: "var(--color-text-primary)", borderColor: "var(--color-card-border)" }}
                       transition="all 0.2s"
                       onClick={() => navigate(`/company/${id}/rfps`)}
                     >
@@ -629,16 +613,16 @@ const CompanyDashboard = () => {
                 {rfps.length === 0 ? (
                   <Flex direction="column" align="center" py={8} gap={3}>
                     <Box w="60px" h="60px" borderRadius="xl" display="flex" alignItems="center" justify="center"
-                      style={{ background: "var(--color-glass)", border: "1px solid var(--color-glass)" }}>
-                      <FileText size={22} color="var(--color-card-border)" />
+                      style={{ background: "var(--color-card-bg)", border: "1px solid var(--color-card-border)" }}>
+                      <FileText size={22} color="var(--color-text-muted)" />
                     </Box>
-                    <Text color="var(--color-card-border)" fontSize="sm" fontWeight="medium">No active RFPs posted yet</Text>
+                    <Text color="var(--color-text-muted)" fontSize="sm" fontWeight="medium">No active RFPs posted yet</Text>
                   </Flex>
                 ) : (
                   <Flex
                     align="center" gap={6} p={5} borderRadius="xl"
-                    border={`1px solid rgba(139,92,246,0.18)`}
-                    style={{ background: `linear-gradient(135deg, rgba(139,92,246,0.06) 0%, var(--color-glass) 100%)` }}
+                    border="1px solid var(--color-card-border)"
+                    style={{ background: "var(--color-card-bg)" }}
                   >
                     {/* Big count */}
                     <Box textAlign="center" flexShrink={0}>
@@ -685,8 +669,8 @@ const CompanyDashboard = () => {
               <GridItem colSpan={{ base: 2, md: 1 }}>
                 <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.25 }}
                   h="full"
-                  p={7} borderRadius="2xl" border="1px solid var(--color-glass)"
-                  style={{ background: "linear-gradient(135deg, var(--color-glass) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
+                  p={7} borderRadius="2xl" border="1px solid var(--color-card-border)"
+                  style={{ background: "var(--color-surface)" }}
                 >
                   <HStack gap={3} mb={5} justify="space-between">
                     <HStack gap={3}>
@@ -700,8 +684,8 @@ const CompanyDashboard = () => {
                     <Button h="7" px={3.5} borderRadius="full" fontWeight="black" fontSize="3xs" letterSpacing="widest"
                       color="var(--color-text-secondary)"
                       border="1px solid var(--color-card-border)"
-                      bg="var(--color-glass)"
-                      _hover={{ bg: "var(--color-card-border)", color: "white", borderColor: "var(--color-card-border)" }}
+                      bg="var(--color-card-bg)"
+                      _hover={{ bg: "var(--color-card-hover-bg)", color: "var(--color-text-primary)", borderColor: "var(--color-card-border)" }}
                       transition="all 0.2s"
                       onClick={() => navigate(`/company/${id}/rfp-interests`)}
                     >
@@ -712,16 +696,16 @@ const CompanyDashboard = () => {
                   {rfpInterests.length === 0 ? (
                     <Flex direction="column" align="center" py={8} gap={3}>
                       <Box w="60px" h="60px" borderRadius="xl" display="flex" alignItems="center" justify="center"
-                        style={{ background: "var(--color-glass)", border: "1px solid var(--color-glass)" }}>
-                        <FileText size={22} color="var(--color-card-border)" />
+                        style={{ background: "var(--color-card-bg)", border: "1px solid var(--color-card-border)" }}>
+                        <FileText size={22} color="var(--color-text-muted)" />
                       </Box>
-                      <Text color="var(--color-card-border)" fontSize="sm" fontWeight="medium">No proposals received yet</Text>
+                      <Text color="var(--color-text-muted)" fontSize="sm" fontWeight="medium">No proposals received yet</Text>
                     </Flex>
                   ) : (
                     <Flex
                       align="center" gap={6} p={5} borderRadius="xl"
-                      border="1px solid rgba(16,185,129,0.18)"
-                      style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.05), var(--color-glass))" }}
+                      border="1px solid var(--color-card-border)"
+                      style={{ background: "var(--color-card-bg)" }}
                     >
                       {/* Big count */}
                       <Box textAlign="center" flexShrink={0}>
@@ -757,15 +741,15 @@ const CompanyDashboard = () => {
               <GridItem colSpan={{ base: 2, md: isOwner ? 1 : 2 }}>
                 <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.25 }}
                   h="full"
-                  p={6} borderRadius="2xl" border="1px solid var(--color-glass)"
-                  style={{ background: "linear-gradient(135deg, var(--color-glass) 0%, rgba(255,255,255,0.005) 100%)", backdropFilter: "blur(12px)" }}
+                  p={6} borderRadius="2xl" border="1px solid var(--color-card-border)"
+                  style={{ background: "var(--color-surface)" }}
                 >
                   <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest" mb={4}>CONNECT</Text>
                   <VStack align="stretch" gap={3}>
                     {company.website && (
                       <Box as="a" href={company.website} target="_blank" rel="noopener noreferrer"
                         px={4} py={3} borderRadius="xl" border="1px solid var(--color-card-border)"
-                        style={{ background: "rgba(255,255,255,0.015)" }}
+                        style={{ background: "var(--color-card-bg)" }}
                         _hover={{ borderColor: `${accentColor}40`, background: `${accentColor}08` }}
                         transition="all 0.2s"
                       >
@@ -781,7 +765,7 @@ const CompanyDashboard = () => {
                     {company.linkedin_url && (
                       <Box as="a" href={company.linkedin_url} target="_blank" rel="noopener noreferrer"
                         px={4} py={3} borderRadius="xl" border="1px solid rgba(66,153,225,0.12)"
-                        style={{ background: "rgba(66,153,225,0.03)" }}
+                        style={{ background: "var(--color-card-bg)" }}
                         _hover={{ borderColor: "rgba(66,153,225,0.35)", background: "rgba(66,153,225,0.07)" }}
                         transition="all 0.2s"
                       >
@@ -795,7 +779,7 @@ const CompanyDashboard = () => {
                     {company.twitter_url && (
                       <Box as="a" href={company.twitter_url} target="_blank" rel="noopener noreferrer"
                         px={4} py={3} borderRadius="xl" border="1px solid rgba(100,200,255,0.12)"
-                        style={{ background: "rgba(100,200,255,0.03)" }}
+                        style={{ background: "var(--color-card-bg)" }}
                         _hover={{ borderColor: "rgba(100,200,255,0.35)", background: "rgba(100,200,255,0.07)" }}
                         transition="all 0.2s"
                       >

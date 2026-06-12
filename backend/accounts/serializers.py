@@ -244,7 +244,7 @@ class JobApplicationSerializer(serializers.ModelSerializer):
         model = JobApplication
         fields = [
             'id', 'job_opening', 'job_title', 'company_name', 'applicant', 'applicant_email',
-            'full_name', 'email', 'cover_letter', 'resume', 'portfolio_url', 'status',
+            'full_name', 'email', 'cover_letter', 'resume', 'portfolio_url', 'key_skills', 'status',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['applicant']

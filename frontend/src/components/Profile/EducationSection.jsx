@@ -111,7 +111,7 @@ const EducationSection = ({ user, onUpdate }) => {
         <IconButton
           aria-label="Add education"
           variant="ghost"
-          color="whiteAlpha.400"
+          color="var(--color-text-muted)"
           _hover={{ color: "purple.400", bg: "purple.400/10" }}
           onClick={() => handleOpen()}
           borderRadius="md"
@@ -140,13 +140,13 @@ const EducationSection = ({ user, onUpdate }) => {
                       {edu.degree.toUpperCase()}{edu.field_of_study ? ` IN ${edu.field_of_study.toUpperCase()}` : ""}
                     </Text>
                     
-                    <HStack color="whiteAlpha.500" fontSize="10px" fontWeight="medium" mt={0.5}>
+                    <HStack color="var(--color-text-muted)" fontSize="10px" fontWeight="medium" mt={0.5}>
                       <Calendar size={10} />
                       <Text>{edu.start_date} — {edu.end_date || "PRESENT"}</Text>
                     </HStack>
 
                     {edu.description && (
-                      <Text mt={2} color="whiteAlpha.700" fontSize="xs" lineHeight="relaxed" borderLeft="2px solid" borderColor="whiteAlpha.100" pl={3}>
+                      <Text mt={2} color="var(--color-text-secondary)" fontSize="xs" lineHeight="relaxed" borderLeft="2px solid" borderColor="var(--color-card-border)" pl={3}>
                         {edu.description}
                       </Text>
                     )}
@@ -158,8 +158,8 @@ const EducationSection = ({ user, onUpdate }) => {
                     aria-label="Edit education"
                     size="sm"
                     variant="ghost"
-                    color="whiteAlpha.300"
-                    _hover={{ color: "white", bg: "whiteAlpha.100" }}
+                    color="var(--color-text-muted)"
+                    _hover={{ color: "var(--color-text-primary)", bg: "var(--color-card-hover-bg)" }}
                     onClick={() => handleOpen(edu)}
                     borderRadius="md"
                   >
@@ -169,7 +169,7 @@ const EducationSection = ({ user, onUpdate }) => {
                     aria-label="Delete education"
                     size="sm"
                     variant="ghost"
-                    color="whiteAlpha.300"
+                    color="var(--color-text-muted)"
                     _hover={{ color: "var(--color-accent)", bg: "rgba(var(--color-accent-rgb), 0.1)" }}
                     onClick={() => handleDelete(edu.id)}
                     borderRadius="md"
@@ -179,14 +179,14 @@ const EducationSection = ({ user, onUpdate }) => {
                 </HStack>
               </Flex>
               {index < user.profile.educations.length - 1 && (
-                <Separator mt={8} borderColor="whiteAlpha.100" />
+                <Separator mt={8} borderColor="var(--color-card-border)" />
               )}
             </MotionBox>
           ))
         ) : (
           <Flex direction="column" align="center" py={10} gap={4}>
-            <GraduationCap size={40} className="text-white/5" />
-            <Text color="whiteAlpha.400" fontSize="sm" fontWeight="medium">Add your educational milestones...</Text>
+            <GraduationCap size={40} color="var(--color-text-muted)" style={{ opacity: 0.15 }} />
+            <Text color="var(--color-text-muted)" fontSize="sm" fontWeight="medium">Add your educational milestones...</Text>
           </Flex>
         )}
       </VStack>

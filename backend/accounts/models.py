@@ -262,6 +262,7 @@ class JobApplication(models.Model):
     cover_letter = models.TextField(blank=True, null=True)
     resume = models.FileField(upload_to='resumes/', blank=True, null=True)
     portfolio_url = models.URLField(blank=True, null=True)
+    key_skills = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='applied')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

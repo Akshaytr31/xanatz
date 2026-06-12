@@ -5,7 +5,7 @@ import {
 } from "@chakra-ui/react";
 import {
   ArrowLeft, Briefcase, MapPin, DollarSign, Send, CheckCircle,
-  FileText, Link2, AlertCircle, Building2, User, Mail
+  FileText, Link2, AlertCircle, Building2, User, Mail, Sparkles
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
@@ -40,6 +40,7 @@ const ApplyJobPage = () => {
   const [coverLetter, setCoverLetter] = useState("");
   const [portfolioUrl, setPortfolioUrl] = useState("");
   const [resumeFile, setResumeFile] = useState(null);
+  const [keySkills, setKeySkills] = useState("");
 
   const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -92,6 +93,9 @@ const ApplyJobPage = () => {
           const name = `${userRes.data.first_name || ""} ${userRes.data.last_name || ""}`.trim();
           setFullName(name || userRes.data.email.split("@")[0]);
           setEmail(userRes.data.email);
+          if (userRes.data.profile && userRes.data.profile.skills) {
+            setKeySkills(userRes.data.profile.skills.join(", "));
+          }
         }
       } catch {
         // Token expired or invalid — form will be empty
@@ -121,6 +125,7 @@ const ApplyJobPage = () => {
       formData.append("cover_letter", coverLetter);
       if (portfolioUrl) formData.append("portfolio_url", portfolioUrl);
       if (resumeFile) formData.append("resume", resumeFile);
+      if (keySkills) formData.append("key_skills", keySkills);
 
       await api.post("applications/", formData, {
         headers: {
@@ -620,6 +625,26 @@ const ApplyJobPage = () => {
                             py={3}
                             value={portfolioUrl}
                             onChange={(e) => setPortfolioUrl(e.target.value)}
+                          />
+                        </HStack>
+                      </Box>
+
+                      {/* Key Skills */}
+                      <Box>
+                        <Text fontSize="2xs" fontWeight="black" color="var(--color-text-muted)" letterSpacing="wider" mb={2}>
+                          KEY SKILLS
+                        </Text>
+                        <HStack bg="var(--color-input-bg)" border="1px solid var(--color-card-border)" px={3.5} borderRadius="xl"
+                          _focusWithin={{ borderColor: accentColor, boxShadow: `0 0 0 1px ${accentColor}` }} transition="all 0.2s">
+                          <Sparkles size={14} color="var(--color-text-muted)" />
+                          <Input
+                            placeholder="e.g. React, Python, Django, SQL (comma separated)"
+                            variant="unstyled"
+                            color="white"
+                            fontSize="xs"
+                            py={3}
+                            value={keySkills}
+                            onChange={(e) => setKeySkills(e.target.value)}
                           />
                         </HStack>
                       </Box>

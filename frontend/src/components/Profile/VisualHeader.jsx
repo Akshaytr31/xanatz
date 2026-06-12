@@ -161,10 +161,10 @@ const VisualHeader = ({ user, onUpdate }) => {
         <Button
           size="sm"
           variant="outline"
-          borderColor="whiteAlpha.200"
-          bg="whiteAlpha.50"
-          color="whiteAlpha.800"
-          _hover={{ bg: "whiteAlpha.100", borderColor: "whiteAlpha.400", color: "white" }}
+          borderColor="var(--color-glass-border)"
+          bg="var(--color-glass)"
+          color="var(--color-text-secondary)"
+          _hover={{ bg: "var(--color-card-hover-bg)", borderColor: "var(--color-card-hover-border)", color: "var(--color-text-primary)" }}
           leftIcon={<Share2 size={16} />}
           onClick={handleShare}
           fontSize="xs"
@@ -176,8 +176,8 @@ const VisualHeader = ({ user, onUpdate }) => {
         <IconButton
           aria-label="Edit Profile"
           variant="ghost"
-          color="whiteAlpha.400"
-          _hover={{ bg: "whiteAlpha.100", color: "white" }}
+          color="var(--color-text-muted)"
+          _hover={{ bg: "var(--color-card-hover-bg)", color: "var(--color-text-primary)" }}
           onClick={() => setIsDialogOpen(true)}
         >
           <Edit2 size={20} />
@@ -188,7 +188,7 @@ const VisualHeader = ({ user, onUpdate }) => {
         {/* Left Side (Avatar Section) */}
         <Box
           w={{ base: "full", md: "35%" }}
-          bgGradient="linear(to-br, whiteAlpha.100, transparent)"
+          bg="var(--color-glass)"
           p={8}
           display="flex"
           flexDirection="column"
@@ -196,7 +196,7 @@ const VisualHeader = ({ user, onUpdate }) => {
           alignItems="center"
           position="relative"
           borderRight={{ md: "1px solid" }}
-          borderColor="whiteAlpha.100"
+          borderColor="var(--color-glass-border)"
         >
           <MotionBox
             whileHover={{ scale: 1.02 }}
@@ -218,12 +218,12 @@ const VisualHeader = ({ user, onUpdate }) => {
             
             <Circle
               size="150px"
-              bg="whiteAlpha.200"
+              bg="var(--color-card-bg)"
               p="4px"
               zIndex={1}
               position="relative"
               border="1px solid"
-              borderColor="whiteAlpha.300"
+              borderColor="var(--color-card-border)"
             >
               <Circle size="full" bg="var(--color-primary)" overflow="hidden">
                 {user?.profile?.profile_picture ? (
@@ -235,7 +235,7 @@ const VisualHeader = ({ user, onUpdate }) => {
                     objectFit="cover"
                   />
                 ) : (
-                  <Text fontSize="5xl" color="whiteAlpha.400" fontWeight="black">
+                  <Text fontSize="5xl" color="var(--color-text-muted)" fontWeight="black">
                     {user?.first_name?.[0] || "?"}
                   </Text>
                 )}
@@ -303,9 +303,9 @@ const VisualHeader = ({ user, onUpdate }) => {
             </Text>
 
             {currentExperience && (
-              <HStack bg="whiteAlpha.100" px={3} py={1.5} borderRadius="lg" border="1px solid" borderColor="whiteAlpha.100">
-                <Briefcase size={14} className="var(--color-accent)" />
-                <Text fontSize="xs" fontWeight="bold" color="whiteAlpha.900">
+              <HStack bg="var(--color-card-bg)" px={3} py={1.5} borderRadius="lg" border="1px solid" borderColor="var(--color-card-border)">
+                <Briefcase size={14} color="var(--color-accent)" />
+                <Text fontSize="xs" fontWeight="bold" color="var(--color-text-primary)">
                   {currentExperience.title} @ {currentExperience.company}
                 </Text>
               </HStack>
@@ -313,17 +313,17 @@ const VisualHeader = ({ user, onUpdate }) => {
           </VStack>
 
           {/* About Summary */}
-          <Text fontSize="sm" color="whiteAlpha.700" lineHeight="relaxed" maxW="600px">
+          <Text fontSize="sm" color="var(--color-text-secondary)" lineHeight="relaxed" maxW="600px">
             {user?.profile?.about || "Elevate your professional journey with Xanatz. This user is currently crafting their unique story."}
           </Text>
 
           {/* Contact & Meta Info */}
-          <Flex wrap="wrap" gap={5} pt={4} borderTop="1px solid" borderColor="whiteAlpha.100">
-            <HStack color="whiteAlpha.600" fontSize="xs">
+          <Flex wrap="wrap" gap={5} pt={4} borderTop="1px solid" borderColor="var(--color-card-border)">
+            <HStack color="var(--color-text-muted)" fontSize="xs">
               <MapPin size={14} />
               <Text fontWeight="medium">{user?.profile?.location || "Remote"}</Text>
             </HStack>
-            <HStack color="whiteAlpha.600" fontSize="xs">
+            <HStack color="var(--color-text-muted)" fontSize="xs">
               <Mail size={14} />
               <Text fontWeight="medium">{user?.email}</Text>
             </HStack>
