@@ -23,6 +23,8 @@ import {
   X,
   Save,
   ChevronDown,
+  CreditCard,
+  AlertTriangle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../api";
@@ -464,8 +466,9 @@ const SelectField = ({ value, onChange, options, placeholder }) => (
   </Box>
 );
 
-const JobOpeningModal = ({ isOpen, onClose, companyId, company, job, onSaved }) => {
+const JobOpeningModal = ({ isOpen, onClose, companyId, company, job, onSaved, onCreditExhausted }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [form, setForm] = useState({
     title: "",
     job_type: "full_time",
@@ -503,6 +506,7 @@ const JobOpeningModal = ({ isOpen, onClose, companyId, company, job, onSaved }) 
   const handleSave = async () => {
     if (!form.title.trim()) return;
     setIsLoading(true);
+    setSaveError("");
     try {
       const payload = {
         ...form,
@@ -518,6 +522,23 @@ const JobOpeningModal = ({ isOpen, onClose, companyId, company, job, onSaved }) 
       onClose();
     } catch (err) {
       console.error("Error saving job opening.", err);
+      const errorData = err.response?.data;
+      const errorMsg = errorData?.error 
+        ? (Array.isArray(errorData.error) ? errorData.error[0] : errorData.error) 
+        : "";
+      
+      if (errorMsg && (errorMsg.includes("credits exhausted") || errorMsg.includes("No active plan"))) {
+        if (onCreditExhausted) {
+          onClose();
+          onCreditExhausted();
+        } else {
+          setSaveError(errorMsg);
+        }
+      } else if (errorMsg) {
+        setSaveError(errorMsg);
+      } else {
+        setSaveError("Failed to save job opening. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -614,6 +635,44 @@ const JobOpeningModal = ({ isOpen, onClose, companyId, company, job, onSaved }) 
                   </DialogCloseTrigger>
                 </Flex>
               </Box>
+
+              {/* Credit info banner for new jobs */}
+              {!job && company?.active_subscription && (
+                <Box
+                  px={8}
+                  py={3}
+                  borderBottom="1px solid var(--color-card-border)"
+                  style={{ background: "rgba(59,130,246,0.05)" }}
+                >
+                  <HStack gap={2} justify="center">
+                    <CreditCard size={13} color="#3b82f6" />
+                    <Text fontSize="xs" fontWeight="bold" color="#3b82f6">
+                      {company.active_subscription.jobs_remaining} credit{company.active_subscription.jobs_remaining !== 1 ? 's' : ''} remaining
+                    </Text>
+                    <Text fontSize="2xs" color="var(--color-text-muted)">•</Text>
+                    <Text fontSize="2xs" color="var(--color-text-muted)" fontWeight="bold">
+                      {company.active_subscription.plan_display_name} Plan — {company.active_subscription.job_duration_days} day duration
+                    </Text>
+                  </HStack>
+                </Box>
+              )}
+
+              {/* Error banner */}
+              {saveError && (
+                <Box
+                  px={8}
+                  py={3}
+                  borderBottom="1px solid rgba(239,68,68,0.2)"
+                  style={{ background: "rgba(239,68,68,0.08)" }}
+                >
+                  <HStack gap={2} justify="center">
+                    <AlertTriangle size={13} color="#ef4444" />
+                    <Text fontSize="xs" fontWeight="bold" color="#ef4444">
+                      {saveError}
+                    </Text>
+                  </HStack>
+                </Box>
+              )}
 
               {/* ─── Body ─── */}
               <Box px={8} py={7} maxH="60vh" overflowY="auto">

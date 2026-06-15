@@ -239,8 +239,15 @@ class JobOpening(models.Model):
     job_type = models.CharField(max_length=50, choices=JOB_TYPE_CHOICES, default='full_time')
     salary_range = models.CharField(max_length=100, blank=True, null=True)
     is_active = models.BooleanField(default=True)
+    expires_at = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def is_expired(self):
+        if self.expires_at and timezone.now() > self.expires_at:
+            return True
+        return False
 
     def __str__(self):
         return f"{self.title} at {self.company.name}"
@@ -301,3 +308,48 @@ class RFPInterest(models.Model):
     def __str__(self):
         return f"Interest in {self.rfp.title} by {self.user.email}"
 
+
+class JobPostPlan(models.Model):
+    PLAN_CHOICES = [
+        ('basic', 'Basic'),
+        ('standard', 'Standard'),
+        ('premium', 'Premium'),
+    ]
+
+    name = models.CharField(max_length=20, choices=PLAN_CHOICES, unique=True)
+    display_name = models.CharField(max_length=50)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    max_jobs = models.PositiveIntegerField()
+    job_duration_days = models.PositiveIntegerField()
+    description = models.TextField(blank=True, null=True)
+    features = models.JSONField(default=list, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['price']
+
+    def __str__(self):
+        return f"{self.display_name} - ₹{self.price}"
+
+
+class CompanySubscription(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='subscriptions')
+    plan = models.ForeignKey(JobPostPlan, on_delete=models.CASCADE, related_name='subscriptions')
+    jobs_used = models.PositiveIntegerField(default=0)
+    activated_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+
+    @property
+    def jobs_remaining(self):
+        return max(0, self.plan.max_jobs - self.jobs_used)
+
+    @property
+    def is_credits_exhausted(self):
+        return self.jobs_used >= self.plan.max_jobs
+
+    class Meta:
+        ordering = ['-activated_at']
+
+    def __str__(self):
+        return f"{self.company.name} - {self.plan.display_name} ({self.jobs_used}/{self.plan.max_jobs} used)"

@@ -5,7 +5,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 import random
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import PrivacyPolicy, Profile, Experience, Education, Company, OTP, JobOpening, JobApplication, RFP, RFPInterest
+from .models import PrivacyPolicy, Profile, Experience, Education, Company, OTP, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription
 
 User = get_user_model()
 
@@ -166,6 +166,7 @@ class CompanySerializer(serializers.ModelSerializer):
     creator = serializers.PrimaryKeyRelatedField(read_only=True)
     creator_name = serializers.SerializerMethodField()
     logo_url = serializers.SerializerMethodField()
+    active_subscription = serializers.SerializerMethodField()
 
     class Meta:
         model = Company
@@ -173,7 +174,8 @@ class CompanySerializer(serializers.ModelSerializer):
             'id', 'name', 'tagline', 'description', 'logo', 'logo_url',
             'website', 'industry', 'company_size', 'location', 'founded_year',
             'linkedin_url', 'twitter_url', 'is_active',
-            'creator', 'creator_name', 'members', 'members_details', 'created_at', 'updated_at',
+            'creator', 'creator_name', 'members', 'members_details',
+            'active_subscription', 'created_at', 'updated_at',
         ]
 
     def get_members_details(self, obj):
@@ -213,11 +215,28 @@ class CompanySerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(obj.logo.url)
         return None
 
+    def get_active_subscription(self, obj):
+        sub = obj.subscriptions.filter(is_active=True).first()
+        if sub:
+            return {
+                'id': sub.id,
+                'plan_name': sub.plan.name,
+                'plan_display_name': sub.plan.display_name,
+                'max_jobs': sub.plan.max_jobs,
+                'jobs_used': sub.jobs_used,
+                'jobs_remaining': sub.jobs_remaining,
+                'job_duration_days': sub.plan.job_duration_days,
+                'activated_at': sub.activated_at,
+                'is_credits_exhausted': sub.is_credits_exhausted,
+            }
+        return None
+
 
 class JobOpeningSerializer(serializers.ModelSerializer):
     company_name = serializers.ReadOnlyField(source='company.name')
     company_logo_url = serializers.SerializerMethodField()
     industry = serializers.ReadOnlyField(source='company.industry')
+    is_expired = serializers.SerializerMethodField()
 
     class Meta:
         model = JobOpening
@@ -225,7 +244,7 @@ class JobOpeningSerializer(serializers.ModelSerializer):
             'id', 'company', 'company_name', 'company_logo_url', 'industry',
             'title', 'description', 'requirements', 'location',
             'job_type', 'salary_range',
-            'is_active', 'created_at', 'updated_at'
+            'is_active', 'expires_at', 'is_expired', 'created_at', 'updated_at'
         ]
 
     def get_company_logo_url(self, obj):
@@ -233,6 +252,9 @@ class JobOpeningSerializer(serializers.ModelSerializer):
         if obj.company.logo and request:
             return request.build_absolute_uri(obj.company.logo.url)
         return None
+
+    def get_is_expired(self, obj):
+        return obj.is_expired
 
 
 class JobApplicationSerializer(serializers.ModelSerializer):
@@ -283,3 +305,19 @@ class RFPInterestSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['user']
 
+
+class JobPostPlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobPostPlan
+        fields = ['id', 'name', 'display_name', 'price', 'max_jobs', 'job_duration_days', 'description', 'features', 'is_active']
+
+
+class CompanySubscriptionSerializer(serializers.ModelSerializer):
+    plan_details = JobPostPlanSerializer(source='plan', read_only=True)
+    jobs_remaining = serializers.ReadOnlyField()
+    is_credits_exhausted = serializers.ReadOnlyField()
+
+    class Meta:
+        model = CompanySubscription
+        fields = ['id', 'company', 'plan', 'plan_details', 'jobs_used', 'jobs_remaining', 'is_credits_exhausted', 'activated_at', 'is_active']
+        read_only_fields = ['company', 'jobs_used', 'activated_at']

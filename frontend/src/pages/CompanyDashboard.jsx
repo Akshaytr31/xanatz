@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Box, Flex, Text, Button, VStack, HStack, Container, Spinner, Badge, Grid, GridItem } from "@chakra-ui/react";
-import { Building2, ArrowLeft, Globe, MapPin, Users, Calendar, Link2, AtSign, Settings2, Briefcase, TrendingUp, Award, ExternalLink, Plus, FileText } from "lucide-react";
+import { Building2, ArrowLeft, Globe, MapPin, Users, Calendar, Link2, AtSign, Settings2, Briefcase, TrendingUp, Award, ExternalLink, Plus, FileText, CreditCard, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -8,6 +8,7 @@ import CompanyProfileModal from "../components/company/CompanyProfileModal";
 import CompanyMembersList from "../components/company/CompanyMembersList";
 import JobOpeningModal from "../components/company/JobOpeningModal";
 import RFPModal from "../components/company/RFPModal";
+import PricingPlansModal from "../components/company/PricingPlansModal";
 import api from "../api";
 
 
@@ -89,6 +90,7 @@ const CompanyDashboard = () => {
   const [selectedJob, setSelectedJob] = useState(null);
   const [isRfpModalOpen, setIsRfpModalOpen] = useState(false);
   const [selectedRfp, setSelectedRfp] = useState(null);
+  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
 
   const fetchCompany = async () => {
     try {
@@ -131,6 +133,12 @@ const CompanyDashboard = () => {
   };
 
   const handleAddJob = () => {
+    // Check if company has active subscription with remaining credits
+    const sub = company?.active_subscription;
+    if (!sub || sub.is_credits_exhausted) {
+      setIsPlanModalOpen(true);
+      return;
+    }
     setSelectedJob(null);
     setIsJobModalOpen(true);
   };
@@ -326,6 +334,78 @@ const CompanyDashboard = () => {
           <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }} mb={6}>
             <Flex gap={4} flexWrap="wrap">
               <StatCard icon={Users} label="MEMBERS" value={company.members.length} color={accentColor} delay={0.1} />
+              {hasAccess && (
+                <MotionBox
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.12, type: "spring", stiffness: 80 }}
+                  whileHover={{ y: -6, scale: 1.02 }}
+                  flex={1}
+                  minW="160px"
+                  p={6}
+                  borderRadius="2xl"
+                  border={company.active_subscription ? "1px solid var(--color-card-border)" : "1px dashed rgba(245,158,11,0.4)"}
+                  position="relative"
+                  overflow="hidden"
+                  style={{
+                    background: company.active_subscription
+                      ? "var(--color-surface)"
+                      : "linear-gradient(135deg, rgba(245,158,11,0.05) 0%, var(--color-surface) 100%)",
+                    backdropFilter: "blur(24px)",
+                    boxShadow: "0 8px 32px 0 rgba(0,0,0,0.08)",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setIsPlanModalOpen(true)}
+                  _hover={{
+                    borderColor: company.active_subscription ? "rgba(59,130,246,0.3)" : "rgba(245,158,11,0.6)",
+                    boxShadow: company.active_subscription
+                      ? "0 12px 40px rgba(59,130,246,0.1)"
+                      : "0 12px 40px rgba(245,158,11,0.15)",
+                  }}
+                  textAlign="center"
+                >
+                  {/* Top accent */}
+                  <Box position="absolute" top={0} left={0} right={0} h="2px"
+                    style={{
+                      background: company.active_subscription
+                        ? `linear-gradient(90deg, transparent, rgba(59,130,246,0.6), transparent)`
+                        : `linear-gradient(90deg, transparent, rgba(245,158,11,0.8), transparent)`
+                    }}
+                  />
+
+                  {company.active_subscription ? (
+                    <>
+                      <Flex w="48px" h="48px" borderRadius="xl" align="center" justify="center" mx="auto" mb={3}
+                        style={{ background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.25)" }}>
+                        <CreditCard size={20} color="#3b82f6" />
+                      </Flex>
+                      <Text color="var(--color-text-primary)" fontWeight="black" fontSize="lg" lineHeight="1" letterSpacing="tight">
+                        {company.active_subscription.jobs_remaining}/{company.active_subscription.max_jobs}
+                      </Text>
+                      <Text color="var(--color-text-muted)" fontSize="9px" fontWeight="black" letterSpacing="widest" mt={1.5}>
+                        CREDITS LEFT
+                      </Text>
+                      <Badge mt={2} px={2} py={0.5} fontSize="7px" fontWeight="black" borderRadius="full"
+                        style={{ background: "rgba(59,130,246,0.1)", color: "#3b82f6", border: "1px solid rgba(59,130,246,0.2)" }}>
+                        {company.active_subscription.plan_display_name.toUpperCase()} PLAN
+                      </Badge>
+                    </>
+                  ) : (
+                    <>
+                      <Flex w="48px" h="48px" borderRadius="xl" align="center" justify="center" mx="auto" mb={3}
+                        style={{ background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.25)" }}>
+                        <Zap size={20} color="#f59e0b" />
+                      </Flex>
+                      <Text color="var(--color-text-primary)" fontWeight="black" fontSize="sm" lineHeight="1.3" letterSpacing="tight">
+                        No Plan
+                      </Text>
+                      <Text color="rgba(245,158,11,0.8)" fontSize="9px" fontWeight="black" letterSpacing="widest" mt={1.5}>
+                        SUBSCRIBE TO POST
+                      </Text>
+                    </>
+                  )}
+                </MotionBox>
+              )}
               {company.founded_year && (
                 <StatCard icon={Calendar} label="FOUNDED" value={company.founded_year} color="rgba(139,92,246,0.6)" delay={0.15} />
               )}
@@ -814,8 +894,10 @@ const CompanyDashboard = () => {
         isOpen={isJobModalOpen}
         onClose={() => setIsJobModalOpen(false)}
         companyId={company.id}
+        company={company}
         job={selectedJob}
         onSaved={fetchCompany}
+        onCreditExhausted={() => setIsPlanModalOpen(true)}
       />
 
       <RFPModal
@@ -824,6 +906,14 @@ const CompanyDashboard = () => {
         companyId={company.id}
         rfp={selectedRfp}
         onSaved={fetchCompany}
+      />
+
+      <PricingPlansModal
+        isOpen={isPlanModalOpen}
+        onClose={() => setIsPlanModalOpen(false)}
+        companyId={company.id}
+        currentPlan={company.active_subscription?.plan_name}
+        onSubscribed={fetchCompany}
       />
 
     </Box>

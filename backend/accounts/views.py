@@ -2,13 +2,13 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
-from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest
+from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription
 from .serializers import (
     SendOTPSerializer, VerifyOTPSerializer, RegisterUserSerializer, 
     PrivacyPolicySerializer, UserSerializer, ProfileSerializer,
     ExperienceSerializer, EducationSerializer, CompanySerializer,
     UserSearchSerializer, JobOpeningSerializer, JobApplicationSerializer,
-    RFPSerializer, RFPInterestSerializer
+    RFPSerializer, RFPInterestSerializer, JobPostPlanSerializer, CompanySubscriptionSerializer
 )
 
 class SendOTPView(APIView):
@@ -250,6 +250,48 @@ class CompanyViewSet(viewsets.ModelViewSet):
         except CompanyMember.DoesNotExist:
             return Response({"error": "Member not found in company"}, status=status.HTTP_404_NOT_FOUND)
 
+    @action(detail=True, methods=['post'])
+    def subscribe_plan(self, request, pk=None):
+        """Activate a job posting plan for this company (test mode — no payment)."""
+        company = self.get_object()
+        # Only owner/admin can subscribe
+        is_owner = company.creator == request.user
+        is_admin = CompanyMember.objects.filter(company=company, user=request.user, access_role='admin').exists()
+        if not (is_owner or is_admin):
+            return Response({"error": "Only the owner or admin can manage subscriptions."}, status=status.HTTP_403_FORBIDDEN)
+
+        plan_id = request.data.get('plan_id')
+        if not plan_id:
+            return Response({"error": "plan_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            plan = JobPostPlan.objects.get(id=plan_id, is_active=True)
+        except JobPostPlan.DoesNotExist:
+            return Response({"error": "Plan not found or inactive."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Deactivate any existing active subscription
+        CompanySubscription.objects.filter(company=company, is_active=True).update(is_active=False)
+
+        # Create new subscription
+        subscription = CompanySubscription.objects.create(
+            company=company,
+            plan=plan,
+            is_active=True
+        )
+
+        serializer = CompanySubscriptionSerializer(subscription)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['get'])
+    def subscription_status(self, request, pk=None):
+        """Get the current active subscription for this company."""
+        company = self.get_object()
+        subscription = CompanySubscription.objects.filter(company=company, is_active=True).select_related('plan').first()
+        if not subscription:
+            return Response({"subscription": None, "has_subscription": False})
+        serializer = CompanySubscriptionSerializer(subscription)
+        return Response({"subscription": serializer.data, "has_subscription": True})
+
 
 class PublicProfileView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -321,7 +363,28 @@ class JobOpeningViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         company = serializer.validated_data.get('company')
         self.check_company_access(company)
-        serializer.save()
+
+        # Credit enforcement: check for active subscription with remaining credits
+        subscription = CompanySubscription.objects.filter(company=company, is_active=True).select_related('plan').first()
+        if not subscription:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({"error": "No active plan. Please subscribe to a plan before posting jobs."})
+
+        if subscription.is_credits_exhausted:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({"error": f"Job posting credits exhausted. Your {subscription.plan.display_name} plan allows {subscription.plan.max_jobs} jobs. Please upgrade your plan."})
+
+        # Calculate expires_at based on plan duration
+        from django.utils import timezone
+        import datetime
+        expires_at = timezone.now() + datetime.timedelta(days=subscription.plan.job_duration_days)
+
+        # Save the job with expiration
+        serializer.save(expires_at=expires_at)
+
+        # Increment jobs_used
+        subscription.jobs_used += 1
+        subscription.save()
 
     def perform_update(self, serializer):
         company = self.get_object().company
@@ -474,3 +537,9 @@ class RFPInterestViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+
+class JobPostPlanViewSet(viewsets.ReadOnlyModelViewSet):
+    """List all available job posting plans."""
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = JobPostPlanSerializer
+    queryset = JobPostPlan.objects.filter(is_active=True)
