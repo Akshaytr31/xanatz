@@ -567,27 +567,37 @@ const ApplyJobPage = () => {
                         </HStack>
 
                         <Button
-                          onClick={() => setShowForm(true)}
+                          disabled={job.is_expired}
+                          onClick={() => !job.is_expired && setShowForm(true)}
                           px={6}
                           h="40px"
                           borderRadius="xl"
                           fontWeight="black"
                           fontSize="xs"
                           letterSpacing="widest"
-                          color="white"
+                          color={job.is_expired ? "var(--color-text-muted)" : "white"}
                           style={{
-                            background: `linear-gradient(135deg, ${accentColor} 0%, #8b5cf6 100%)`,
-                            boxShadow: `0 8px 20px rgba(59, 130, 246, 0.2)`,
+                            background: job.is_expired
+                              ? "var(--color-card-border)"
+                              : `linear-gradient(135deg, ${accentColor} 0%, #8b5cf6 100%)`,
+                            boxShadow: job.is_expired
+                              ? "none"
+                              : `0 8px 20px rgba(59, 130, 246, 0.2)`,
                             border: "1px solid var(--color-card-border)",
                             transition: "all 0.3s ease",
+                            cursor: job.is_expired ? "not-allowed" : "pointer"
                           }}
-                          _hover={{
-                            transform: "translateY(-2px)",
-                            boxShadow: `0 12px 28px rgba(59, 130, 246, 0.35)`,
-                            filter: "brightness(1.1)",
-                          }}
+                          _hover={
+                            !job.is_expired
+                              ? {
+                                  transform: "translateY(-2px)",
+                                  boxShadow: `0 12px 28px rgba(59, 130, 246, 0.35)`,
+                                  filter: "brightness(1.1)",
+                                }
+                              : {}
+                          }
                         >
-                          APPLY NOW
+                          {job.is_expired ? "EXPIRED" : "APPLY NOW"}
                         </Button>
                       </Flex>
 
@@ -755,7 +765,7 @@ const ApplyJobPage = () => {
                                   borderRadius="xl"
                                   border="1px solid var(--color-card-border)"
                                   bg="var(--color-input-bg)"
-                                  transition="all 0.3s"
+                                  style={{ transition: "all 0.3s" }}
                                   _hover={{
                                     bg: "var(--color-glass)",
                                     borderColor: accentColor,

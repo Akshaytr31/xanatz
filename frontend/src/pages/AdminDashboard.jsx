@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -9,13 +9,16 @@ import {
   Grid,
   GridItem,
   Circle,
+  Button,
 } from "@chakra-ui/react";
-import { LayoutDashboard, ShieldCheck, Users, Settings } from "lucide-react";
+import { LayoutDashboard, ShieldCheck, Users, Settings, FileText, CreditCard } from "lucide-react";
 import AdminNavbar from "../components/AdminNavbar";
 import PrivacyPolicyEditor from "../components/PrivacyPolicyEditor";
+import PlanManager from "../components/PlanManager";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("plans");
 
   useEffect(() => {
     if (!localStorage.getItem("access")) {
@@ -39,29 +42,73 @@ const AdminDashboard = () => {
       <AdminNavbar handleLogout={handleLogout} />
 
       <Box p={{ base: 6, md: 10 }} position="relative">
-        <HStack gap={4} mb={8}>
-          <Circle size="12" bg="var(--color-accent)" color="white" shadow="lg">
-            <LayoutDashboard size={24} />
-          </Circle>
-          <Box>
-            <Heading
-              size="xl"
-              color="var(--color-text-primary)"
-              fontWeight="black"
-              letterSpacing="tight"
-            >
-              Admin Control Panel
-            </Heading>
-            <Text color="whiteAlpha.600" fontSize="sm">
-              Manage Xanatz system settings and content.
-            </Text>
-          </Box>
+        <HStack gap={4} mb={8} justify="space-between" align="center">
+          <HStack gap={4}>
+            <Circle size="12" bg="var(--color-accent)" color="white" shadow="lg">
+              <LayoutDashboard size={24} />
+            </Circle>
+            <Box>
+              <Heading
+                size="xl"
+                color="var(--color-text-primary)"
+                fontWeight="black"
+                letterSpacing="tight"
+              >
+                Admin Control Panel
+              </Heading>
+              <Text color="whiteAlpha.600" fontSize="sm">
+                Manage Xanatz system settings, plans, and content.
+              </Text>
+            </Box>
+          </HStack>
+        </HStack>
+
+        {/* Navigation Tabs */}
+        <HStack gap={3} mb={6} borderBottom="1px solid" borderColor="whiteAlpha.100" pb={4}>
+          <Button
+            size="sm"
+            onClick={() => setActiveTab("plans")}
+            style={{
+              background: activeTab === "plans" ? "var(--color-accent)" : "rgba(255,255,255,0.05)",
+              color: "white",
+              border: "1px solid",
+              borderColor: activeTab === "plans" ? "var(--color-accent)" : "rgba(255,255,255,0.1)",
+              borderRadius: "8px",
+              fontWeight: "bold",
+              cursor: "pointer",
+            }}
+            _hover={{ opacity: 0.9 }}
+          >
+            <HStack gap={2} px={1}>
+              <CreditCard size={14} />
+              <Text fontSize="xs">Job Posting Plans</Text>
+            </HStack>
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => setActiveTab("policy")}
+            style={{
+              background: activeTab === "policy" ? "var(--color-accent)" : "rgba(255,255,255,0.05)",
+              color: "white",
+              border: "1px solid",
+              borderColor: activeTab === "policy" ? "var(--color-accent)" : "rgba(255,255,255,0.1)",
+              borderRadius: "8px",
+              fontWeight: "bold",
+              cursor: "pointer",
+            }}
+            _hover={{ opacity: 0.9 }}
+          >
+            <HStack gap={2} px={1}>
+              <FileText size={14} />
+              <Text fontSize="xs">Privacy Policy</Text>
+            </HStack>
+          </Button>
         </HStack>
 
         <Grid templateColumns={{ base: "1fr", lg: "1fr 300px" }} gap={8}>
           <GridItem>
             <VStack align="stretch" gap={8}>
-              <PrivacyPolicyEditor />
+              {activeTab === "plans" ? <PlanManager /> : <PrivacyPolicyEditor />}
             </VStack>
           </GridItem>
 

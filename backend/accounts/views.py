@@ -333,6 +333,7 @@ class JobOpeningViewSet(viewsets.ModelViewSet):
         return context
 
     def get_queryset(self):
+        from django.utils import timezone
         queryset = JobOpening.objects.all()
         company_id = self.request.query_params.get('company_id')
 
@@ -349,7 +350,12 @@ class JobOpeningViewSet(viewsets.ModelViewSet):
             except Company.DoesNotExist:
                 queryset = queryset.filter(is_active=True)
         else:
-            queryset = queryset.filter(is_active=True)
+            # Candidate/user dashboard: only show active and non-expired jobs
+            queryset = queryset.filter(
+                is_active=True
+            ).filter(
+                Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now())
+            )
 
         return queryset.order_by('-created_at')
 
@@ -435,6 +441,10 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         return queryset.order_by('-created_at')
 
     def perform_create(self, serializer):
+        job_opening = serializer.validated_data.get('job_opening')
+        if job_opening and job_opening.is_expired:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({"error": "Cannot apply to an expired job opening."})
         serializer.save(applicant=self.request.user, status='applied')
 
     def perform_update(self, serializer):
@@ -538,8 +548,16 @@ class RFPInterestViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
 
-class JobPostPlanViewSet(viewsets.ReadOnlyModelViewSet):
-    """List all available job posting plans."""
-    permission_classes = [permissions.IsAuthenticated]
+class JobPostPlanViewSet(viewsets.ModelViewSet):
+    """List and manage available job posting plans."""
     serializer_class = JobPostPlanSerializer
-    queryset = JobPostPlan.objects.filter(is_active=True)
+
+    def get_queryset(self):
+        if self.request.user and self.request.user.is_staff:
+            return JobPostPlan.objects.all().order_by('price')
+        return JobPostPlan.objects.filter(is_active=True).order_by('price')
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [permissions.IsAuthenticated()]
+        return [permissions.IsAdminUser()]

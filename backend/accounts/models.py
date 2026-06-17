@@ -316,7 +316,7 @@ class JobPostPlan(models.Model):
         ('premium', 'Premium'),
     ]
 
-    name = models.CharField(max_length=20, choices=PLAN_CHOICES, unique=True)
+    name = models.CharField(max_length=50, unique=True)
     display_name = models.CharField(max_length=50)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     max_jobs = models.PositiveIntegerField()
