@@ -75,6 +75,20 @@ const ManageRFPInterestsPage = () => {
     }));
   };
 
+  const handleUpdateStatus = async (interestId, newStatus) => {
+    try {
+      await api.patch(`rfp-interests/${interestId}/`, { status: newStatus });
+      setSuccessMsg(`Proposal ${newStatus === "accepted" ? "accepted" : "declined"} successfully.`);
+      setTimeout(() => setSuccessMsg(""), 4000);
+      setInterests((prev) =>
+        prev.map((item) => (item.id === interestId ? { ...item, status: newStatus } : item))
+      );
+    } catch (err) {
+      console.error(err);
+      showError("Failed to update proposal status.");
+    }
+  };
+
   const isOwner = currentUser && company && company.creator === currentUser.id;
   const currentUserMemberInfo = company?.members_details?.find((m) => m.id === currentUser?.id);
   const isAdmin = currentUserMemberInfo?.access_role === "admin";
@@ -145,6 +159,15 @@ const ManageRFPInterestsPage = () => {
                 <HStack gap={3}>
                   <AlertCircle size={16} color="#ef4444" />
                   <Text color="#ef4444" fontSize="xs" fontWeight="bold">{errorMsg}</Text>
+                </HStack>
+              </MotionBox>
+            )}
+            {successMsg && (
+              <MotionBox initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                bg="rgba(16,185,129,0.1)" border="1px solid rgba(16,185,129,0.3)" p={3.5} borderRadius="xl" mb={6}>
+                <HStack gap={3}>
+                  <CheckCircle size={16} color="#10b981" />
+                  <Text color="#10b981" fontSize="xs" fontWeight="bold">{successMsg}</Text>
                 </HStack>
               </MotionBox>
             )}
@@ -236,15 +259,40 @@ const ManageRFPInterestsPage = () => {
                           </VStack>
                         </HStack>
 
-                        <VStack align={{ base: "start", md: "end" }} gap={1}>
+                        <VStack align={{ base: "start", md: "end" }} gap={1.5}>
                           <HStack gap={1.5}>
                             <FileText size={12} color="var(--color-text-muted)" />
                             <Text color="var(--color-text-secondary)" fontSize="xs" fontWeight="black">{rfpTitle}</Text>
                           </HStack>
-                          <HStack gap={1.5} fontSize="3xs" color="var(--color-text-muted)" fontWeight="bold" letterSpacing="wider">
-                            <Clock size={10} />
-                            <Text>{new Date(interest.created_at).toLocaleDateString(undefined, { dateStyle: "medium" }).toUpperCase()}</Text>
-                          </HStack>
+                          <Flex align="center" gap={2}>
+                            <HStack gap={1} fontSize="3xs" color="var(--color-text-muted)" fontWeight="bold" letterSpacing="wider">
+                              <Clock size={10} />
+                              <Text>{new Date(interest.created_at).toLocaleDateString(undefined, { dateStyle: "medium" }).toUpperCase()}</Text>
+                            </HStack>
+                            <Badge
+                              fontSize="3xs"
+                              borderRadius="md"
+                              px={2}
+                              py={0.5}
+                              fontWeight="bold"
+                              style={{
+                                background:
+                                  interest.status === "accepted" ? "rgba(16,185,129,0.15)" :
+                                  interest.status === "rejected" ? "rgba(239,68,68,0.15)" :
+                                  "rgba(245,158,11,0.15)",
+                                color:
+                                  interest.status === "accepted" ? "#10b981" :
+                                  interest.status === "rejected" ? "#ef4444" :
+                                  "#f59e0b",
+                                border:
+                                  interest.status === "accepted" ? "1px solid rgba(16,185,129,0.3)" :
+                                  interest.status === "rejected" ? "1px solid rgba(239,68,68,0.3)" :
+                                  "1px solid rgba(245,158,11,0.3)",
+                              }}
+                            >
+                              {interest.status?.toUpperCase() || "PENDING"}
+                            </Badge>
+                          </Flex>
                         </VStack>
                       </Flex>
 
@@ -266,9 +314,9 @@ const ManageRFPInterestsPage = () => {
                           ) : null}
                         </Box>
 
-                        {/* Attachments */}
-                        {interest.attached_file && (
-                          <HStack gap={3} pt={2} borderTop="1px solid var(--color-card-border)" flexWrap="wrap">
+                        {/* Attachments & Action Buttons */}
+                        <HStack gap={3} pt={3.5} borderTop="1px solid var(--color-card-border)" justify="space-between" flexWrap="wrap">
+                          {interest.attached_file ? (
                             <Button
                               as="a"
                               href={
@@ -278,9 +326,9 @@ const ManageRFPInterestsPage = () => {
                               }
                               target="_blank"
                               rel="noopener noreferrer"
-                              h="7"
-                              px={3}
-                              borderRadius="md"
+                              h="7.5"
+                              px={3.5}
+                              borderRadius="xl"
                               fontSize="2xs"
                               fontWeight="bold"
                               style={{ background: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.3)", color: "#10b981" }}
@@ -289,8 +337,48 @@ const ManageRFPInterestsPage = () => {
                             >
                               Download Proposal File
                             </Button>
-                          </HStack>
-                        )}
+                          ) : (
+                            <Box />
+                          )}
+
+                          {interest.status === "pending" && (
+                            <HStack gap={3}>
+                              <Button
+                                h="7.5"
+                                px={4}
+                                borderRadius="xl"
+                                fontSize="2xs"
+                                fontWeight="bold"
+                                variant="ghost"
+                                color="#ef4444"
+                                _hover={{ background: "rgba(239, 68, 68, 0.1)" }}
+                                onClick={() => handleUpdateStatus(interest.id, "rejected")}
+                              >
+                                Decline
+                              </Button>
+                              <Button
+                                h="7.5"
+                                px={5}
+                                borderRadius="xl"
+                                fontSize="2xs"
+                                fontWeight="bold"
+                                style={{
+                                  background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                                  color: "white",
+                                  boxShadow: "0 4px 12px rgba(16,185,129,0.2)",
+                                }}
+                                _hover={{
+                                  transform: "translateY(-1px)",
+                                  boxShadow: "0 6px 16px rgba(16,185,129,0.3)",
+                                }}
+                                transition="all 0.2s"
+                                onClick={() => handleUpdateStatus(interest.id, "accepted")}
+                              >
+                                Accept Proposal
+                              </Button>
+                            </HStack>
+                          )}
+                        </HStack>
                       </VStack>
                     </MotionBox>
                   );

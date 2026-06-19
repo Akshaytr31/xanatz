@@ -30,7 +30,7 @@ import api, { backendUrl } from "../api";
 
 /* ─── tiny helpers ─────────────────────────────────────────────────────────── */
 
-const NavItem = ({ icon: Icon, label, active, onClick }) => {
+const NavItem = ({ icon: Icon, label, active, onClick, badgeCount }) => {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -57,7 +57,32 @@ const NavItem = ({ icon: Icon, label, active, onClick }) => {
           letterSpacing: active ? "0.02em" : "0",
         }}
       >
-        <Icon size={18} strokeWidth={active ? 2.5 : 2} />
+        <div style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
+          <Icon size={18} strokeWidth={active ? 2.5 : 2} />
+          {badgeCount > 0 && (
+            <span
+              style={{
+                position: "absolute",
+                top: "-6px",
+                right: "-6px",
+                background: "#ef4444",
+                color: "white",
+                borderRadius: "9999px",
+                fontSize: "8px",
+                fontWeight: "bold",
+                height: "14px",
+                minWidth: "14px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "0 3px",
+                boxShadow: "0 0 0 1.5px var(--color-nav-bg, #0a0f1e)",
+              }}
+            >
+              {badgeCount}
+            </span>
+          )}
+        </div>
         <AnimatePresence>
           {active && (
             <motion.span
@@ -147,6 +172,9 @@ const MenuLink = ({ icon: Icon, label, onClick, danger = false }) => (
 const Navbar = () => {
   const { theme, setTheme } = useTheme();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isMessagesOpen, setIsMessagesOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
   const [user, setUser] = useState(null);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -155,6 +183,8 @@ const Navbar = () => {
   const location = useLocation();
   const searchInputRef = useRef(null);
   const dropdownRef = useRef(null);
+  const notificationsRef = useRef(null);
+  const messagesRef = useRef(null);
 
   /* scroll detection */
   useEffect(() => {
@@ -182,10 +212,63 @@ const Navbar = () => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setIsProfileOpen(false);
       }
+      if (notificationsRef.current && !notificationsRef.current.contains(e.target)) {
+        setIsNotificationsOpen(false);
+      }
+      if (messagesRef.current && !messagesRef.current.contains(e.target)) {
+        setIsMessagesOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await api.get("notifications/");
+      setNotifications(res.data);
+    } catch (err) {
+      console.error("Failed to fetch notifications", err);
+    }
+  };
+
+  useEffect(() => {
+    if (localStorage.getItem("access")) {
+      fetchNotifications();
+      const interval = setInterval(fetchNotifications, 12000);
+      return () => clearInterval(interval);
+    }
+  }, []);
+
+  const handleMarkAllRead = async () => {
+    try {
+      await api.post("notifications/mark-all-read/");
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    } catch (err) {
+      console.error("Failed to mark all as read", err);
+    }
+  };
+
+  const handleNotificationClick = async (notif) => {
+    try {
+      if (!notif.is_read) {
+        await api.post(`notifications/${notif.id}/mark-read/`);
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === notif.id ? { ...n, is_read: true } : n))
+        );
+      }
+      setIsNotificationsOpen(false);
+      if (notif.target_url) {
+        navigate(notif.target_url);
+      }
+    } catch (err) {
+      console.error("Failed to mark notification as read", err);
+      setIsNotificationsOpen(false);
+      if (notif.target_url) {
+        navigate(notif.target_url);
+      }
+    }
+  };
 
   const handleLogout = () => {
     localStorage.clear();
@@ -298,18 +381,231 @@ const Navbar = () => {
             active={location.pathname === "/my-applications"}
             onClick={() => navigate("/my-applications")}
           />
-          <NavItem
-            icon={MessageSquare}
-            label="Chats"
-            active={location.pathname === "/messages"}
-            onClick={() => navigate("/messages")}
-          />
-          <NavItem
-            icon={Bell}
-            label="Alerts"
-            active={location.pathname === "/notifications"}
-            onClick={() => navigate("/notifications")}
-          />
+          
+          {/* Chats / Messages Dropdown */}
+          <div ref={messagesRef} style={{ position: "relative" }}>
+            <NavItem
+              icon={MessageSquare}
+              label="Chats"
+              active={isMessagesOpen}
+              onClick={() => {
+                setIsMessagesOpen(!isMessagesOpen);
+                setIsNotificationsOpen(false);
+                setIsProfileOpen(false);
+              }}
+              badgeCount={1} // mock support badge
+            />
+            <AnimatePresence>
+              {isMessagesOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 12, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                  transition={{ duration: 0.2, type: "spring", stiffness: 320, damping: 26 }}
+                  style={{
+                    position: "absolute",
+                    top: "calc(100% + 0.75rem)",
+                    right: 0,
+                    width: "320px",
+                    zIndex: 2000,
+                    borderRadius: "1rem",
+                    overflow: "hidden",
+                    background: "var(--color-dropdown-bg)",
+                    backdropFilter: "blur(40px)",
+                    border: "1px solid var(--color-card-border)",
+                    boxShadow: "0 24px 48px -12px rgba(0,0,0,0.7), inset 0 1px 0 var(--color-glass)",
+                    padding: "0.5rem",
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 0.75rem 0.5rem" }}>
+                    <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-text-primary)" }}>Messages</span>
+                  </div>
+                  <div style={{ maxHeight: "280px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "0.75rem",
+                        padding: "0.75rem",
+                        borderRadius: "0.5rem",
+                        background: "rgba(59,130,246,0.06)",
+                        cursor: "pointer",
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "var(--color-card-border)"}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "rgba(59,130,246,0.06)"}
+                    >
+                      <div
+                        style={{
+                          width: "32px",
+                          height: "32px",
+                          borderRadius: "50%",
+                          background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "white",
+                          fontWeight: "bold",
+                          fontSize: "0.7rem",
+                        }}
+                      >
+                        XT
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                          <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--color-text-primary)" }}>Xanatz Support</span>
+                          <span style={{ fontSize: "0.6rem", color: "var(--color-text-muted)" }}>Yesterday</span>
+                        </div>
+                        <p style={{ margin: "2px 0 0", fontSize: "0.7rem", color: "var(--color-text-secondary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          Welcome to Xanatz! Start exploring public RFPs and apply.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "0.75rem",
+                        padding: "0.75rem",
+                        borderRadius: "0.5rem",
+                        background: "transparent",
+                        cursor: "pointer",
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "var(--color-card-border)"}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                    >
+                      <div
+                        style={{
+                          width: "32px",
+                          height: "32px",
+                          borderRadius: "50%",
+                          background: "linear-gradient(135deg, #10b981, #059669)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "white",
+                          fontWeight: "bold",
+                          fontSize: "0.7rem",
+                        }}
+                      >
+                        GW
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                          <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--color-text-primary)" }}>Google Integration</span>
+                          <span style={{ fontSize: "0.6rem", color: "var(--color-text-muted)" }}>3 days ago</span>
+                        </div>
+                        <p style={{ margin: "2px 0 0", fontSize: "0.7rem", color: "var(--color-text-secondary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          Your Gmail OAuth credentials have been validated successfully.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Alerts / Notifications Dropdown */}
+          <div ref={notificationsRef} style={{ position: "relative" }}>
+            <NavItem
+              icon={Bell}
+              label="Alerts"
+              active={isNotificationsOpen}
+              onClick={() => {
+                setIsNotificationsOpen(!isNotificationsOpen);
+                setIsMessagesOpen(false);
+                setIsProfileOpen(false);
+              }}
+              badgeCount={notifications.filter((n) => !n.is_read).length}
+            />
+            <AnimatePresence>
+              {isNotificationsOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 12, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                  transition={{ duration: 0.2, type: "spring", stiffness: 320, damping: 26 }}
+                  style={{
+                    position: "absolute",
+                    top: "calc(100% + 0.75rem)",
+                    right: 0,
+                    width: "320px",
+                    zIndex: 2000,
+                    borderRadius: "1rem",
+                    overflow: "hidden",
+                    background: "var(--color-dropdown-bg)",
+                    backdropFilter: "blur(40px)",
+                    border: "1px solid var(--color-card-border)",
+                    boxShadow: "0 24px 48px -12px rgba(0,0,0,0.7), inset 0 1px 0 var(--color-glass)",
+                    padding: "0.5rem",
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 0.75rem 0.5rem" }}>
+                    <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-text-primary)" }}>Alerts</span>
+                    {notifications.some((n) => !n.is_read) && (
+                      <button
+                        onClick={handleMarkAllRead}
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          color: "var(--color-accent, #3b82f6)",
+                          fontSize: "0.7rem",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Mark all as read
+                      </button>
+                    )}
+                  </div>
+                  <div style={{ maxHeight: "280px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                    {notifications.length === 0 ? (
+                      <div style={{ padding: "1.5rem 1rem", textAlign: "center", color: "var(--color-text-muted)", fontSize: "0.75rem" }}>
+                        <Bell size={24} style={{ margin: "0 auto 8px", opacity: 0.5 }} />
+                        No notifications yet
+                      </div>
+                    ) : (
+                      notifications.map((notif) => (
+                        <div
+                          key={notif.id}
+                          onClick={() => handleNotificationClick(notif)}
+                          style={{
+                            display: "flex",
+                            gap: "0.75rem",
+                            padding: "0.75rem",
+                            borderRadius: "0.5rem",
+                            cursor: "pointer",
+                            background: notif.is_read ? "transparent" : "rgba(59,130,246,0.06)",
+                            transition: "background 0.2s",
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = "var(--color-card-border)"}
+                          onMouseLeave={(e) => e.currentTarget.style.background = notif.is_read ? "transparent" : "rgba(59,130,246,0.06)"}
+                        >
+                          <div style={{ position: "relative", top: "2px" }}>
+                            <div
+                              style={{
+                                width: "8px",
+                                height: "8px",
+                                borderRadius: "50%",
+                                background: notif.is_read ? "transparent" : "#ef4444",
+                              }}
+                            />
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
+                            <p style={{ margin: 0, fontSize: "0.75rem", color: notif.is_read ? "var(--color-text-secondary)" : "var(--color-text-primary)", lineHeight: "1.4" }}>
+                              {notif.message}
+                            </p>
+                            <span style={{ fontSize: "0.65rem", color: "var(--color-text-muted)", display: "block", marginTop: "4px" }}>
+                              {new Date(notif.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {new Date(notif.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </nav>
 
         {/* ── Right: Search + Avatar ── */}

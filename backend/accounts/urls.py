@@ -5,7 +5,7 @@ from .views import (
     SendOTPView, VerifyOTPView, RegisterUserView, GoogleLoginView, 
     PrivacyPolicyView, UserProfileView, ExperienceViewSet, EducationViewSet,
     CompanyViewSet, PublicProfileView, UserSearchView, JobOpeningViewSet, JobApplicationViewSet,
-    RFPViewSet, RFPInterestViewSet, JobPostPlanViewSet
+    RFPViewSet, RFPInterestViewSet, JobPostPlanViewSet, NotificationViewSet
 )
 
 router = DefaultRouter()
@@ -17,6 +17,7 @@ router.register(r'applications', JobApplicationViewSet, basename='applications')
 router.register(r'rfps', RFPViewSet, basename='rfps')
 router.register(r'rfp-interests', RFPInterestViewSet, basename='rfp-interests')
 router.register(r'plans', JobPostPlanViewSet, basename='plans')
+router.register(r'notifications', NotificationViewSet, basename='notifications')
 
 
 urlpatterns = [

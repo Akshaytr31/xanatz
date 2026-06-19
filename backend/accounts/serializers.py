@@ -5,7 +5,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 import random
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import PrivacyPolicy, Profile, Experience, Education, Company, OTP, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription
+from .models import PrivacyPolicy, Profile, Experience, Education, Company, OTP, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification
 
 User = get_user_model()
 
@@ -301,7 +301,7 @@ class RFPInterestSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'rfp', 'rfp_title', 'rfp_company_name', 'user', 'user_email',
             'company_name', 'email', 'phone_number', 'proposal_summary',
-            'attached_file', 'created_at'
+            'attached_file', 'status', 'created_at'
         ]
         read_only_fields = ['user']
 
@@ -321,3 +321,12 @@ class CompanySubscriptionSerializer(serializers.ModelSerializer):
         model = CompanySubscription
         fields = ['id', 'company', 'plan', 'plan_details', 'jobs_used', 'jobs_remaining', 'is_credits_exhausted', 'activated_at', 'is_active']
         read_only_fields = ['company', 'jobs_used', 'activated_at']
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    sender_email = serializers.ReadOnlyField(source='sender.email')
+
+    class Meta:
+        model = Notification
+        fields = ['id', 'recipient', 'sender', 'sender_email', 'message', 'is_read', 'created_at', 'target_url']
+        read_only_fields = ['id', 'recipient', 'sender', 'created_at']

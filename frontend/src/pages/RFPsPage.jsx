@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import RFPInterestModal from "../components/company/RFPInterestModal";
+import RFPFilterSidebar from "../components/RFPFilterSidebar";
 import { ALL_CATEGORY_LABELS, ALL_SUBCATEGORY_LABELS, CATEGORY_OPTIONS } from "../components/company/JobOpeningModal";
 import api, { backendUrl } from "../api";
 
@@ -29,7 +30,20 @@ const RFPsPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedBudget, setSelectedBudget] = useState("");
+  const [selectedOwner, setSelectedOwner] = useState("");
+  const [selectedDatePosted, setSelectedDatePosted] = useState("");
+  const [selectedSort, setSelectedSort] = useState("newest");
   const [expandedRfps, setExpandedRfps] = useState({});
+
+  const handleResetFilters = () => {
+    setSelectedCategory("");
+    setSelectedBudget("");
+    setSelectedOwner("");
+    setSelectedDatePosted("");
+    setSearchQuery("");
+    setSelectedSort("newest");
+  };
 
   // Modal Control
   const [selectedRfp, setSelectedRfp] = useState(null);
@@ -92,6 +106,28 @@ const RFPsPage = () => {
     );
   }
 
+  // Helper to parse budget range average
+  const parseBudgetRange = (str) => {
+    if (!str) return 0;
+    const clean = str.replace(/[$,]/g, "");
+    const matches = clean.match(/\d+k?/gi);
+    if (!matches) return 0;
+    const vals = matches.map(m => {
+      let val = parseFloat(m);
+      if (m.toLowerCase().endsWith("k")) {
+        val *= 1000;
+      }
+      return val;
+    });
+    return vals.reduce((a, b) => a + b, 0) / vals.length;
+  };
+
+  // Extract unique companies from RFPs for Published By filter dropdown
+  const companyOptions = Array.from(new Set(rfps.map(r => r.company_name)))
+    .filter(Boolean)
+    .sort()
+    .map(name => ({ value: name, label: name }));
+
   // Filter RFPs
   const filteredRfps = rfps.filter((rfp) => {
     const q = searchQuery.toLowerCase();
@@ -102,7 +138,63 @@ const RFPsPage = () => {
       (rfp.requirements && rfp.requirements.toLowerCase().includes(q))
     );
     const matchesCategory = !selectedCategory || rfp.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+
+    let matchesBudget = true;
+    if (selectedBudget) {
+      const avgBudget = parseBudgetRange(rfp.budget);
+      if (selectedBudget === "under-10k") {
+        matchesBudget = avgBudget > 0 && avgBudget < 10000;
+      } else if (selectedBudget === "10k-50k") {
+        matchesBudget = avgBudget >= 10000 && avgBudget <= 50000;
+      } else if (selectedBudget === "50k-100k") {
+        matchesBudget = avgBudget >= 50000 && avgBudget <= 100000;
+      } else if (selectedBudget === "over-100k") {
+        matchesBudget = avgBudget > 100000;
+      }
+    }
+
+    let matchesOwner = true;
+    if (selectedOwner) {
+      matchesOwner = rfp.company_name === selectedOwner;
+    }
+
+    let matchesDate = true;
+    if (selectedDatePosted) {
+      const createdTime = new Date(rfp.created_at).getTime();
+      const now = Date.now();
+      const diffMs = now - createdTime;
+      if (selectedDatePosted === "past-24h") {
+        matchesDate = diffMs <= 24 * 60 * 60 * 1000;
+      } else if (selectedDatePosted === "past-week") {
+        matchesDate = diffMs <= 7 * 24 * 60 * 60 * 1000;
+      } else if (selectedDatePosted === "past-month") {
+        matchesDate = diffMs <= 30 * 24 * 60 * 60 * 1000;
+      }
+    }
+
+    return matchesSearch && matchesCategory && matchesBudget && matchesOwner && matchesDate;
+  });
+
+  // Sort RFPs
+  const sortedRfps = [...filteredRfps].sort((a, b) => {
+    if (selectedSort === "newest") {
+      return new Date(b.created_at) - new Date(a.created_at);
+    }
+    if (selectedSort === "oldest") {
+      return new Date(a.created_at) - new Date(b.created_at);
+    }
+    if (selectedSort === "budget-high") {
+      return parseBudgetRange(b.budget) - parseBudgetRange(a.budget);
+    }
+    if (selectedSort === "budget-low") {
+      return parseBudgetRange(a.budget) - parseBudgetRange(b.budget);
+    }
+    if (selectedSort === "deadline-soon") {
+      if (!a.deadline) return 1;
+      if (!b.deadline) return -1;
+      return new Date(a.deadline) - new Date(b.deadline);
+    }
+    return 0;
   });
 
   return (
@@ -125,110 +217,23 @@ const RFPsPage = () => {
           
           <Grid templateColumns={{ base: "1fr", lg: "280px 1fr", xl: "280px 1fr 310px" }} gap={6} alignItems="start">
             
-            {/* ─── LEFT SIDEBAR: PROFILE OVERVIEW (STICKY) ─── */}
-            <Box
-              display={{ base: "none", lg: "block" }}
-              position="sticky"
-              top="88px"
-              alignSelf="start"
-              w="280px"
-              zIndex={10}
-            >
-              <VStack align="stretch" gap={5}>
-                <Box
-                  borderRadius="2xl"
-                  border="1px solid var(--color-card-border)"
-                  overflow="hidden"
-                  style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }}
-                >
-                  {/* Decorative header banner */}
-                  <Box h="60px" bg={`linear-gradient(135deg, ${accentColor} 0%, #3b82f6 100%)`} opacity={0.8} />
-                  
-                  {/* User Info Block */}
-                  <VStack align="center" px={4} pb={5} mt="-32px" textAlign="center" borderBottom="1px solid var(--color-card-border)">
-                    <Box
-                      w="64px"
-                      h="64px"
-                      borderRadius="full"
-                      border="3px solid var(--color-surface)"
-                      overflow="hidden"
-                      boxShadow="lg"
-                      bg="var(--color-surface)"
-                      mb={2}
-                      position="relative"
-                      zIndex={2}
-                    >
-                      {currentUser?.profile?.profile_picture ? (
-                        <img
-                          src={getImageUrl(currentUser.profile.profile_picture)}
-                          alt="avatar"
-                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                        />
-                      ) : (
-                        <Flex w="full" h="full" align="center" justify="center" bg="var(--color-card-border)">
-                          <UserIcon size={24} color="var(--color-text-primary)" />
-                        </Flex>
-                      )}
-                    </Box>
-                    <Text color="var(--color-text-primary)" fontWeight="black" fontSize="sm" lineHeight={1.2}>
-                      {currentUser?.first_name} {currentUser?.last_name}
-                    </Text>
-                    <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="bold" mt={1}>
-                      {currentUser?.profile?.headline?.toUpperCase() || "CREATOR / VENDOR"}
-                    </Text>
-                  </VStack>
-
-                  {/* Marketplace mini-stats */}
-                  <VStack align="stretch" p={4} gap={3} fontSize="2xs">
-                    <HStack justify="space-between">
-                      <Text color="var(--color-text-muted)" fontWeight="semibold">Total Public RFPs</Text>
-                      <Badge bg={`${accentColor}15`} color={accentColor} borderRadius="md">{rfps.length}</Badge>
-                    </HStack>
-                    <HStack justify="space-between">
-                      <Text color="var(--color-text-muted)" fontWeight="semibold">Vendor Status</Text>
-                      <Badge colorScheme="green" variant="subtle" borderRadius="md">Active</Badge>
-                    </HStack>
-                  </VStack>
-
-                  {/* Quick actions inside left sidebar */}
-                  <Box p={3} borderTop="1px solid var(--color-card-border)" bg="var(--color-input-bg)">
-                    <Button
-                      w="full"
-                      size="sm"
-                      h="8"
-                      fontSize="3xs"
-                      fontWeight="black"
-                      letterSpacing="wider"
-                      borderRadius="lg"
-                      color="white"
-                      bg={accentColor}
-                      _hover={{ filter: "brightness(1.1)" }}
-                      onClick={() => navigate("/profile")}
-                    >
-                      MY PROFILE
-                    </Button>
-                  </Box>
-                </Box>
-
-                {/* Verified Trust Card */}
-                <Box
-                  p={4}
-                  borderRadius="xl"
-                  border="1px solid var(--color-card-border)"
-                  style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }}
-                >
-                  <HStack gap={2.5} mb={2}>
-                    <CheckCircle2 size={16} color="#10b981" />
-                    <Text color="var(--color-text-primary)" fontWeight="black" fontSize="3xs" letterSpacing="wider">
-                      VERIFIED CLIENTS
-                    </Text>
-                  </HStack>
-                  <Text color="var(--color-text-muted)" fontSize="3xs" lineHeight="1.5">
-                    All proposal listings on Xanatz are published by identity-verified corporate partners for reliable procurement.
-                  </Text>
-                </Box>
-              </VStack>
-            </Box>
+            {/* ─── LEFT SIDEBAR: FILTERS & SORT (STICKY) ─── */}
+            <RFPFilterSidebar
+              selectedSort={selectedSort}
+              setSelectedSort={setSelectedSort}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+              selectedBudget={selectedBudget}
+              setSelectedBudget={setSelectedBudget}
+              selectedOwner={selectedOwner}
+              setSelectedOwner={setSelectedOwner}
+              selectedDatePosted={selectedDatePosted}
+              setSelectedDatePosted={setSelectedDatePosted}
+              searchQuery={searchQuery}
+              onResetFilters={handleResetFilters}
+              companyOptions={companyOptions}
+              accentColor={accentColor}
+            />
 
             {/* ─── CENTER COLUMN: NEWS FEED STREAM ─── */}
             <VStack align="stretch" gap={6}>
@@ -267,7 +272,7 @@ const RFPsPage = () => {
 
               {/* Main vertical stream of RFP posts */}
               <VStack align="stretch" gap={5}>
-                {filteredRfps.length === 0 ? (
+                {sortedRfps.length === 0 ? (
                   <Box py="100px" textAlign="center" w="full" borderRadius="3xl"
                     border="1px dashed var(--color-card-border)" bg="var(--color-glass)">
                     <FileText size={48} color="var(--color-card-border)" style={{ margin: "0 auto 16px auto" }} />
@@ -278,7 +283,7 @@ const RFPsPage = () => {
                   </Box>
                 ) : (
                   <AnimatePresence>
-                    {filteredRfps.map((rfp, idx) => {
+                    {sortedRfps.map((rfp, idx) => {
                       const isExpanded = expandedRfps[rfp.id] || false;
                       const descriptionSnippet = rfp.description.length > 250
                         ? `${rfp.description.slice(0, 250)}...`

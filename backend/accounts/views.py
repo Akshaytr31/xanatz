@@ -2,13 +2,13 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
-from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription
+from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification
 from .serializers import (
     SendOTPSerializer, VerifyOTPSerializer, RegisterUserSerializer, 
     PrivacyPolicySerializer, UserSerializer, ProfileSerializer,
     ExperienceSerializer, EducationSerializer, CompanySerializer,
     UserSearchSerializer, JobOpeningSerializer, JobApplicationSerializer,
-    RFPSerializer, RFPInterestSerializer, JobPostPlanSerializer, CompanySubscriptionSerializer
+    RFPSerializer, RFPInterestSerializer, JobPostPlanSerializer, CompanySubscriptionSerializer, NotificationSerializer
 )
 
 class SendOTPView(APIView):
@@ -545,7 +545,50 @@ class RFPInterestViewSet(viewsets.ModelViewSet):
         return queryset.order_by('-created_at')
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        rfp_interest = serializer.save(user=self.request.user)
+        
+        # Notify the company admins/owner
+        rfp = rfp_interest.rfp
+        company = rfp.company
+        
+        recipients = set()
+        if company.creator:
+            recipients.add(company.creator)
+            
+        admins = CompanyMember.objects.filter(company=company, access_role='admin').select_related('user')
+        for admin_member in admins:
+            if admin_member.user:
+                recipients.add(admin_member.user)
+                
+        for recipient in recipients:
+            if recipient != self.request.user:
+                Notification.objects.create(
+                    recipient=recipient,
+                    sender=self.request.user,
+                    message=f"{rfp_interest.company_name} showed interest in your RFP '{rfp.title}'.",
+                    target_url=f"/company/{company.id}/rfp-interests"
+                )
+
+    def perform_update(self, serializer):
+        old_instance = self.get_object()
+        new_instance = serializer.save()
+        
+        # Check if status has changed
+        if old_instance.status != new_instance.status:
+            if new_instance.status == 'accepted':
+                Notification.objects.create(
+                    recipient=new_instance.user,
+                    sender=self.request.user,
+                    message=f"Your proposal for RFP '{new_instance.rfp.title}' was accepted by {new_instance.rfp.company.name}.",
+                    target_url=f"/rfps"
+                )
+            elif new_instance.status == 'rejected':
+                Notification.objects.create(
+                    recipient=new_instance.user,
+                    sender=self.request.user,
+                    message=f"Your proposal for RFP '{new_instance.rfp.title}' was declined by {new_instance.rfp.company.name}.",
+                    target_url=f"/rfps"
+                )
 
 
 class JobPostPlanViewSet(viewsets.ModelViewSet):
@@ -561,3 +604,23 @@ class JobPostPlanViewSet(viewsets.ModelViewSet):
         if self.action in ['list', 'retrieve']:
             return [permissions.IsAuthenticated()]
         return [permissions.IsAdminUser()]
+
+
+class NotificationViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = NotificationSerializer
+
+    def get_queryset(self):
+        return Notification.objects.filter(recipient=self.request.user).order_by('-created_at')
+
+    @action(detail=False, methods=['post'], url_path='mark-all-read')
+    def mark_all_read(self, request):
+        Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
+        return Response({"message": "All notifications marked as read."}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='mark-read')
+    def mark_read(self, request, pk=None):
+        notification = self.get_object()
+        notification.is_read = True
+        notification.save()
+        return Response({"message": "Notification marked as read."}, status=status.HTTP_200_OK)
