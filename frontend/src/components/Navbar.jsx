@@ -175,6 +175,7 @@ const Navbar = () => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isMessagesOpen, setIsMessagesOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [conversations, setConversations] = useState([]);
   const [user, setUser] = useState(null);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -232,10 +233,23 @@ const Navbar = () => {
     }
   };
 
+  const fetchConversations = async () => {
+    try {
+      const res = await api.get("messages/conversations/");
+      setConversations(res.data);
+    } catch (err) {
+      console.error("Failed to fetch conversations", err);
+    }
+  };
+
   useEffect(() => {
     if (localStorage.getItem("access")) {
       fetchNotifications();
-      const interval = setInterval(fetchNotifications, 12000);
+      fetchConversations();
+      const interval = setInterval(() => {
+        fetchNotifications();
+        fetchConversations();
+      }, 12000);
       return () => clearInterval(interval);
     }
   }, []);
@@ -267,6 +281,41 @@ const Navbar = () => {
       if (notif.target_url) {
         navigate(notif.target_url);
       }
+    }
+  };
+
+  const handleMarkAsReadAndNavigateToChat = async (notif) => {
+    try {
+      if (!notif.is_read) {
+        await api.post(`notifications/${notif.id}/mark-read/`);
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === notif.id ? { ...n, is_read: true } : n))
+        );
+      }
+      setIsNotificationsOpen(false);
+      navigate("/messages", {
+        state: {
+          startChatWith: {
+            id: notif.sender,
+            email: notif.sender_email,
+            name: notif.sender_name || notif.sender_email,
+            profile_picture: notif.sender_profile_picture
+          }
+        }
+      });
+    } catch (err) {
+      console.error("Failed to process notification chat click", err);
+      setIsNotificationsOpen(false);
+      navigate("/messages", {
+        state: {
+          startChatWith: {
+            id: notif.sender,
+            email: notif.sender_email,
+            name: notif.sender_name || notif.sender_email,
+            profile_picture: notif.sender_profile_picture
+          }
+        }
+      });
     }
   };
 
@@ -393,7 +442,7 @@ const Navbar = () => {
                 setIsNotificationsOpen(false);
                 setIsProfileOpen(false);
               }}
-              badgeCount={1} // mock support badge
+              badgeCount={conversations.reduce((acc, c) => acc + (c.unread_count || 0), 0)}
             />
             <AnimatePresence>
               {isMessagesOpen && (
@@ -419,85 +468,96 @@ const Navbar = () => {
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 0.75rem 0.5rem" }}>
                     <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-text-primary)" }}>Messages</span>
+                    <button
+                      onClick={() => {
+                        setIsMessagesOpen(false);
+                        navigate("/messages");
+                      }}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        color: "var(--color-accent, #3b82f6)",
+                        fontSize: "0.7rem",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      View all
+                    </button>
                   </div>
                   <div style={{ maxHeight: "280px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "0.75rem",
-                        padding: "0.75rem",
-                        borderRadius: "0.5rem",
-                        background: "rgba(59,130,246,0.06)",
-                        cursor: "pointer",
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = "var(--color-card-border)"}
-                      onMouseLeave={(e) => e.currentTarget.style.background = "rgba(59,130,246,0.06)"}
-                    >
-                      <div
-                        style={{
-                          width: "32px",
-                          height: "32px",
-                          borderRadius: "50%",
-                          background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "white",
-                          fontWeight: "bold",
-                          fontSize: "0.7rem",
-                        }}
-                      >
-                        XT
+                    {conversations.length === 0 ? (
+                      <div style={{ padding: "1.5rem 1rem", textAlign: "center", color: "var(--color-text-muted)", fontSize: "0.75rem" }}>
+                        <MessageSquare size={24} style={{ margin: "0 auto 8px", opacity: 0.5 }} />
+                        No messages yet
                       </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                          <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--color-text-primary)" }}>Xanatz Support</span>
-                          <span style={{ fontSize: "0.6rem", color: "var(--color-text-muted)" }}>Yesterday</span>
+                    ) : (
+                      conversations.slice(0, 4).map((conv) => (
+                        <div
+                          key={conv.id}
+                          onClick={() => {
+                            setIsMessagesOpen(false);
+                            navigate("/messages");
+                          }}
+                          style={{
+                            display: "flex",
+                            gap: "0.75rem",
+                            padding: "0.75rem",
+                            borderRadius: "0.5rem",
+                            background: conv.unread_count > 0 ? "rgba(59,130,246,0.06)" : "transparent",
+                            cursor: "pointer",
+                            transition: "background 0.2s",
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = "var(--color-card-border)"}
+                          onMouseLeave={(e) => e.currentTarget.style.background = conv.unread_count > 0 ? "rgba(59,130,246,0.06)" : "transparent"}
+                        >
+                          {conv.profile_picture ? (
+                            <img
+                              src={conv.profile_picture}
+                              alt=""
+                              style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover" }}
+                            />
+                          ) : (
+                            <div
+                              style={{
+                                width: "32px",
+                                height: "32px",
+                                borderRadius: "50%",
+                                background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: "white",
+                                fontWeight: "bold",
+                                fontSize: "0.7rem",
+                                flexShrink: 0,
+                              }}
+                            >
+                              {conv.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
+                            </div>
+                          )}
+                          <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                              <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--color-text-primary)" }}>{conv.name}</span>
+                              {conv.unread_count > 0 && (
+                                <span
+                                  style={{
+                                    width: "8px",
+                                    height: "8px",
+                                    borderRadius: "50%",
+                                    background: "#ef4444",
+                                    display: "inline-block",
+                                  }}
+                                />
+                              )}
+                            </div>
+                            <p style={{ margin: "2px 0 0", fontSize: "0.7rem", color: "var(--color-text-secondary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {conv.last_message || "No messages yet"}
+                            </p>
+                          </div>
                         </div>
-                        <p style={{ margin: "2px 0 0", fontSize: "0.7rem", color: "var(--color-text-secondary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          Welcome to Xanatz! Start exploring public RFPs and apply.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "0.75rem",
-                        padding: "0.75rem",
-                        borderRadius: "0.5rem",
-                        background: "transparent",
-                        cursor: "pointer",
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = "var(--color-card-border)"}
-                      onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-                    >
-                      <div
-                        style={{
-                          width: "32px",
-                          height: "32px",
-                          borderRadius: "50%",
-                          background: "linear-gradient(135deg, #10b981, #059669)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "white",
-                          fontWeight: "bold",
-                          fontSize: "0.7rem",
-                        }}
-                      >
-                        GW
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                          <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--color-text-primary)" }}>Google Integration</span>
-                          <span style={{ fontSize: "0.6rem", color: "var(--color-text-muted)" }}>3 days ago</span>
-                        </div>
-                        <p style={{ margin: "2px 0 0", fontSize: "0.7rem", color: "var(--color-text-secondary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          Your Gmail OAuth credentials have been validated successfully.
-                        </p>
-                      </div>
-                    </div>
+                      ))
+                    )}
                   </div>
                 </motion.div>
               )}
@@ -590,13 +650,41 @@ const Navbar = () => {
                               }}
                             />
                           </div>
-                          <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
-                            <p style={{ margin: 0, fontSize: "0.75rem", color: notif.is_read ? "var(--color-text-secondary)" : "var(--color-text-primary)", lineHeight: "1.4" }}>
-                              {notif.message}
-                            </p>
-                            <span style={{ fontSize: "0.65rem", color: "var(--color-text-muted)", display: "block", marginTop: "4px" }}>
-                              {new Date(notif.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {new Date(notif.created_at).toLocaleDateString()}
-                            </span>
+                          <div style={{ display: "flex", gap: "8px", alignItems: "center", width: "100%" }}>
+                            <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
+                              <p style={{ margin: 0, fontSize: "0.75rem", color: notif.is_read ? "var(--color-text-secondary)" : "var(--color-text-primary)", lineHeight: "1.4" }}>
+                                {notif.message}
+                              </p>
+                              <span style={{ fontSize: "0.65rem", color: "var(--color-text-muted)", display: "block", marginTop: "4px" }}>
+                                {new Date(notif.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {new Date(notif.created_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                            {notif.sender && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleMarkAsReadAndNavigateToChat(notif);
+                                }}
+                                style={{
+                                  background: "rgba(59, 130, 246, 0.1)",
+                                  border: "none",
+                                  borderRadius: "0.35rem",
+                                  padding: "6px",
+                                  color: "var(--color-accent, #3b82f6)",
+                                  cursor: "pointer",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  transition: "all 0.2s",
+                                  flexShrink: 0,
+                                }}
+                                onMouseEnter={(el) => el.currentTarget.style.background = "rgba(59, 130, 246, 0.25)"}
+                                onMouseLeave={(el) => el.currentTarget.style.background = "rgba(59, 130, 246, 0.1)"}
+                                title="Chat with user"
+                              >
+                                <MessageSquare size={14} />
+                              </button>
+                            )}
                           </div>
                         </div>
                       ))

@@ -5,7 +5,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 import random
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import PrivacyPolicy, Profile, Experience, Education, Company, OTP, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification
+from .models import PrivacyPolicy, Profile, Experience, Education, Company, OTP, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message
 
 User = get_user_model()
 
@@ -325,8 +325,46 @@ class CompanySubscriptionSerializer(serializers.ModelSerializer):
 
 class NotificationSerializer(serializers.ModelSerializer):
     sender_email = serializers.ReadOnlyField(source='sender.email')
+    sender_name = serializers.SerializerMethodField()
+    sender_profile_picture = serializers.SerializerMethodField()
 
     class Meta:
         model = Notification
-        fields = ['id', 'recipient', 'sender', 'sender_email', 'message', 'is_read', 'created_at', 'target_url']
+        fields = ['id', 'recipient', 'sender', 'sender_email', 'sender_name', 'sender_profile_picture', 'message', 'is_read', 'created_at', 'target_url']
         read_only_fields = ['id', 'recipient', 'sender', 'created_at']
+
+    def get_sender_name(self, obj):
+        if not obj.sender:
+            return None
+        name = f"{obj.sender.first_name or ''} {obj.sender.last_name or ''}".strip()
+        return name or obj.sender.email
+
+    def get_sender_profile_picture(self, obj):
+        if not obj.sender:
+            return None
+        request = self.context.get('request')
+        if hasattr(obj.sender, 'profile') and obj.sender.profile.profile_picture:
+            if request:
+                return request.build_absolute_uri(obj.sender.profile.profile_picture.url)
+            return obj.sender.profile.profile_picture.url
+        return None
+
+
+class MessageSerializer(serializers.ModelSerializer):
+    sender_email = serializers.ReadOnlyField(source='sender.email')
+    recipient_email = serializers.ReadOnlyField(source='recipient.email')
+    sender_name = serializers.SerializerMethodField()
+    recipient_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Message
+        fields = ['id', 'sender', 'sender_email', 'sender_name', 'recipient', 'recipient_email', 'recipient_name', 'content', 'is_read', 'created_at']
+        read_only_fields = ['id', 'sender', 'created_at']
+
+    def get_sender_name(self, obj):
+        name = f"{obj.sender.first_name or ''} {obj.sender.last_name or ''}".strip()
+        return name or obj.sender.email
+
+    def get_recipient_name(self, obj):
+        name = f"{obj.recipient.first_name or ''} {obj.recipient.last_name or ''}".strip()
+        return name or obj.recipient.email

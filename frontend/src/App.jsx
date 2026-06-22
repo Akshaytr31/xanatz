@@ -16,6 +16,7 @@ import MyApplicationsPage from "./pages/MyApplicationsPage";
 import RFPsPage from "./pages/RFPsPage";
 import ManageRFPsPage from "./pages/ManageRFPsPage";
 import ManageRFPInterestsPage from "./pages/ManageRFPInterestsPage";
+import MessagesPage from "./pages/MessagesPage";
 
 
 function App() {
@@ -23,6 +24,14 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route
+          path="/messages"
+          element={
+            <ProtectedRoute>
+              <MessagesPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/register" element={<Register />} />
         <Route
           path="/dashboard"

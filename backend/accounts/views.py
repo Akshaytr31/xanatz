@@ -2,13 +2,13 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
-from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification
+from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message
 from .serializers import (
     SendOTPSerializer, VerifyOTPSerializer, RegisterUserSerializer, 
     PrivacyPolicySerializer, UserSerializer, ProfileSerializer,
     ExperienceSerializer, EducationSerializer, CompanySerializer,
     UserSearchSerializer, JobOpeningSerializer, JobApplicationSerializer,
-    RFPSerializer, RFPInterestSerializer, JobPostPlanSerializer, CompanySubscriptionSerializer, NotificationSerializer
+    RFPSerializer, RFPInterestSerializer, JobPostPlanSerializer, CompanySubscriptionSerializer, NotificationSerializer, MessageSerializer
 )
 
 class SendOTPView(APIView):
@@ -624,3 +624,84 @@ class NotificationViewSet(viewsets.ModelViewSet):
         notification.is_read = True
         notification.save()
         return Response({"message": "Notification marked as read."}, status=status.HTTP_200_OK)
+
+
+class MessageViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = MessageSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return Message.objects.filter(Q(sender=user) | Q(recipient=user))
+
+    def perform_create(self, serializer):
+        serializer.save(sender=self.request.user)
+
+    @action(detail=False, methods=['get'])
+    def conversations(self, request):
+        user = request.user
+        from django.utils import timezone
+        
+        sent_recipients = Message.objects.filter(sender=user).values_list('recipient', flat=True)
+        received_senders = Message.objects.filter(recipient=user).values_list('sender', flat=True)
+        partner_ids = set(list(sent_recipients) + list(received_senders))
+        
+        partners = User.objects.filter(id__in=partner_ids)
+        conversations_data = []
+        
+        for partner in partners:
+            last_msg = Message.objects.filter(
+                (Q(sender=user) & Q(recipient=partner)) | 
+                (Q(sender=partner) & Q(recipient=user))
+            ).order_by('-created_at').first()
+            
+            unread_count = Message.objects.filter(
+                sender=partner,
+                recipient=user,
+                is_read=False
+            ).count()
+            
+            partner_name = f"{partner.first_name or ''} {partner.last_name or ''}".strip()
+            partner_name = partner_name or partner.email
+            
+            profile_pic_url = None
+            if hasattr(partner, 'profile') and partner.profile.profile_picture:
+                profile_pic_url = request.build_absolute_uri(partner.profile.profile_picture.url)
+                
+            conversations_data.append({
+                'id': partner.id,
+                'email': partner.email,
+                'name': partner_name,
+                'profile_picture': profile_pic_url,
+                'last_message': last_msg.content if last_msg else "",
+                'last_message_time': last_msg.created_at if last_msg else None,
+                'unread_count': unread_count
+            })
+            
+        conversations_data.sort(key=lambda x: x['last_message_time'] or timezone.now(), reverse=True)
+        return Response(conversations_data)
+
+    @action(detail=False, methods=['get'])
+    def chat(self, request):
+        user = request.user
+        partner_id = request.query_params.get('user_id')
+        if not partner_id:
+            return Response({"error": "user_id parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        messages = Message.objects.filter(
+            (Q(sender=user) & Q(recipient_id=partner_id)) | 
+            (Q(sender_id=partner_id) & Q(recipient=user))
+        ).order_by('created_at')
+        
+        serializer = MessageSerializer(messages, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['post'], url_path='mark-read')
+    def mark_read(self, request):
+        user = request.user
+        sender_id = request.data.get('sender_id')
+        if not sender_id:
+            return Response({"error": "sender_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        Message.objects.filter(sender_id=sender_id, recipient=user, is_read=False).update(is_read=True)
+        return Response({"message": "Messages marked as read"}, status=status.HTTP_200_OK)
