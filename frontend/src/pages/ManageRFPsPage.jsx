@@ -21,6 +21,7 @@ const ManageRFPsPage = () => {
 
   const [company, setCompany] = useState(null);
   const [rfps, setRfps] = useState([]);
+  const [interests, setInterests] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -45,14 +46,16 @@ const ManageRFPsPage = () => {
 
   const fetchData = async () => {
     try {
-      const [cRes, uRes, rRes] = await Promise.all([
+      const [cRes, uRes, rRes, riRes] = await Promise.all([
         api.get(`companies/${id}/`),
         api.get("me/"),
         api.get(`rfps/?company_id=${id}`),
+        api.get(`rfp-interests/?company_id=${id}`).catch(() => ({ data: [] })),
       ]);
       setCompany(cRes.data);
       setCurrentUser(uRes.data);
       setRfps(rRes.data);
+      setInterests(riRes.data || []);
     } catch (err) {
       console.error(err);
       showError("Failed to load RFPs.");
@@ -139,8 +142,77 @@ const ManageRFPsPage = () => {
     );
   }
 
+  // Statistical calculations
+  const parseBudget = (budgetStr) => {
+    if (!budgetStr) return 0;
+    const clean = budgetStr.replace(/,/g, "");
+    const matches = clean.match(/\d+/g);
+    if (!matches) return 0;
+    const numbers = matches.map(Number);
+    if (numbers.length >= 2) {
+      return (numbers[0] + numbers[1]) / 2;
+    }
+    return numbers[0] || 0;
+  };
+
+  const getCurrencySymbol = (list) => {
+    for (const r of list) {
+      if (!r.budget) continue;
+      if (r.budget.includes("₹")) return "₹";
+      if (r.budget.includes("$")) return "$";
+      if (r.budget.includes("Rs")) return "Rs. ";
+    }
+    return "$";
+  };
+
+  const formatCurrency = (value, symbol) => {
+    if (!value) return `${symbol}0`;
+    if (value >= 1.0e6) {
+      return `${symbol}${(value / 1.0e6).toFixed(1)}M`;
+    }
+    if (value >= 1.0e3) {
+      return `${symbol}${(value / 1.0e3).toFixed(1)}K`;
+    }
+    return `${symbol}${Math.round(value).toLocaleString()}`;
+  };
+
   const activeRfps = rfps.filter((r) => r.is_active);
   const inactiveRfps = rfps.filter((r) => !r.is_active);
+
+  const activeRfpsCount = activeRfps.length;
+  const inactiveRfpsCount = inactiveRfps.length;
+  const totalRfpsCount = rfps.length;
+
+  const totalInterestsCount = interests.length;
+  const pendingInterestsCount = interests.filter((i) => i.status === "pending").length;
+  const acceptedInterestsCount = interests.filter((i) => i.status === "accepted").length;
+  const rejectedInterestsCount = interests.filter((i) => i.status === "rejected").length;
+
+  const currencySymbol = getCurrencySymbol(rfps);
+  const totalBudgetVolume = rfps.reduce((sum, r) => sum + parseBudget(r.budget), 0);
+  const rfpsWithBudget = rfps.filter((r) => parseBudget(r.budget) > 0);
+  const averageBudgetVal = rfpsWithBudget.length ? totalBudgetVolume / rfpsWithBudget.length : 0;
+  const highestBudgetRfp = rfps.reduce((max, r) => {
+    const val = parseBudget(r.budget);
+    if (!max || val > parseBudget(max.budget)) return r;
+    return max;
+  }, null);
+
+  // Category breakdown
+  const categoryCounts = {};
+  rfps.forEach((r) => {
+    const cat = r.category || "Uncategorized";
+    categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+  });
+  const sortedCategories = Object.entries(categoryCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4);
+
+  // Upcoming deadlines
+  const upcomingDeadlines = rfps
+    .filter((r) => r.is_active && r.deadline && new Date(r.deadline) >= new Date())
+    .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
+    .slice(0, 3);
 
   const RFPList = ({ list, type }) => {
     if (list.length === 0) {
@@ -261,7 +333,7 @@ const ManageRFPsPage = () => {
           </AnimatePresence>
         </Box>
 
-        <Container maxW="900px" px={{ base: 5, md: 8 }} pt={10}>
+        <Container maxW="1200px" px={{ base: 5, md: 8 }} pt={10}>
           {/* Header */}
           <Flex justify="space-between" align="center" wrap="wrap" gap={4} mb={8}>
             <VStack align="start" gap={1}>
@@ -292,29 +364,180 @@ const ManageRFPsPage = () => {
             </Button>
           </Flex>
 
-          <VStack gap={8} align="stretch">
-            {/* Active RFPs */}
-            <Box>
-              <HStack gap={2.5} mb={4.5}>
-                <Box w="2px" h="12px" bg="#10b981" borderRadius="full" />
-                <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest">
-                  ACTIVE RFPs ({activeRfps.length})
+          <Grid templateColumns={{ base: "1fr", lg: "340px 1fr" }} gap={8} alignItems="start">
+            {/* Left Column: Statistics Sidebar */}
+            <VStack gap={5} align="stretch" position={{ lg: "sticky" }} top="100px">
+              {/* Stat 1: Overview */}
+              <Box p={5} borderRadius="2xl" border="1px solid var(--color-card-border)"
+                style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }}>
+                <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest" mb={4}>
+                  RFP OVERVIEW
                 </Text>
-              </HStack>
-              <RFPList list={activeRfps} type="active" />
-            </Box>
+                <Grid templateColumns="repeat(2, 1fr)" gap={4}>
+                  <VStack align="start" gap={0} p={3.5} borderRadius="xl" bg="var(--color-input-bg)" border="1px solid var(--color-glass)">
+                    <Text color="#10b981" fontSize="xl" fontWeight="black">{activeRfpsCount}</Text>
+                    <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="bold" letterSpacing="wider">ACTIVE</Text>
+                  </VStack>
+                  <VStack align="start" gap={0} p={3.5} borderRadius="xl" bg="var(--color-input-bg)" border="1px solid var(--color-glass)">
+                    <Text color="var(--color-text-muted)" fontSize="xl" fontWeight="black">{inactiveRfpsCount}</Text>
+                    <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="bold" letterSpacing="wider">INACTIVE</Text>
+                  </VStack>
+                </Grid>
+                <Flex align="center" gap={3} mt={4} p={3.5} borderRadius="xl" bg="var(--color-input-bg)" border="1px solid var(--color-glass)" cursor="pointer" onClick={() => navigate(`/company/${id}/rfp-interests`)}>
+                  <Box w="8" h="8" borderRadius="lg" bg="rgba(139,92,246,0.15)" display="flex" alignItems="center" justify="center" border="1px solid rgba(139,92,246,0.3)">
+                    <FileText size={16} color={accentColor} />
+                  </Box>
+                  <VStack align="start" gap={0} flex={1}>
+                    <Text color="white" fontSize="md" fontWeight="black">{totalInterestsCount}</Text>
+                    <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="bold" letterSpacing="wider">PROPOSALS RECEIVED</Text>
+                  </VStack>
+                </Flex>
+              </Box>
 
-            {/* Inactive RFPs */}
-            <Box>
-              <HStack gap={2.5} mb={4.5}>
-                <Box w="2px" h="12px" bg="var(--color-card-border)" borderRadius="full" />
-                <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest">
-                  INACTIVE RFPs ({inactiveRfps.length})
+              {/* Stat 2: Proposal Funnel */}
+              <Box p={5} borderRadius="2xl" border="1px solid var(--color-card-border)"
+                style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }}>
+                <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest" mb={4}>
+                  PROPOSAL STATUS
                 </Text>
-              </HStack>
-              <RFPList list={inactiveRfps} type="inactive" />
-            </Box>
-          </VStack>
+                <VStack gap={3} align="stretch">
+                  <Flex align="center" justify="space-between">
+                    <HStack gap={2}>
+                      <Box w="2" h="2" borderRadius="full" bg="#f59e0b" />
+                      <Text color="var(--color-text-secondary)" fontSize="2xs" fontWeight="bold">Pending</Text>
+                    </HStack>
+                    <Badge colorScheme="yellow" variant="subtle" fontSize="3xs" px={2} py={0.5} borderRadius="md">
+                      {pendingInterestsCount}
+                    </Badge>
+                  </Flex>
+                  <Flex align="center" justify="space-between">
+                    <HStack gap={2}>
+                      <Box w="2" h="2" borderRadius="full" bg="#10b981" />
+                      <Text color="var(--color-text-secondary)" fontSize="2xs" fontWeight="bold">Accepted</Text>
+                    </HStack>
+                    <Badge colorScheme="green" variant="subtle" fontSize="3xs" px={2} py={0.5} borderRadius="md">
+                      {acceptedInterestsCount}
+                    </Badge>
+                  </Flex>
+                  <Flex align="center" justify="space-between">
+                    <HStack gap={2}>
+                      <Box w="2" h="2" borderRadius="full" bg="#ef4444" />
+                      <Text color="var(--color-text-secondary)" fontSize="2xs" fontWeight="bold">Declined</Text>
+                    </HStack>
+                    <Badge colorScheme="red" variant="subtle" fontSize="3xs" px={2} py={0.5} borderRadius="md">
+                      {rejectedInterestsCount}
+                    </Badge>
+                  </Flex>
+                </VStack>
+              </Box>
+
+              {/* Stat 3: Budget Insights */}
+              <Box p={5} borderRadius="2xl" border="1px solid var(--color-card-border)"
+                style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }}>
+                <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest" mb={4}>
+                  BUDGET INSIGHTS
+                </Text>
+                <VStack gap={4} align="stretch">
+                  <HStack justify="space-between">
+                    <VStack align="start" gap={0}>
+                      <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="bold" letterSpacing="wider">TOTAL BUDGET VOLUME</Text>
+                      <Text color="white" fontSize="md" fontWeight="black">{formatCurrency(totalBudgetVolume, currencySymbol)}</Text>
+                    </VStack>
+                  </HStack>
+                  <HStack justify="space-between">
+                    <VStack align="start" gap={0}>
+                      <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="bold" letterSpacing="wider">AVERAGE RFP BUDGET</Text>
+                      <Text color="white" fontSize="md" fontWeight="black">{formatCurrency(averageBudgetVal, currencySymbol)}</Text>
+                    </VStack>
+                  </HStack>
+                  {highestBudgetRfp && (
+                    <Box p={3} borderRadius="xl" bg="var(--color-input-bg)" border="1px solid var(--color-glass)">
+                      <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="bold" letterSpacing="wider" mb={1}>HIGHEST BUDGET RFP</Text>
+                      <Text color="white" fontSize="xs" fontWeight="black" noOfLines={1} mb={0.5}>{highestBudgetRfp.title}</Text>
+                      <Text color="#10b981" fontSize="3xs" fontWeight="black">{highestBudgetRfp.budget}</Text>
+                    </Box>
+                  )}
+                </VStack>
+              </Box>
+
+              {/* Stat 4: Categories */}
+              {sortedCategories.length > 0 && (
+                <Box p={5} borderRadius="2xl" border="1px solid var(--color-card-border)"
+                  style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }}>
+                  <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest" mb={4}>
+                    TOP CATEGORIES
+                  </Text>
+                  <VStack gap={3.5} align="stretch">
+                    {sortedCategories.map(([category, count]) => {
+                      const percentage = totalRfpsCount ? (count / totalRfpsCount) * 100 : 0;
+                      return (
+                        <Box key={category}>
+                          <Flex justify="space-between" align="center" mb={1.5}>
+                            <Text color="var(--color-text-secondary)" fontSize="3xs" fontWeight="bold" noOfLines={1}>{category.toUpperCase()}</Text>
+                            <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="bold">{count} ({Math.round(percentage)}%)</Text>
+                          </Flex>
+                          <Box w="full" h="1.5" bg="var(--color-input-bg)" borderRadius="full" overflow="hidden">
+                            <Box w={`${percentage}%`} h="full" bg={accentColor} borderRadius="full" />
+                          </Box>
+                        </Box>
+                      );
+                    })}
+                  </VStack>
+                </Box>
+              )}
+
+              {/* Stat 5: Upcoming Deadlines */}
+              {upcomingDeadlines.length > 0 && (
+                <Box p={5} borderRadius="2xl" border="1px solid var(--color-card-border)"
+                  style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }}>
+                  <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest" mb={4}>
+                    UPCOMING DEADLINES
+                  </Text>
+                  <VStack gap={3} align="stretch">
+                    {upcomingDeadlines.map((rfp) => {
+                      const daysLeft = Math.ceil((new Date(rfp.deadline) - new Date()) / (1000 * 60 * 60 * 24));
+                      return (
+                        <Flex key={rfp.id} justify="space-between" align="center" p={2.5} borderRadius="lg" bg="var(--color-input-bg)" border="1px solid var(--color-glass)">
+                          <VStack align="start" gap={0} flex={1} overflow="hidden">
+                            <Text color="white" fontSize="xs" fontWeight="black" noOfLines={1}>{rfp.title}</Text>
+                            <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="bold">DUE: {new Date(rfp.deadline).toLocaleDateString(undefined, { dateStyle: "short" })}</Text>
+                          </VStack>
+                          <Badge colorScheme={daysLeft <= 7 ? "red" : "purple"} variant="subtle" fontSize="4xs" px={1.5} py={0.5} borderRadius="md" flexShrink={0} ml={2}>
+                            {daysLeft === 0 ? "TODAY" : daysLeft === 1 ? "1 DAY LEFT" : `${daysLeft} DAYS LEFT`}
+                          </Badge>
+                        </Flex>
+                      );
+                    })}
+                  </VStack>
+                </Box>
+              )}
+            </VStack>
+
+            {/* Right Column: Main Content */}
+            <VStack gap={8} align="stretch">
+              {/* Active RFPs */}
+              <Box>
+                <HStack gap={2.5} mb={4.5}>
+                  <Box w="2px" h="12px" bg="#10b981" borderRadius="full" />
+                  <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest">
+                    ACTIVE RFPs ({activeRfpsCount})
+                  </Text>
+                </HStack>
+                <RFPList list={activeRfps} type="active" />
+              </Box>
+
+              {/* Inactive RFPs */}
+              <Box>
+                <HStack gap={2.5} mb={4.5}>
+                  <Box w="2px" h="12px" bg="var(--color-card-border)" borderRadius="full" />
+                  <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest">
+                    INACTIVE RFPs ({inactiveRfpsCount})
+                  </Text>
+                </HStack>
+                <RFPList list={inactiveRfps} type="inactive" />
+              </Box>
+            </VStack>
+          </Grid>
         </Container>
       </Box>
 
