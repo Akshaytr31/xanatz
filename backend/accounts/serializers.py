@@ -5,7 +5,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 import random
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import PrivacyPolicy, Profile, Experience, Education, Company, OTP, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message
+from .models import PrivacyPolicy, Profile, Experience, Education, Company, OTP, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject
 
 User = get_user_model()
 
@@ -103,13 +103,35 @@ class EducationSerializer(serializers.ModelSerializer):
         fields = '__all__'
         extra_kwargs = {'profile': {'required': False}}
 
+class PortfolioProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PortfolioProject
+        fields = '__all__'
+        extra_kwargs = {'profile': {'required': False}}
+
+    def validate_technologies(self, value):
+        if isinstance(value, str):
+            import json
+            try:
+                value = json.loads(value)
+            except json.JSONDecodeError:
+                value = [t.strip() for t in value.split(',') if t.strip()]
+        return value
+
 class ProfileSerializer(serializers.ModelSerializer):
     experiences = ExperienceSerializer(many=True, read_only=True)
     educations = EducationSerializer(many=True, read_only=True)
+    projects = PortfolioProjectSerializer(many=True, read_only=True)
     
     class Meta:
         model = Profile
-        fields = ['public_id', 'headline', 'about', 'location', 'profile_picture', 'cover_image', 'website', 'skills', 'experiences', 'educations']
+        fields = [
+            'public_id', 'headline', 'about', 'location', 'profile_picture', 
+            'cover_image', 'website', 'skills', 'experiences', 'educations',
+            'is_freelancer', 'hourly_rate', 'freelancer_currency', 
+            'freelancer_availability', 'projects'
+        ]
+
 
 class PrivacyPolicySerializer(serializers.ModelSerializer):
     class Meta:

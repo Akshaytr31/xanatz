@@ -2,13 +2,14 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
-from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message
+from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject
 from .serializers import (
     SendOTPSerializer, VerifyOTPSerializer, RegisterUserSerializer, 
     PrivacyPolicySerializer, UserSerializer, ProfileSerializer,
     ExperienceSerializer, EducationSerializer, CompanySerializer,
     UserSearchSerializer, JobOpeningSerializer, JobApplicationSerializer,
-    RFPSerializer, RFPInterestSerializer, JobPostPlanSerializer, CompanySubscriptionSerializer, NotificationSerializer, MessageSerializer
+    RFPSerializer, RFPInterestSerializer, JobPostPlanSerializer, CompanySubscriptionSerializer, NotificationSerializer, MessageSerializer,
+    PortfolioProjectSerializer
 )
 
 class SendOTPView(APIView):
@@ -176,6 +177,20 @@ class EducationViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         profile, created = Profile.objects.get_or_create(user=self.request.user)
         serializer.save(profile=profile)
+
+
+class PortfolioProjectViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = PortfolioProjectSerializer
+
+    def get_queryset(self):
+        profile, created = Profile.objects.get_or_create(user=self.request.user)
+        return PortfolioProject.objects.filter(profile=profile)
+
+    def perform_create(self, serializer):
+        profile, created = Profile.objects.get_or_create(user=self.request.user)
+        serializer.save(profile=profile)
+
 
 from rest_framework.decorators import action
 

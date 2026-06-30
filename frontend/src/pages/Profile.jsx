@@ -10,7 +10,7 @@ import CompanySection from "../components/company/CompanySection";
 import CreateCompanySection from "../components/company/CreateCompanySection";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
-import { Building2, ChevronDown, ArrowRightLeft } from "lucide-react";
+import { Building2, ChevronDown, ArrowRightLeft, Sparkles, Briefcase } from "lucide-react";
 
 const MotionBox = motion.create(Box);
 const MotionVStack = motion.create(VStack);
@@ -20,7 +20,20 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [companyRefreshTrigger, setCompanyRefreshTrigger] = useState(0);
   const [showCompanyPicker, setShowCompanyPicker] = useState(false);
+  const [becomingFreelancer, setBecomingFreelancer] = useState(false);
   const navigate = useNavigate();
+
+  const handleBecomeFreelancer = async () => {
+    setBecomingFreelancer(true);
+    try {
+      await api.patch("me/", { is_freelancer: true });
+      navigate("/freelancer-dashboard");
+    } catch (err) {
+      console.error("Failed to activate freelancer profile", err);
+    } finally {
+      setBecomingFreelancer(false);
+    }
+  };
 
   const handleCompanyChange = () => {
     fetchProfile();
@@ -163,6 +176,125 @@ const Profile = () => {
             height="fit-content"
           >
             <VStack gap={5} align="stretch" w="full">
+              {/* ── Freelancer Card ── */}
+              <MotionBox
+                initial={{ opacity: 0, x: 15 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, delay: 0.15 }}
+              >
+                <Box
+                  className="glass-card"
+                  p={5}
+                  border="1px solid"
+                  borderColor="rgba(139,92,246,0.25)"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(139,92,246,0.07) 0%, var(--color-glass) 100%)",
+                  }}
+                >
+                  {user?.profile?.is_freelancer ? (
+                    <>
+                      <HStack justify="space-between" mb={3}>
+                        <Text
+                          color="rgba(167,139,250,0.9)"
+                          fontSize="10px"
+                          fontWeight="black"
+                          letterSpacing="widest"
+                        >
+                          FREELANCER PROFILE
+                        </Text>
+                        <Badge
+                          variant="solid"
+                          fontSize="9px"
+                          fontWeight="black"
+                          px={2}
+                          py={0.5}
+                          borderRadius="md"
+                          bg="var(--color-accent-purple)"
+                          color="white"
+                        >
+                          ACTIVE
+                        </Badge>
+                      </HStack>
+                      <Text
+                        color="var(--color-text-secondary)"
+                        fontSize="xs"
+                        mb={4}
+                        lineHeight="tall"
+                      >
+                        Your freelancer landing page is live! Showcase your services, rates, and projects to clients.
+                      </Text>
+                      <Button
+                        w="full"
+                        h="10"
+                        borderRadius="lg"
+                        fontWeight="black"
+                        fontSize="xs"
+                        letterSpacing="widest"
+                        color="white"
+                        onClick={() => navigate("/freelancer-dashboard")}
+                        style={{
+                          background:
+                            "linear-gradient(135deg, var(--color-accent-purple) 0%, #a78bfa 100%)",
+                          boxShadow: "0 4px 20px rgba(139,92,246,0.3)",
+                        }}
+                        _hover={{
+                          transform: "translateY(-1px)",
+                          boxShadow: "0 6px 25px rgba(139,92,246,0.5)",
+                        }}
+                        transition="all 0.2s"
+                      >
+                        <Sparkles size={14} style={{ marginRight: "8px" }} />
+                        FREELANCER DASHBOARD
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Text
+                        color="var(--color-text-muted)"
+                        fontSize="10px"
+                        fontWeight="black"
+                        letterSpacing="widest"
+                        mb={2}
+                      >
+                        BECOME A FREELANCER
+                      </Text>
+                      <Text
+                        color="var(--color-text-secondary)"
+                        fontSize="xs"
+                        mb={4}
+                        lineHeight="tall"
+                      >
+                        Set your rates, showcase your projects, and share your profile as a high-conversion landing page.
+                      </Text>
+                      <Button
+                        w="full"
+                        h="10"
+                        borderRadius="lg"
+                        fontWeight="black"
+                        fontSize="xs"
+                        letterSpacing="widest"
+                        color="white"
+                        isLoading={becomingFreelancer}
+                        onClick={handleBecomeFreelancer}
+                        style={{
+                          background:
+                            "linear-gradient(135deg, var(--color-accent-purple) 0%, #a78bfa 100%)",
+                          boxShadow: "0 4px 20px rgba(139,92,246,0.3)",
+                        }}
+                        _hover={{
+                          transform: "translateY(-1px)",
+                          boxShadow: "0 6px 25px rgba(139,92,246,0.5)",
+                        }}
+                        transition="all 0.2s"
+                      >
+                        <Briefcase size={14} style={{ marginRight: "8px" }} />
+                        GET STARTED
+                      </Button>
+                    </>
+                  )}
+                </Box>
+              </MotionBox>
+
               <MotionBox
                 initial={{ opacity: 0, x: 15 }}
                 animate={{ opacity: 1, x: 0 }}

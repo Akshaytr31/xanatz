@@ -10,6 +10,7 @@ import PublicHero from "../components/landing_profile/PublicHero";
 import PublicAbout from "../components/landing_profile/PublicAbout";
 import PublicExperience from "../components/landing_profile/PublicExperience";
 import PublicExpertise from "../components/landing_profile/PublicExpertise";
+import PublicProjects from "../components/landing_profile/PublicProjects";
 import PublicCTA from "../components/landing_profile/PublicCTA";
 import PublicFooter from "../components/landing_profile/PublicFooter";
 
@@ -173,6 +174,10 @@ const PublicProfile = () => {
           educations={profile?.educations}
           experiencesCount={profile?.experiences?.length}
         />
+
+        {profile?.is_freelancer && (
+          <PublicProjects projects={profile?.projects} />
+        )}
 
         <PublicCTA email={email} />
       </main>

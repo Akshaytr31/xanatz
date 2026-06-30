@@ -7,6 +7,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 import Profile from "./pages/Profile";
 import PublicProfile from "./pages/PublicProfile";
+import FreelancerDashboard from "./pages/FreelancerDashboard";
 import CompanyDashboard from "./pages/CompanyDashboard";
 import CompanyMembersPage from "./pages/CompanyMembersPage";
 import ManageOpeningsPage from "./pages/ManageOpeningsPage";
@@ -46,6 +47,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/freelancer-dashboard"
+          element={
+            <ProtectedRoute>
+              <FreelancerDashboard />
             </ProtectedRoute>
           }
         />

@@ -3,7 +3,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.routers import DefaultRouter
 from .views import (
     SendOTPView, VerifyOTPView, RegisterUserView, GoogleLoginView, 
-    PrivacyPolicyView, UserProfileView, ExperienceViewSet, EducationViewSet,
+    PrivacyPolicyView, UserProfileView, ExperienceViewSet, EducationViewSet, PortfolioProjectViewSet,
     CompanyViewSet, PublicProfileView, UserSearchView, JobOpeningViewSet, JobApplicationViewSet,
     RFPViewSet, RFPInterestViewSet, JobPostPlanViewSet, NotificationViewSet, MessageViewSet
 )
@@ -11,6 +11,7 @@ from .views import (
 router = DefaultRouter()
 router.register(r'experience', ExperienceViewSet, basename='experience')
 router.register(r'education', EducationViewSet, basename='education')
+router.register(r'portfolio-projects', PortfolioProjectViewSet, basename='portfolio-project')
 router.register(r'companies', CompanyViewSet, basename='company')
 router.register(r'jobs', JobOpeningViewSet, basename='jobs')
 router.register(r'applications', JobApplicationViewSet, basename='applications')

@@ -85,9 +85,26 @@ class Profile(models.Model):
     cover_image = models.ImageField(upload_to='cover_images/', blank=True, null=True)
     website = models.URLField(blank=True, null=True)
     skills = models.JSONField(default=list, blank=True)
+    is_freelancer = models.BooleanField(default=False)
+    hourly_rate = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    freelancer_currency = models.CharField(max_length=10, default='USD')
+    freelancer_availability = models.CharField(max_length=20, default='available')
 
     def __str__(self):
         return f"{self.user.email}'s Profile"
+
+
+class PortfolioProject(models.Model):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='projects')
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='portfolio_projects/', blank=True, null=True)
+    project_url = models.URLField(blank=True, null=True)
+    technologies = models.JSONField(default=list, blank=True)
+
+    def __str__(self):
+        return f"{self.title} for {self.profile.user.email}"
+
 
 
 class Experience(models.Model):
