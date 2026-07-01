@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Mail, Lock } from "lucide-react";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   VStack,
@@ -20,6 +20,7 @@ const LoginForm = () => {
   const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleChange = (e) =>
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -34,11 +35,10 @@ const LoginForm = () => {
 
       // Fetch user role for redirection
       const userRes = await api.get("me/");
-      if (userRes.data.is_staff) {
-        navigate("/admin");
-      } else {
-        navigate("/dashboard");
-      }
+      const from =
+        location.state?.from?.pathname ||
+        (userRes.data.is_staff ? "/admin" : "/dashboard");
+      navigate(from, { replace: true });
     } catch (err) {
       setError("Invalid credentials, please try again.");
     }
@@ -54,11 +54,10 @@ const LoginForm = () => {
 
       // Fetch user role for redirection
       const userRes = await api.get("me/");
-      if (userRes.data.is_staff) {
-        navigate("/admin");
-      } else {
-        navigate("/dashboard");
-      }
+      const from =
+        location.state?.from?.pathname ||
+        (userRes.data.is_staff ? "/admin" : "/dashboard");
+      navigate(from, { replace: true });
     } catch (err) {
       setError("Google Login failed.");
     }
@@ -89,7 +88,12 @@ const LoginForm = () => {
           </Heading>
         </Box>
         <Box>
-          <Heading size="2xl" color="var(--color-text-primary)" mb={2} lineHeight="tight">
+          <Heading
+            size="2xl"
+            color="var(--color-text-primary)"
+            mb={2}
+            lineHeight="tight"
+          >
             Welcome Back
           </Heading>
           <Text color="slate.400" fontSize="sm">

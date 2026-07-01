@@ -9,7 +9,7 @@ from .serializers import (
     ExperienceSerializer, EducationSerializer, CompanySerializer,
     UserSearchSerializer, JobOpeningSerializer, JobApplicationSerializer,
     RFPSerializer, RFPInterestSerializer, JobPostPlanSerializer, CompanySubscriptionSerializer, NotificationSerializer, MessageSerializer,
-    PortfolioProjectSerializer
+    PortfolioProjectSerializer, PublicCompanySerializer
 )
 
 class SendOTPView(APIView):
@@ -720,3 +720,15 @@ class MessageViewSet(viewsets.ModelViewSet):
             
         Message.objects.filter(sender_id=sender_id, recipient=user, is_read=False).update(is_read=True)
         return Response({"message": "Messages marked as read"}, status=status.HTTP_200_OK)
+
+
+class PublicCompanyProfileView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, public_id):
+        try:
+            company = Company.objects.get(public_id=public_id, is_active=True)
+            serializer = PublicCompanySerializer(company, context={'request': request})
+            return Response(serializer.data)
+        except (Company.DoesNotExist, ValueError):
+            return Response({"error": "Company not found"}, status=status.HTTP_404_NOT_FOUND)

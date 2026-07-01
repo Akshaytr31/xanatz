@@ -7,6 +7,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 import Profile from "./pages/Profile";
 import PublicProfile from "./pages/PublicProfile";
+import PublicCompanyProfile from "./pages/PublicCompanyProfile";
 import FreelancerDashboard from "./pages/FreelancerDashboard";
 import CompanyDashboard from "./pages/CompanyDashboard";
 import CompanyMembersPage from "./pages/CompanyMembersPage";
@@ -59,6 +60,7 @@ function App() {
           }
         />
         <Route path="/p/:publicId" element={<PublicProfile />} />
+        <Route path="/c/:publicId" element={<PublicCompanyProfile />} />
         <Route
           path="/company/:id"
           element={

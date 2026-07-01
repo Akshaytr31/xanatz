@@ -18,15 +18,15 @@ const PublicHeader = ({ first_name, email, copied, handleShare, scrolled }) => {
         paddingBottom: scrolled ? "0.75rem" : "1.25rem",
         backdropFilter: scrolled ? "blur(24px)" : "none",
         WebkitBackdropFilter: scrolled ? "blur(24px)" : "none",
-        background: scrolled ? "rgba(2,6,23,0.85)" : "transparent",
-        borderBottom: scrolled ? "1px solid var(--color-card-border)" : "none",
+        background: scrolled ? "var(--color-nav-bg)" : "transparent",
+        borderBottom: scrolled ? "1px solid var(--color-glass-border)" : "none",
         boxShadow: scrolled ? "0 4px 30px rgba(0,0,0,0.5)" : "none",
         transition: "all 0.4s ease",
       }}
     >
       <div className="pub-inner" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         {/* Logo */}
-        <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900, fontSize: "1.15rem", letterSpacing: "-0.04em", color: "white" }}>
+        <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900, fontSize: "1.15rem", letterSpacing: "-0.04em", color: "var(--color-text-primary)" }}>
           {first_name?.toUpperCase()}
           <span style={{ background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>.</span>
         </span>
@@ -36,15 +36,26 @@ const PublicHeader = ({ first_name, email, copied, handleShare, scrolled }) => {
           <motion.button
             onClick={handleShare}
             whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "var(--color-card-hover-bg)";
+              e.currentTarget.style.borderColor = "var(--color-card-hover-border)";
+              if (!copied) e.currentTarget.style.color = "var(--color-text-primary)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "var(--color-glass)";
+              e.currentTarget.style.borderColor = "var(--color-glass-border)";
+              if (!copied) e.currentTarget.style.color = "var(--color-text-secondary)";
+            }}
             style={{
               display: "flex", alignItems: "center", gap: "0.4rem",
               padding: "0.5rem 0.85rem",
               borderRadius: "9999px",
-              border: "1px solid var(--color-card-border)",
+              border: "1px solid var(--color-glass-border)",
               background: "var(--color-glass)",
               fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
-              color: copied ? "#4ade80" : "#9ca3af",
+              color: copied ? "#4ade80" : "var(--color-text-secondary)",
               cursor: "pointer",
+              transition: "all 0.2s ease",
             }}
           >
             <AnimatePresence mode="wait">

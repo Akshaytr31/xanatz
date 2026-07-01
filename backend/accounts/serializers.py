@@ -193,7 +193,7 @@ class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = [
-            'id', 'name', 'tagline', 'description', 'logo', 'logo_url',
+            'id', 'public_id', 'name', 'tagline', 'description', 'logo', 'logo_url',
             'website', 'industry', 'company_size', 'location', 'founded_year',
             'linkedin_url', 'twitter_url', 'is_active',
             'creator', 'creator_name', 'members', 'members_details',
@@ -390,3 +390,61 @@ class MessageSerializer(serializers.ModelSerializer):
     def get_recipient_name(self, obj):
         name = f"{obj.recipient.first_name or ''} {obj.recipient.last_name or ''}".strip()
         return name or obj.recipient.email
+
+
+class PublicCompanySerializer(serializers.ModelSerializer):
+    members_details = serializers.SerializerMethodField()
+    logo_url = serializers.SerializerMethodField()
+    jobs = serializers.SerializerMethodField()
+    rfps = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Company
+        fields = [
+            'public_id', 'name', 'tagline', 'description', 'logo_url',
+            'website', 'industry', 'company_size', 'location', 'founded_year',
+            'linkedin_url', 'twitter_url', 'members_details', 'jobs', 'rfps'
+        ]
+
+    def get_members_details(self, obj):
+        request = self.context.get('request')
+        details = []
+        for company_member in obj.company_members.select_related('user', 'user__profile').all():
+            member = company_member.user
+            profile, _ = Profile.objects.get_or_create(user=member)
+            profile_pic = None
+            if profile.profile_picture:
+                if request:
+                    profile_pic = request.build_absolute_uri(profile.profile_picture.url)
+                else:
+                    profile_pic = profile.profile_picture.url
+            details.append({
+                'id': member.id,
+                'first_name': member.first_name,
+                'last_name': member.last_name,
+                'email': member.email,
+                'profile_picture': profile_pic,
+                'public_id': str(profile.public_id),
+                'headline': profile.headline,
+                'position': company_member.position
+            })
+        return details
+
+    def get_logo_url(self, obj):
+        request = self.context.get('request')
+        if obj.logo:
+            if request:
+                return request.build_absolute_uri(obj.logo.url)
+            return obj.logo.url
+        return None
+
+    def get_jobs(self, obj):
+        from django.utils import timezone
+        jobs = obj.job_openings.filter(is_active=True).filter(
+            models.Q(expires_at__isnull=True) | models.Q(expires_at__gt=timezone.now())
+        )
+        return JobOpeningSerializer(jobs, many=True, context=self.context).data
+
+    def get_rfps(self, obj):
+        rfps = obj.rfps.filter(is_active=True)
+        return RFPSerializer(rfps, many=True, context=self.context).data

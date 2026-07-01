@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Box, Flex, Text, Button, VStack, HStack, Container, Spinner, Badge, Grid, GridItem } from "@chakra-ui/react";
-import { Building2, ArrowLeft, Globe, MapPin, Users, Calendar, Link2, AtSign, Settings2, Briefcase, TrendingUp, Award, ExternalLink, Plus, FileText, CreditCard, Zap } from "lucide-react";
+import { Building2, ArrowLeft, Globe, MapPin, Users, Calendar, Link2, AtSign, Settings2, Briefcase, TrendingUp, Award, ExternalLink, Plus, FileText, CreditCard, Zap, Share2, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -91,6 +91,15 @@ const CompanyDashboard = () => {
   const [isRfpModalOpen, setIsRfpModalOpen] = useState(false);
   const [selectedRfp, setSelectedRfp] = useState(null);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = () => {
+    if (!company) return;
+    const shareUrl = `${window.location.origin}/c/${company.public_id}`;
+    navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const fetchCompany = async () => {
     try {
@@ -326,6 +335,19 @@ const CompanyDashboard = () => {
                     <Settings2 size={18} color="var(--color-text-primary)" />
                   </Box>
                 )}
+                <Box as="button" onClick={handleShare}
+                  w="44px" h="44px" borderRadius="full" display="flex" alignItems="center" justifyContent="center"
+                  border="1px solid var(--color-card-border)"
+                  style={{ background: "var(--color-card-bg)", backdropFilter: "blur(10px)", cursor: "pointer", transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" }}
+                  _hover={{ 
+                    borderColor: copied ? "#4ade80" : "rgba(139,92,246,0.6)", 
+                    background: copied ? "rgba(74,222,128,0.1)" : "rgba(139,92,246,0.08)", 
+                    transform: "translateY(-3px)",
+                  }}
+                  title="Share Company Profile"
+                >
+                  {copied ? <Check size={18} color="#4ade80" /> : <Share2 size={18} color="var(--color-text-primary)" />}
+                </Box>
               </HStack>
             </Flex>
           </MotionBox>

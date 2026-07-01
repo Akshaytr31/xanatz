@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import api from "../api";
 
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const token = localStorage.getItem("access");
+  const isAuthenticated = token && token !== "null" && token !== "undefined";
+  const location = useLocation();
 
   useEffect(() => {
     const fetchUser = async () => {
-      if (!token) {
+      if (!isAuthenticated) {
         setLoading(false);
         return;
       }
@@ -24,10 +26,10 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
       }
     };
     fetchUser();
-  }, [token]);
+  }, [isAuthenticated]);
 
-  if (!token) {
-    return <Navigate to="/login" replace />;
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   if (loading) {
@@ -35,7 +37,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // Admin access check

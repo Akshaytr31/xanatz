@@ -219,6 +219,7 @@ class Company(models.Model):
     ]
 
     name = models.CharField(max_length=255)
+    public_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     tagline = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     logo = models.ImageField(upload_to='company_logos/', blank=True, null=True)
