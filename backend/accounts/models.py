@@ -406,3 +406,30 @@ class Message(models.Model):
 
     def __str__(self):
         return f'Message from {self.sender.email} to {self.recipient.email}: {self.content[:35]}'
+
+
+class CompanyReview(models.Model):
+    reviewer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='company_reviews')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True, blank=True, related_name='reviews')
+    company_name = models.CharField(max_length=255)
+    rating = models.PositiveIntegerField()
+    review_text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Review for {self.company_name} by {self.reviewer.email} ({self.rating} stars)"
+
+    def save(self, *args, **kwargs):
+        if not self.company and self.company_name:
+            self.company = Company.objects.filter(name__iexact=self.company_name.strip()).first()
+        super().save(*args, **kwargs)
+
+
+@receiver(post_save, sender=Company)
+def link_company_reviews(sender, instance, created, **kwargs):
+    if created:
+        CompanyReview.objects.filter(
+            company_name__iexact=instance.name,
+            company__isnull=True
+        ).update(company=instance)
+

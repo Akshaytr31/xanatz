@@ -2,14 +2,14 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
-from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject
+from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview
 from .serializers import (
     SendOTPSerializer, VerifyOTPSerializer, RegisterUserSerializer, 
     PrivacyPolicySerializer, UserSerializer, ProfileSerializer,
     ExperienceSerializer, EducationSerializer, CompanySerializer,
     UserSearchSerializer, JobOpeningSerializer, JobApplicationSerializer,
     RFPSerializer, RFPInterestSerializer, JobPostPlanSerializer, CompanySubscriptionSerializer, NotificationSerializer, MessageSerializer,
-    PortfolioProjectSerializer, PublicCompanySerializer
+    PortfolioProjectSerializer, PublicCompanySerializer, CompanyReviewSerializer
 )
 
 class SendOTPView(APIView):
@@ -197,7 +197,13 @@ from rest_framework.decorators import action
 class CompanyViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = CompanySerializer
-    queryset = Company.objects.all()
+
+    def get_queryset(self):
+        queryset = Company.objects.all()
+        search = self.request.query_params.get('search')
+        if search:
+            queryset = queryset.filter(name__icontains=search)
+        return queryset
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -732,3 +738,24 @@ class PublicCompanyProfileView(APIView):
             return Response(serializer.data)
         except (Company.DoesNotExist, ValueError):
             return Response({"error": "Company not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class CompanyReviewViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    serializer_class = CompanyReviewSerializer
+    queryset = CompanyReview.objects.all().order_by('-created_at')
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        company_id = self.request.query_params.get('company_id')
+        if company_id:
+            queryset = queryset.filter(company_id=company_id)
+        return queryset
+
+    def perform_create(self, serializer):
+        company_name = self.request.data.get('company_name', '').strip()
+        company = None
+        if company_name:
+            company = Company.objects.filter(name__iexact=company_name).first()
+        serializer.save(reviewer=self.request.user, company=company, company_name=company_name)
+

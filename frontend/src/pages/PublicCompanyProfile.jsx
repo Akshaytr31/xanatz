@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../api";
-import { ArrowRight, Globe, MapPin, Users, Calendar, Link2, AtSign, Briefcase, ExternalLink, Share2, Check, Mail, ArrowUpRight } from "lucide-react";
+import { ArrowRight, Globe, MapPin, Users, Calendar, Link2, AtSign, Briefcase, ExternalLink, Share2, Check, Mail, ArrowUpRight, Star } from "lucide-react";
 import { motion, useScroll, useSpring, useTransform, AnimatePresence } from "framer-motion";
 
 const INDUSTRY_LABELS = {
@@ -912,6 +912,121 @@ const PublicCompanyProfile = () => {
                 )}
               </div>
             </div>
+          </div>
+        </section>
+        {/* Ratings & Reviews Section */}
+        <section className="pub-section" style={{ backgroundColor: "rgba(15,23,42,0.3)" }}>
+          <div className="pub-inner">
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "2rem" }}>
+              <div style={{ width: "3px", height: "1.25rem", borderRadius: "9999px", backgroundColor: accentColor }} />
+              <h2 style={{ fontSize: "0.65rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.3em", color: "#6b7280" }}>
+                Employee Reviews
+              </h2>
+              <span style={{ padding: "0.15rem 0.5rem", borderRadius: "0.25rem", fontSize: "0.55rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.1em", background: `${accentColor}20`, color: accentColor, border: `1px solid ${accentColor}30`, marginLeft: "0.5rem" }}>
+                {company.reviews_count} {company.reviews_count === 1 ? "Review" : "Reviews"}
+              </span>
+            </div>
+
+            {company.reviews_count === 0 ? (
+              <div style={{ textAlign: "center", padding: "3rem 1.5rem", borderRadius: "1.5rem", border: "1px solid rgba(255,255,255,0.05)", background: "rgba(15,23,42,0.4)" }}>
+                <Star size={36} color="#4b5563" style={{ margin: "0 auto 1rem auto", opacity: 0.5 }} />
+                <p style={{ color: "#9ca3af", fontSize: "0.875rem", fontWeight: 400 }}>No employee reviews have been submitted for this company yet.</p>
+              </div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "2rem" }}>
+                {/* Summary stat widget */}
+                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "2rem", padding: "2rem", borderRadius: "1.5rem", border: "1px solid rgba(255,255,255,0.05)", background: "rgba(15,23,42,0.4)" }}>
+                  <div style={{ textAlign: "center", minWidth: "120px" }}>
+                    <div style={{ fontSize: "3rem", fontWeight: 900, color: "white", lineHeight: 1 }}>{company.average_rating}</div>
+                    <div style={{ display: "flex", justifyContent: "center", gap: "0.15rem", margin: "0.5rem 0" }}>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          size={14}
+                          style={{
+                            fill: star <= Math.round(company.average_rating) ? "#F59E0B" : "none",
+                            stroke: star <= Math.round(company.average_rating) ? "#F59E0B" : "#4b5563",
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <div style={{ fontSize: "0.65rem", color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 800 }}>Average Rating</div>
+                  </div>
+
+                  <div style={{ flex: 1, minWidth: "200px" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+                      {[5, 4, 3, 2, 1].map((ratingVal) => {
+                        const count = company.reviews.filter(r => r.rating === ratingVal).length;
+                        const pct = company.reviews_count > 0 ? (count / company.reviews_count) * 100 : 0;
+                        return (
+                          <div key={ratingVal} style={{ display: "flex", alignItems: "center", gap: "0.75rem", fontSize: "0.75rem" }}>
+                            <span style={{ color: "#9ca3af", width: "12px", fontWeight: "bold" }}>{ratingVal}</span>
+                            <div style={{ flex: 1, height: "4px", borderRadius: "9999px", backgroundColor: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
+                              <div style={{ height: "100%", width: `${pct}%`, borderRadius: "9999px", backgroundColor: "#F59E0B" }} />
+                            </div>
+                            <span style={{ color: "#6b7280", width: "15px", textAlign: "right" }}>{count}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Reviews List */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1.25rem" }}>
+                  {company.reviews.map((review) => (
+                    <div
+                      key={review.id}
+                      style={{
+                        padding: "1.5rem", borderRadius: "1.5rem", border: "1px solid rgba(255,255,255,0.05)",
+                        background: "rgba(15,23,42,0.2)", display: "flex", flexDirection: "column", gap: "1rem"
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: "1rem" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                          <div style={{
+                            width: "2.25rem", height: "2.25rem", borderRadius: "9999px",
+                            backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+                            display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden"
+                          }}>
+                            {review.reviewer_profile_picture ? (
+                              <img src={review.reviewer_profile_picture} alt={review.reviewer_name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            ) : (
+                              <span style={{ fontSize: "0.875rem", fontWeight: "bold", color: "white" }}>
+                                {review.reviewer_name.charAt(0).toUpperCase()}
+                              </span>
+                            )}
+                          </div>
+                          <div>
+                            <div style={{ fontSize: "0.875rem", fontWeight: "bold", color: "white" }}>{review.reviewer_name}</div>
+                            <div style={{ fontSize: "0.65rem", color: "#6b7280" }}>
+                              {new Date(review.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: "flex", gap: "0.1rem" }}>
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              size={12}
+                              style={{
+                                fill: star <= review.rating ? "#F59E0B" : "none",
+                                stroke: star <= review.rating ? "#F59E0B" : "#4b5563",
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      <p style={{ fontSize: "0.875rem", color: "#d1d5db", fontWeight: 300, lineHeight: 1.6, margin: 0, whiteSpace: "pre-line" }}>
+                        {review.review_text}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </section>
       </main>

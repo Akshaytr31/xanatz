@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Flex,
@@ -22,7 +22,7 @@ import {
   Tooltip,
 } from "@chakra-ui/react";
 import { motion } from "framer-motion";
-import { Briefcase, Edit2, Plus, Trash2, Calendar, Target } from "lucide-react";
+import { Briefcase, Edit2, Plus, Trash2, Calendar, Target, Star } from "lucide-react";
 import api from "../../api";
 
 const MotionBox = motion.create(Box);
@@ -42,6 +42,65 @@ const CareerTimeline = ({ user, onUpdate }) => {
     current: false,
     description: "",
   });
+
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
+  const [reviewCompany, setReviewCompany] = useState("");
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewText, setReviewText] = useState("");
+  const [hoverRating, setHoverRating] = useState(0);
+  const [reviewLoading, setReviewLoading] = useState(false);
+
+  const [matchingCompanies, setMatchingCompanies] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  useEffect(() => {
+    if (!formData.company || formData.company.trim().length < 2) {
+      setMatchingCompanies([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    const isExactMatch = matchingCompanies.some(
+      (c) => c.name.toLowerCase() === formData.company.toLowerCase()
+    );
+    if (isExactMatch) {
+      setShowDropdown(false);
+      return;
+    }
+
+    const delayDebounce = setTimeout(async () => {
+      try {
+        const res = await api.get(`companies/?search=${encodeURIComponent(formData.company)}`);
+        setMatchingCompanies(res.data || []);
+        setShowDropdown(true);
+      } catch (err) {
+        console.error("Error fetching companies:", err);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounce);
+  }, [formData.company]);
+
+  const handleSelectCompany = (company) => {
+    setFormData((prev) => ({
+      ...prev,
+      company: company.name,
+      company_website: company.website || prev.company_website,
+    }));
+    setShowDropdown(false);
+  };
+
+  const handleFocus = () => {
+    if (matchingCompanies.length > 0) {
+      setShowDropdown(true);
+    }
+  };
+
+  const handleBlur = () => {
+    setTimeout(() => {
+      setShowDropdown(false);
+    }, 200);
+  };
 
   const handleOpen = (item = null) => {
     if (item) {
@@ -99,6 +158,17 @@ const CareerTimeline = ({ user, onUpdate }) => {
     if (!submissionData.description) submissionData.description = null;
 
     setLoading(true);
+    let prevCompany = "";
+    if (!editingItem) {
+      const currentExp = experiences.find((exp) => exp.current);
+      if (currentExp) {
+        prevCompany = currentExp.company;
+      } else if (experiences.length > 0) {
+        const sorted = [...experiences].sort((a, b) => new Date(b.start_date) - new Date(a.start_date));
+        prevCompany = sorted[0].company;
+      }
+    }
+
     try {
       if (editingItem) {
         await api.patch(`experience/${editingItem.id}/`, submissionData);
@@ -118,12 +188,48 @@ const CareerTimeline = ({ user, onUpdate }) => {
       }
       onUpdate();
       setIsDialogOpen(false);
+
+      if (!editingItem && prevCompany) {
+        setReviewCompany(prevCompany);
+        setReviewRating(5);
+        setReviewText("");
+        setIsReviewOpen(true);
+      }
     } catch (err) {
       console.error("Experience submission error:", err.response?.data || err.message);
       alert("Error saving experience. Please check the form and try again.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleReviewSubmit = async () => {
+    if (!reviewText.trim()) {
+      alert("Please write a short review.");
+      return;
+    }
+    setReviewLoading(true);
+    try {
+      await api.post("reviews/", {
+        company_name: reviewCompany,
+        rating: reviewRating,
+        review_text: reviewText,
+      });
+      setIsReviewOpen(false);
+      setReviewRating(5);
+      setReviewText("");
+    } catch (err) {
+      console.error("Review submission error:", err.response?.data || err.message);
+      alert("Error submitting review. Please try again.");
+    } finally {
+      setReviewLoading(false);
+    }
+  };
+
+  const handleReviewSkip = () => {
+    setIsReviewOpen(false);
+    setReviewRating(5);
+    setReviewText("");
   };
 
   const handleDelete = async (id) => {
@@ -262,7 +368,7 @@ const CareerTimeline = ({ user, onUpdate }) => {
                   </Box>
 
                   {/* Organization */}
-                  <Box w="full">
+                  <Box w="full" position="relative">
                     <Text mb={2} color="var(--color-text-muted)" fontSize="xs" fontWeight="bold" letterSpacing="widest">
                       ORGANIZATION *
                     </Text>
@@ -270,13 +376,77 @@ const CareerTimeline = ({ user, onUpdate }) => {
                       name="company"
                       value={formData.company}
                       onChange={handleChange}
+                      onFocus={handleFocus}
+                      onBlur={handleBlur}
                       placeholder="Ex: Global Tech Corp"
                       bg="var(--color-input-bg)"
                       border="1px solid"
                       borderColor="var(--color-input-border)"
                       color="var(--color-text-primary)"
                       _focus={{ borderColor: "var(--color-accent)", boxShadow: "0 0 0 1px var(--color-accent)" }}
+                      autoComplete="off"
                     />
+                    {showDropdown && matchingCompanies.length > 0 && (
+                      <Box
+                        position="absolute"
+                        top="100%"
+                        left={0}
+                        right={0}
+                        zIndex={100010}
+                        mt={1}
+                        bg="var(--color-surface)"
+                        border="1px solid var(--color-card-border)"
+                        borderRadius="md"
+                        boxShadow="0 10px 25px rgba(0,0,0,0.3)"
+                        maxH="200px"
+                        overflowY="auto"
+                      >
+                        {matchingCompanies.map((comp) => (
+                          <HStack
+                            key={comp.id}
+                            p={3}
+                            gap={3}
+                            cursor="pointer"
+                            _hover={{ bg: "var(--color-card-hover-bg)" }}
+                            onClick={() => handleSelectCompany(comp)}
+                            borderBottom="1px solid"
+                            borderColor="var(--color-card-border)"
+                            _last={{ borderBottom: "none" }}
+                          >
+                            <Box
+                              w="24px"
+                              h="24px"
+                              borderRadius="full"
+                              bg="var(--color-card-bg)"
+                              border="1px solid var(--color-card-border)"
+                              display="flex"
+                              alignItems="center"
+                              justifyContent="center"
+                              overflow="hidden"
+                              flexShrink={0}
+                            >
+                              {comp.logo_url ? (
+                                <Box as="img" src={comp.logo_url} w="full" h="full" style={{ objectFit: "cover" }} />
+                              ) : (
+                                <Text fontSize="10px" fontWeight="bold" color="var(--color-text-muted)">
+                                  {comp.name.charAt(0).toUpperCase()}
+                                </Text>
+                              )}
+                            </Box>
+                            <VStack align="start" gap={0} flex={1}>
+                              <Text fontSize="xs" fontWeight="bold" color="var(--color-text-primary)">
+                                {comp.name}
+                              </Text>
+                              {comp.industry && (
+                                <Text fontSize="10px" color="var(--color-text-muted)">
+                                  {comp.industry}
+                                </Text>
+                              )}
+                            </VStack>
+                          </HStack>
+                        ))}
+                      </Box>
+                    )}
                   </Box>
 
                   {/* Company Website */}
@@ -400,6 +570,120 @@ const CareerTimeline = ({ user, onUpdate }) => {
                   isLoading={loading}
                 >
                   {editingItem ? "Save Refinements" : "Launch Milestone"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </DialogPositioner>
+        </Portal>
+      </Dialog>
+
+      {/* ── Rate & Review Modal ── */}
+      <Dialog open={isReviewOpen} onOpenChange={(e) => setIsReviewOpen(e.open)} size="md">
+        <Portal>
+          <DialogBackdrop
+            backdropFilter="blur(10px)"
+            zIndex={99999}
+            style={{ background: "rgba(0,0,0,0.5)" }}
+          />
+          <DialogPositioner display="flex" alignItems="center" justifyContent="center" zIndex={100000}>
+            <DialogContent
+              bg="var(--color-surface)"
+              border="1px solid"
+              borderColor="var(--color-card-border)"
+              borderRadius="xl"
+              maxW="500px"
+              m="auto"
+              overflow="hidden"
+              boxShadow="0 25px 60px rgba(0,0,0,0.25)"
+            >
+              <DialogHeader
+                color="var(--color-text-primary)"
+                py={6}
+                px={8}
+                borderBottom="1px solid"
+                borderColor="var(--color-card-border)"
+                fontWeight="bold"
+                fontSize="lg"
+              >
+                Share Your Experience at {reviewCompany}
+              </DialogHeader>
+
+              <DialogBody p={8} bg="var(--color-surface)">
+                <VStack gap={5} align="start">
+                  <Text fontSize="sm" color="var(--color-text-secondary)">
+                    Congratulations on your new milestone! Help the community by rating and sharing a quick review of your previous organization.
+                  </Text>
+
+                  {/* Rating Selector */}
+                  <Box w="full">
+                    <Text color="var(--color-text-muted)" fontSize="2xs" fontWeight="black" letterSpacing="widest" mb={1}>
+                      COMPANY RATING
+                    </Text>
+                    <HStack gap={2} my={2}>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          size={28}
+                          style={{
+                            cursor: "pointer",
+                            fill: star <= (hoverRating || reviewRating) ? "#F59E0B" : "none",
+                            stroke: star <= (hoverRating || reviewRating) ? "#F59E0B" : "var(--color-text-muted)",
+                            transition: "all 0.15s ease",
+                          }}
+                          onClick={() => setReviewRating(star)}
+                          onMouseEnter={() => setHoverRating(star)}
+                          onMouseLeave={() => setHoverRating(0)}
+                        />
+                      ))}
+                    </HStack>
+                  </Box>
+
+                  {/* Review Text */}
+                  <Box w="full">
+                    <Text mb={2} color="var(--color-text-muted)" fontSize="2xs" fontWeight="black" letterSpacing="widest">
+                      YOUR REVIEW
+                    </Text>
+                    <Textarea
+                      value={reviewText}
+                      onChange={(e) => setReviewText(e.target.value)}
+                      minH="100px"
+                      bg="var(--color-input-bg)"
+                      border="1px solid"
+                      borderColor="var(--color-input-border)"
+                      color="var(--color-text-primary)"
+                      placeholder="What did you like or dislike? Share details about work culture, growth, and team dynamics..."
+                      _focus={{ borderColor: "var(--color-accent)", boxShadow: "0 0 0 1px var(--color-accent)" }}
+                    />
+                  </Box>
+                </VStack>
+              </DialogBody>
+
+              <DialogFooter
+                p={8}
+                bg="var(--color-card-bg)"
+                borderTop="1px solid"
+                borderColor="var(--color-card-border)"
+                display="flex"
+                justifyContent="space-between"
+                gap={4}
+              >
+                <Button
+                  variant="ghost"
+                  color="var(--color-text-muted)"
+                  onClick={handleReviewSkip}
+                  _hover={{ bg: "var(--color-card-hover-bg)", color: "var(--color-text-primary)" }}
+                  flex={1}
+                >
+                  Skip
+                </Button>
+                <Button
+                  bg="var(--color-accent)"
+                  color="white"
+                  onClick={handleReviewSubmit}
+                  isLoading={reviewLoading}
+                  flex={2}
+                >
+                  Submit Review
                 </Button>
               </DialogFooter>
             </DialogContent>
