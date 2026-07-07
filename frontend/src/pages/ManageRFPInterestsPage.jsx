@@ -4,7 +4,7 @@ import {
 } from "@chakra-ui/react";
 import {
   ArrowLeft, FileText, Link2, AlertCircle, Building2, CheckCircle,
-  Mail, Phone, User, Clock, ChevronDown, ChevronUp, Download
+  Mail, Phone, User, Clock, ChevronDown, ChevronUp, Download, Star
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
@@ -33,6 +33,119 @@ const ManageRFPInterestsPage = () => {
   const [errorMsg, setErrorMsg] = useState("");
 
   const accentColor = "#10b981"; // Emerald brand color for approvals/success/proposals
+
+  const [activeReviewInterestId, setActiveReviewInterestId] = useState(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [reviewText, setReviewText] = useState("");
+  const [submitReviewLoading, setSubmitReviewLoading] = useState(false);
+
+  const handleToggleReviewForm = (interest) => {
+    if (!interest) {
+      setActiveReviewInterestId(null);
+      return;
+    }
+    if (activeReviewInterestId === interest.id) {
+      setActiveReviewInterestId(null);
+    } else {
+      setActiveReviewInterestId(interest.id);
+      if (interest.associated_review) {
+        setReviewRating(interest.associated_review.rating);
+        setReviewText(interest.associated_review.review_text);
+      } else {
+        setReviewRating(5);
+        setReviewText("");
+      }
+    }
+  };
+
+  const handleSubmitReview = async (interest) => {
+    if (!reviewText.trim()) {
+      showError("Please write a review comment.");
+      return;
+    }
+    setSubmitReviewLoading(true);
+    try {
+      let updatedReview = null;
+      if (interest.associated_review) {
+        // Edit existing review
+        const reviewId = interest.associated_review.id;
+        const reviewType = interest.associated_review.type;
+        if (reviewType === "company") {
+          const res = await api.patch(`reviews/${reviewId}/`, {
+            rating: reviewRating,
+            review_text: reviewText,
+          });
+          updatedReview = {
+            id: res.data.id,
+            rating: res.data.rating,
+            review_text: res.data.review_text,
+            type: "company",
+          };
+        } else {
+          const res = await api.patch(`freelancer-reviews/${reviewId}/`, {
+            rating: reviewRating,
+            review_text: reviewText,
+          });
+          updatedReview = {
+            id: res.data.id,
+            rating: res.data.rating,
+            review_text: res.data.review_text,
+            type: "freelancer",
+          };
+        }
+        setSuccessMsg("Feedback updated successfully.");
+      } else {
+        // Submit a new review
+        if (interest.company_name && interest.company_name.trim() !== "") {
+          // Submit a company review
+          const res = await api.post("reviews/", {
+            company_name: interest.company_name,
+            rating: reviewRating,
+            review_text: reviewText,
+            rfp_interest: interest.id,
+          });
+          updatedReview = {
+            id: res.data.id,
+            rating: res.data.rating,
+            review_text: res.data.review_text,
+            type: "company",
+          };
+        } else {
+          // Submit a freelancer review
+          const res = await api.post("freelancer-reviews/", {
+            freelancer: interest.user,
+            rating: reviewRating,
+            review_text: reviewText,
+            rfp_interest: interest.id,
+          });
+          updatedReview = {
+            id: res.data.id,
+            rating: res.data.rating,
+            review_text: res.data.review_text,
+            type: "freelancer",
+          };
+        }
+        setSuccessMsg("Feedback submitted successfully.");
+      }
+      setTimeout(() => setSuccessMsg(""), 4000);
+      
+      // Update local state
+      setInterests((prev) =>
+        prev.map((item) =>
+          item.id === interest.id
+            ? { ...item, is_reviewed: true, associated_review: updatedReview }
+            : item
+        )
+      );
+      setActiveReviewInterestId(null);
+    } catch (err) {
+      console.error(err);
+      showError("Failed to submit review.");
+    } finally {
+      setSubmitReviewLoading(false);
+    }
+  };
 
   const showError = (msg) => {
     setErrorMsg(msg);
@@ -341,6 +454,33 @@ const ManageRFPInterestsPage = () => {
                             <Box />
                           )}
 
+                          {interest.status === "accepted" && (
+                            <HStack gap={3}>
+                              {interest.is_reviewed ? (
+                                <Badge colorScheme="green" variant="subtle" px={2.5} py={1} borderRadius="lg" fontSize="3xs" fontWeight="bold">
+                                  ✓ FEEDBACK SUBMITTED
+                                </Badge>
+                              ) : (
+                                <Button
+                                  h="7.5"
+                                  px={4}
+                                  borderRadius="xl"
+                                  fontSize="2xs"
+                                  fontWeight="bold"
+                                  style={{
+                                    background: "rgba(16, 185, 129, 0.1)",
+                                    border: "1px solid rgba(16, 185, 129, 0.3)",
+                                    color: "#10b981",
+                                  }}
+                                  _hover={{ background: "rgba(16, 185, 129, 0.2)" }}
+                                  onClick={() => handleToggleReviewForm(interest)}
+                                >
+                                  {activeReviewInterestId === interest.id ? "Cancel Review" : "Rate & Review Partner"}
+                                </Button>
+                              )}
+                            </HStack>
+                          )}
+
                           {interest.status === "pending" && (
                             <HStack gap={3}>
                               <Button
@@ -379,6 +519,118 @@ const ManageRFPInterestsPage = () => {
                             </HStack>
                           )}
                         </HStack>
+
+                        {interest.is_reviewed && interest.associated_review && (
+                          <Box mt={3} p={3.5} borderRadius="xl" border="1px solid rgba(255, 255, 255, 0.05)" bg="rgba(0, 0, 0, 0.15)">
+                            <Flex justify="space-between" align="center" mb={1.5}>
+                              <HStack gap={1}>
+                                <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="black" letterSpacing="wider">
+                                  YOUR FEEDBACK
+                                </Text>
+                                <HStack gap={0.5} ml={2}>
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <Star
+                                      key={star}
+                                      size={12}
+                                      style={{
+                                        fill: star <= interest.associated_review.rating ? "#F59E0B" : "none",
+                                        stroke: star <= interest.associated_review.rating ? "#F59E0B" : "#4b5563",
+                                      }}
+                                    />
+                                  ))}
+                                </HStack>
+                              </HStack>
+                              <Button
+                                size="xs"
+                                h="6"
+                                px={2.5}
+                                variant="ghost"
+                                fontSize="3xs"
+                                color="var(--color-text-muted)"
+                                _hover={{ color: "white", bg: "rgba(255,255,255,0.05)" }}
+                                onClick={() => handleToggleReviewForm(interest)}
+                              >
+                                {activeReviewInterestId === interest.id ? "Cancel Edit" : "Edit Review"}
+                              </Button>
+                            </Flex>
+                            {activeReviewInterestId !== interest.id && (
+                              <Text color="var(--color-text-secondary)" fontSize="xs" fontStyle="italic">
+                                "{interest.associated_review.review_text}"
+                              </Text>
+                            )}
+                          </Box>
+                        )}
+
+                        {activeReviewInterestId === interest.id && (
+                          <Box mt={4} p={4} borderRadius="xl" border="1px solid var(--color-card-border)" bg="rgba(255,255,255,0.02)">
+                            <Text color="var(--color-text-primary)" fontSize="xs" fontWeight="bold" mb={2}>
+                              {interest.company_name ? `Rate & Review ${interest.company_name}` : `Rate & Review Candidate`}
+                            </Text>
+
+                            {/* Stars */}
+                            <HStack gap={1} mb={4}>
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <Box
+                                  key={star}
+                                  cursor="pointer"
+                                  onMouseEnter={() => setHoverRating(star)}
+                                  onMouseLeave={() => setHoverRating(0)}
+                                  onClick={() => setReviewRating(star)}
+                                >
+                                  <Star
+                                    size={20}
+                                    style={{
+                                      fill: star <= (hoverRating || reviewRating) ? "#F59E0B" : "none",
+                                      stroke: star <= (hoverRating || reviewRating) ? "#F59E0B" : "#4b5563",
+                                    }}
+                                  />
+                                </Box>
+                              ))}
+                            </HStack>
+
+                            {/* Review Text */}
+                            <Box
+                              as="textarea"
+                              placeholder="Write a brief review about your experience working on this RFP..."
+                              value={reviewText}
+                              onChange={(e) => setReviewText(e.target.value)}
+                              rows={3}
+                              style={{
+                                width: "100%",
+                                background: "var(--color-input-bg)",
+                                color: "white",
+                                border: "1px solid var(--color-input-border)",
+                                borderRadius: "12px",
+                                padding: "8px 12px",
+                                fontSize: "12px",
+                                outline: "none",
+                                resize: "none",
+                              }}
+                            />
+
+                            <HStack justify="end" gap={3} mt={3}>
+                              <Button
+                                size="xs"
+                                variant="ghost"
+                                color="var(--color-text-muted)"
+                                onClick={() => handleToggleReviewForm(null)}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                size="xs"
+                                style={{
+                                  background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                                  color: "white",
+                                }}
+                                isLoading={submitReviewLoading}
+                                onClick={() => handleSubmitReview(interest)}
+                              >
+                                {interest.associated_review ? "Update Feedback" : "Submit Feedback"}
+                              </Button>
+                            </HStack>
+                          </Box>
+                        )}
                       </VStack>
                     </MotionBox>
                   );

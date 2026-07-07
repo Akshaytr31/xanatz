@@ -5,7 +5,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 import random
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import PrivacyPolicy, Profile, Experience, Education, Company, OTP, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview
+from .models import PrivacyPolicy, Profile, Experience, Education, Company, OTP, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview
 
 User = get_user_model()
 
@@ -160,14 +160,45 @@ class UserSearchSerializer(serializers.ModelSerializer):
             return obj.profile.headline
         return None
 
+class FreelancerReviewSerializer(serializers.ModelSerializer):
+    reviewer_name = serializers.SerializerMethodField()
+    reviewer_profile_picture = serializers.SerializerMethodField()
+
+    class Meta:
+        model = FreelancerReview
+        fields = [
+            'id', 'reviewer', 'reviewer_name', 'reviewer_profile_picture',
+            'freelancer', 'rfp_interest', 'rating', 'review_text', 'created_at'
+        ]
+        read_only_fields = ['reviewer', 'freelancer']
+
+    def get_reviewer_name(self, obj):
+        return f"{obj.reviewer.first_name} {obj.reviewer.last_name}".strip() or obj.reviewer.email
+
+    def get_reviewer_profile_picture(self, obj):
+        request = self.context.get('request')
+        if hasattr(obj.reviewer, 'profile') and obj.reviewer.profile.profile_picture:
+            if request:
+                return request.build_absolute_uri(obj.reviewer.profile.profile_picture.url)
+            return obj.reviewer.profile.profile_picture.url
+        return None
+
+
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(read_only=True)
     profile_completion_percentage = serializers.ReadOnlyField()
     companies = serializers.SerializerMethodField()
+    reviews = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
+    reviews_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'first_name', 'last_name', 'phone_number', 'is_staff', 'is_superuser', 'profile', 'profile_completion_percentage', 'companies']
+        fields = [
+            'id', 'email', 'first_name', 'last_name', 'phone_number', 'is_staff', 'is_superuser',
+            'profile', 'profile_completion_percentage', 'companies',
+            'reviews', 'average_rating', 'reviews_count'
+        ]
 
     def get_companies(self, obj):
         from .models import CompanyMember
@@ -182,6 +213,21 @@ class UserSerializer(serializers.ModelSerializer):
             result.append({"id": c.id, "name": c.name, "is_owner": is_owner, "access_role": access_role})
         return result
 
+    def get_reviews(self, obj):
+        reviews = obj.freelancer_reviews.all().order_by('-created_at')
+        return FreelancerReviewSerializer(reviews, many=True, context=self.context).data
+
+    def get_average_rating(self, obj):
+        reviews = obj.freelancer_reviews.all()
+        if reviews.exists():
+            avg = sum(r.rating for r in reviews) / reviews.count()
+            return round(avg, 1)
+        return 0.0
+
+    def get_reviews_count(self, obj):
+        return obj.freelancer_reviews.count()
+
+
 class CompanyReviewSerializer(serializers.ModelSerializer):
     reviewer_name = serializers.SerializerMethodField()
     reviewer_profile_picture = serializers.SerializerMethodField()
@@ -191,7 +237,7 @@ class CompanyReviewSerializer(serializers.ModelSerializer):
         model = CompanyReview
         fields = [
             'id', 'reviewer', 'reviewer_name', 'reviewer_profile_picture',
-            'company', 'company_name', 'company_details', 'rating', 'review_text', 'created_at'
+            'company', 'company_name', 'company_details', 'rfp_interest', 'rating', 'review_text', 'created_at'
         ]
         read_only_fields = ['reviewer', 'company']
 
@@ -236,6 +282,12 @@ class CompanySerializer(serializers.ModelSerializer):
     reviews = serializers.SerializerMethodField()
     average_rating = serializers.SerializerMethodField()
     reviews_count = serializers.SerializerMethodField()
+    employee_reviews = serializers.SerializerMethodField()
+    employee_average_rating = serializers.SerializerMethodField()
+    employee_reviews_count = serializers.SerializerMethodField()
+    partner_reviews = serializers.SerializerMethodField()
+    partner_average_rating = serializers.SerializerMethodField()
+    partner_reviews_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Company
@@ -245,7 +297,9 @@ class CompanySerializer(serializers.ModelSerializer):
             'linkedin_url', 'twitter_url', 'is_active',
             'creator', 'creator_name', 'members', 'members_details',
             'active_subscription', 'created_at', 'updated_at',
-            'reviews', 'average_rating', 'reviews_count'
+            'reviews', 'average_rating', 'reviews_count',
+            'employee_reviews', 'employee_average_rating', 'employee_reviews_count',
+            'partner_reviews', 'partner_average_rating', 'partner_reviews_count'
         ]
 
     def get_members_details(self, obj):
@@ -315,6 +369,34 @@ class CompanySerializer(serializers.ModelSerializer):
     def get_reviews_count(self, obj):
         return obj.reviews.count()
 
+    def get_employee_reviews(self, obj):
+        reviews = obj.reviews.filter(rfp_interest__isnull=True).order_by('-created_at')
+        return CompanyReviewSerializer(reviews, many=True, context=self.context).data
+
+    def get_employee_average_rating(self, obj):
+        reviews = obj.reviews.filter(rfp_interest__isnull=True)
+        if reviews.exists():
+            avg = sum(r.rating for r in reviews) / reviews.count()
+            return round(avg, 1)
+        return 0.0
+
+    def get_employee_reviews_count(self, obj):
+        return obj.reviews.filter(rfp_interest__isnull=True).count()
+
+    def get_partner_reviews(self, obj):
+        reviews = obj.reviews.filter(rfp_interest__isnull=False).order_by('-created_at')
+        return CompanyReviewSerializer(reviews, many=True, context=self.context).data
+
+    def get_partner_average_rating(self, obj):
+        reviews = obj.reviews.filter(rfp_interest__isnull=False)
+        if reviews.exists():
+            avg = sum(r.rating for r in reviews) / reviews.count()
+            return round(avg, 1)
+        return 0.0
+
+    def get_partner_reviews_count(self, obj):
+        return obj.reviews.filter(rfp_interest__isnull=False).count()
+
 
 class JobOpeningSerializer(serializers.ModelSerializer):
     company_name = serializers.ReadOnlyField(source='company.name')
@@ -379,15 +461,35 @@ class RFPInterestSerializer(serializers.ModelSerializer):
     rfp_title = serializers.ReadOnlyField(source='rfp.title')
     rfp_company_name = serializers.ReadOnlyField(source='rfp.company.name')
     user_email = serializers.ReadOnlyField(source='user.email')
+    associated_review = serializers.SerializerMethodField()
 
     class Meta:
         model = RFPInterest
         fields = [
             'id', 'rfp', 'rfp_title', 'rfp_company_name', 'user', 'user_email',
             'company_name', 'email', 'phone_number', 'proposal_summary',
-            'attached_file', 'status', 'created_at'
+            'attached_file', 'status', 'is_reviewed', 'associated_review', 'created_at'
         ]
         read_only_fields = ['user']
+
+    def get_associated_review(self, obj):
+        company_review = obj.company_reviews.first()
+        if company_review:
+            return {
+                'id': company_review.id,
+                'rating': company_review.rating,
+                'review_text': company_review.review_text,
+                'type': 'company'
+            }
+        freelancer_review = obj.freelancer_reviews.first()
+        if freelancer_review:
+            return {
+                'id': freelancer_review.id,
+                'rating': freelancer_review.rating,
+                'review_text': freelancer_review.review_text,
+                'type': 'freelancer'
+            }
+        return None
 
 
 class JobPostPlanSerializer(serializers.ModelSerializer):
@@ -462,6 +564,12 @@ class PublicCompanySerializer(serializers.ModelSerializer):
     reviews = serializers.SerializerMethodField()
     average_rating = serializers.SerializerMethodField()
     reviews_count = serializers.SerializerMethodField()
+    employee_reviews = serializers.SerializerMethodField()
+    employee_average_rating = serializers.SerializerMethodField()
+    employee_reviews_count = serializers.SerializerMethodField()
+    partner_reviews = serializers.SerializerMethodField()
+    partner_average_rating = serializers.SerializerMethodField()
+    partner_reviews_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Company
@@ -469,7 +577,9 @@ class PublicCompanySerializer(serializers.ModelSerializer):
             'public_id', 'name', 'tagline', 'description', 'logo_url',
             'website', 'industry', 'company_size', 'location', 'founded_year',
             'linkedin_url', 'twitter_url', 'members_details', 'jobs', 'rfps',
-            'reviews', 'average_rating', 'reviews_count'
+            'reviews', 'average_rating', 'reviews_count',
+            'employee_reviews', 'employee_average_rating', 'employee_reviews_count',
+            'partner_reviews', 'partner_average_rating', 'partner_reviews_count'
         ]
 
     def get_members_details(self, obj):
@@ -528,3 +638,31 @@ class PublicCompanySerializer(serializers.ModelSerializer):
 
     def get_reviews_count(self, obj):
         return obj.reviews.count()
+
+    def get_employee_reviews(self, obj):
+        reviews = obj.reviews.filter(rfp_interest__isnull=True).order_by('-created_at')
+        return CompanyReviewSerializer(reviews, many=True, context=self.context).data
+
+    def get_employee_average_rating(self, obj):
+        reviews = obj.reviews.filter(rfp_interest__isnull=True)
+        if reviews.exists():
+            avg = sum(r.rating for r in reviews) / reviews.count()
+            return round(avg, 1)
+        return 0.0
+
+    def get_employee_reviews_count(self, obj):
+        return obj.reviews.filter(rfp_interest__isnull=True).count()
+
+    def get_partner_reviews(self, obj):
+        reviews = obj.reviews.filter(rfp_interest__isnull=False).order_by('-created_at')
+        return CompanyReviewSerializer(reviews, many=True, context=self.context).data
+
+    def get_partner_average_rating(self, obj):
+        reviews = obj.reviews.filter(rfp_interest__isnull=False)
+        if reviews.exists():
+            avg = sum(r.rating for r in reviews) / reviews.count()
+            return round(avg, 1)
+        return 0.0
+
+    def get_partner_reviews_count(self, obj):
+        return obj.reviews.filter(rfp_interest__isnull=False).count()

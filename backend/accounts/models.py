@@ -327,6 +327,7 @@ class RFPInterest(models.Model):
     proposal_summary = models.TextField()
     attached_file = models.FileField(upload_to='rfp_proposals/', blank=True, null=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
+    is_reviewed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -411,6 +412,7 @@ class Message(models.Model):
 class CompanyReview(models.Model):
     reviewer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='company_reviews')
     company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True, blank=True, related_name='reviews')
+    rfp_interest = models.ForeignKey(RFPInterest, on_delete=models.SET_NULL, null=True, blank=True, related_name='company_reviews')
     company_name = models.CharField(max_length=255)
     rating = models.PositiveIntegerField()
     review_text = models.TextField()
@@ -423,6 +425,27 @@ class CompanyReview(models.Model):
         if not self.company and self.company_name:
             self.company = Company.objects.filter(name__iexact=self.company_name.strip()).first()
         super().save(*args, **kwargs)
+        if self.rfp_interest:
+            self.rfp_interest.is_reviewed = True
+            self.rfp_interest.save(update_fields=['is_reviewed'])
+
+
+class FreelancerReview(models.Model):
+    reviewer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='submitted_freelancer_reviews')
+    freelancer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='freelancer_reviews')
+    rfp_interest = models.ForeignKey(RFPInterest, on_delete=models.SET_NULL, null=True, blank=True, related_name='freelancer_reviews')
+    rating = models.PositiveIntegerField()
+    review_text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Review for {self.freelancer.email} by {self.reviewer.email} ({self.rating} stars)"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.rfp_interest:
+            self.rfp_interest.is_reviewed = True
+            self.rfp_interest.save(update_fields=['is_reviewed'])
 
 
 @receiver(post_save, sender=Company)

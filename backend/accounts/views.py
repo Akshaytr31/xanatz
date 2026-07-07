@@ -2,14 +2,14 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
-from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview
+from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview
 from .serializers import (
     SendOTPSerializer, VerifyOTPSerializer, RegisterUserSerializer, 
     PrivacyPolicySerializer, UserSerializer, ProfileSerializer,
     ExperienceSerializer, EducationSerializer, CompanySerializer,
     UserSearchSerializer, JobOpeningSerializer, JobApplicationSerializer,
     RFPSerializer, RFPInterestSerializer, JobPostPlanSerializer, CompanySubscriptionSerializer, NotificationSerializer, MessageSerializer,
-    PortfolioProjectSerializer, PublicCompanySerializer, CompanyReviewSerializer
+    PortfolioProjectSerializer, PublicCompanySerializer, CompanyReviewSerializer, FreelancerReviewSerializer
 )
 
 class SendOTPView(APIView):
@@ -757,5 +757,38 @@ class CompanyReviewViewSet(viewsets.ModelViewSet):
         company = None
         if company_name:
             company = Company.objects.filter(name__iexact=company_name).first()
-        serializer.save(reviewer=self.request.user, company=company, company_name=company_name)
+        rfp_interest_id = self.request.data.get('rfp_interest')
+        rfp_interest = None
+        if rfp_interest_id:
+            rfp_interest = RFPInterest.objects.filter(id=rfp_interest_id).first()
+            if rfp_interest and not company:
+                candidate_user = rfp_interest.user
+                company = Company.objects.filter(creator=candidate_user, is_active=True).first()
+                if not company:
+                    membership = CompanyMember.objects.filter(user=candidate_user, company__is_active=True).first()
+                    if membership:
+                        company = membership.company
+        serializer.save(reviewer=self.request.user, company=company, company_name=company_name, rfp_interest=rfp_interest)
+
+
+class FreelancerReviewViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    serializer_class = FreelancerReviewSerializer
+    queryset = FreelancerReview.objects.all().order_by('-created_at')
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        freelancer_id = self.request.query_params.get('freelancer_id')
+        if freelancer_id:
+            queryset = queryset.filter(freelancer_id=freelancer_id)
+        return queryset
+
+    def perform_create(self, serializer):
+        freelancer_id = self.request.data.get('freelancer')
+        freelancer = User.objects.get(id=freelancer_id)
+        rfp_interest_id = self.request.data.get('rfp_interest')
+        rfp_interest = None
+        if rfp_interest_id:
+            rfp_interest = RFPInterest.objects.filter(id=rfp_interest_id).first()
+        serializer.save(reviewer=self.request.user, freelancer=freelancer, rfp_interest=rfp_interest)
 

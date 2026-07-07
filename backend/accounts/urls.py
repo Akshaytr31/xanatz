@@ -6,7 +6,7 @@ from .views import (
     PrivacyPolicyView, UserProfileView, ExperienceViewSet, EducationViewSet, PortfolioProjectViewSet,
     CompanyViewSet, PublicProfileView, UserSearchView, JobOpeningViewSet, JobApplicationViewSet,
     RFPViewSet, RFPInterestViewSet, JobPostPlanViewSet, NotificationViewSet, MessageViewSet,
-    PublicCompanyProfileView, CompanyReviewViewSet
+    PublicCompanyProfileView, CompanyReviewViewSet, FreelancerReviewViewSet
 )
 
 router = DefaultRouter()
@@ -22,6 +22,7 @@ router.register(r'plans', JobPostPlanViewSet, basename='plans')
 router.register(r'notifications', NotificationViewSet, basename='notifications')
 router.register(r'messages', MessageViewSet, basename='messages')
 router.register(r'reviews', CompanyReviewViewSet, basename='reviews')
+router.register(r'freelancer-reviews', FreelancerReviewViewSet, basename='freelancer-reviews')
 
 
 urlpatterns = [

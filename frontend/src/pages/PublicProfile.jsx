@@ -11,6 +11,7 @@ import PublicAbout from "../components/landing_profile/PublicAbout";
 import PublicExperience from "../components/landing_profile/PublicExperience";
 import PublicExpertise from "../components/landing_profile/PublicExpertise";
 import PublicProjects from "../components/landing_profile/PublicProjects";
+import PublicReviews from "../components/landing_profile/PublicReviews";
 import PublicCTA from "../components/landing_profile/PublicCTA";
 import PublicFooter from "../components/landing_profile/PublicFooter";
 
@@ -178,6 +179,12 @@ const PublicProfile = () => {
         {profile?.is_freelancer && (
           <PublicProjects projects={profile?.projects} />
         )}
+
+        <PublicReviews
+          reviews={user.reviews}
+          average_rating={user.average_rating}
+          reviews_count={user.reviews_count}
+        />
 
         <PublicCTA email={email} />
       </main>

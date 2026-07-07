@@ -92,6 +92,7 @@ const CompanyDashboard = () => {
   const [selectedRfp, setSelectedRfp] = useState(null);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [reviewTab, setReviewTab] = useState("employee");
 
   const handleShare = () => {
     if (!company) return;
@@ -908,128 +909,181 @@ const CompanyDashboard = () => {
                 border="1px solid var(--color-card-border)"
                 style={{ background: "var(--color-surface)" }}
               >
-                <HStack gap={3} mb={6}>
-                  <Box w="3px" h="18px" borderRadius="full" style={{ background: accentColor }} />
-                  <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest">RATINGS & REVIEWS</Text>
-                  <Box px={2} py={0.5} borderRadius="full" style={{ background: `${accentColor}10`, border: `1px solid ${accentColor}20` }}>
-                    <Text fontSize="10px" fontWeight="black" style={{ color: accentColor }}>{company.reviews_count}</Text>
-                  </Box>
+                <HStack justify="space-between" mb={6} borderBottom="1px solid var(--color-card-border)" pb={4}>
+                  <HStack gap={4}>
+                    <Button
+                      variant="link"
+                      onClick={() => setReviewTab("employee")}
+                      style={{
+                        color: reviewTab === "employee" ? "white" : "var(--color-text-muted)",
+                        fontWeight: "black",
+                        fontSize: "11px",
+                        letterSpacing: "0.1em",
+                        textDecoration: "none",
+                        position: "relative",
+                        paddingBottom: "4px"
+                      }}
+                    >
+                      EMPLOYEE REVIEWS
+                      <Box as="span" ml={2} px={2} py={0.5} borderRadius="full" style={{ background: reviewTab === "employee" ? `${accentColor}15` : "rgba(255,255,255,0.05)", border: reviewTab === "employee" ? `1px solid ${accentColor}30` : "1px solid transparent" }}>
+                        <Text as="span" fontSize="10px" fontWeight="bold" style={{ color: reviewTab === "employee" ? accentColor : "var(--color-text-muted)" }}>{company.employee_reviews_count || 0}</Text>
+                      </Box>
+                      {reviewTab === "employee" && (
+                        <Box position="absolute" bottom="-5px" left="0" right="0" h="2px" bg={accentColor} />
+                      )}
+                    </Button>
+
+                    <Button
+                      variant="link"
+                      onClick={() => setReviewTab("partner")}
+                      style={{
+                        color: reviewTab === "partner" ? "white" : "var(--color-text-muted)",
+                        fontWeight: "black",
+                        fontSize: "11px",
+                        letterSpacing: "0.1em",
+                        textDecoration: "none",
+                        position: "relative",
+                        paddingBottom: "4px"
+                      }}
+                    >
+                      CLIENT & PARTNER REVIEWS
+                      <Box as="span" ml={2} px={2} py={0.5} borderRadius="full" style={{ background: reviewTab === "partner" ? `${accentColor}15` : "rgba(255,255,255,0.05)", border: reviewTab === "partner" ? `1px solid ${accentColor}30` : "1px solid transparent" }}>
+                        <Text as="span" fontSize="10px" fontWeight="bold" style={{ color: reviewTab === "partner" ? accentColor : "var(--color-text-muted)" }}>{company.partner_reviews_count || 0}</Text>
+                      </Box>
+                      {reviewTab === "partner" && (
+                        <Box position="absolute" bottom="-5px" left="0" right="0" h="2px" bg={accentColor} />
+                      )}
+                    </Button>
+                  </HStack>
                 </HStack>
 
-                {company.reviews_count === 0 ? (
-                  <Flex direction="column" align="center" py={8} gap={3}>
-                    <Box w="60px" h="60px" borderRadius="xl" display="flex" alignItems="center" justify="center"
-                      style={{ background: "var(--color-card-bg)", border: "1px solid var(--color-card-border)" }}>
-                      <Star size={22} color="var(--color-text-muted)" />
-                    </Box>
-                    <Text color="var(--color-text-muted)" fontSize="sm" fontWeight="medium">No reviews received yet</Text>
-                  </Flex>
-                ) : (
-                  <Grid templateColumns={{ base: "1fr", md: "250px 1fr" }} gap={8}>
-                    {/* Summary statistics */}
-                    <Box p={6} borderRadius="xl" border="1px solid var(--color-card-border)" style={{ background: "var(--color-card-bg)" }} textAlign="center">
-                      <Text fontSize="5xl" fontWeight="black" lineHeight="1" style={{ color: accentColor }}>
-                        {company.average_rating}
-                      </Text>
-                      <HStack justify="center" my={3} gap={1}>
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star
-                            key={star}
-                            size={16}
-                            style={{
-                              fill: star <= Math.round(company.average_rating) ? "#F59E0B" : "none",
-                              stroke: star <= Math.round(company.average_rating) ? "#F59E0B" : "var(--color-text-muted)",
-                            }}
-                          />
-                        ))}
-                      </HStack>
-                      <Text color="var(--color-text-muted)" fontSize="xs" fontWeight="semibold">
-                        Based on {company.reviews_count} {company.reviews_count === 1 ? "review" : "reviews"}
-                      </Text>
+                {(() => {
+                  const activeReviews = reviewTab === "employee" ? (company.employee_reviews || []) : (company.partner_reviews || []);
+                  const activeCount = reviewTab === "employee" ? (company.employee_reviews_count || 0) : (company.partner_reviews_count || 0);
+                  const activeAvg = reviewTab === "employee" ? (company.employee_average_rating || 0.0) : (company.partner_average_rating || 0.0);
+                  const noReviewsMsg = reviewTab === "employee"
+                    ? "No employee reviews received yet"
+                    : "No partner or client reviews received yet";
 
-                      {/* Simple visual bar breakdown */}
-                      <VStack mt={6} gap={2} w="full">
-                        {[5, 4, 3, 2, 1].map((ratingVal) => {
-                          const count = company.reviews.filter(r => r.rating === ratingVal).length;
-                          const pct = company.reviews_count > 0 ? (count / company.reviews_count) * 100 : 0;
-                          return (
-                            <HStack key={ratingVal} w="full" fontSize="2xs" gap={2}>
-                              <Text color="var(--color-text-muted)" w="12px" fontWeight="bold">{ratingVal}★</Text>
-                              <Box flex={1} h="6px" borderRadius="full" bg="var(--color-card-border)" overflow="hidden">
-                                <Box h="full" bg="#F59E0B" w={`${pct}%`} borderRadius="full" />
-                              </Box>
-                              <Text color="var(--color-text-muted)" w="20px" textAlign="right">{count}</Text>
-                            </HStack>
-                          );
-                        })}
-                      </VStack>
-                    </Box>
-
-                    {/* Scrollable list of reviews */}
-                    <VStack align="stretch" gap={4} maxH="400px" overflowY="auto" pr={2} css={{
-                      "&::-webkit-scrollbar": { width: "5px" },
-                      "&::-webkit-scrollbar-track": { background: "transparent" },
-                      "&::-webkit-scrollbar-thumb": { background: "var(--color-card-border)", borderRadius: "10px" }
-                    }}>
-                      {company.reviews.map((review) => (
-                        <Box
-                          key={review.id}
-                          p={5}
-                          borderRadius="xl"
-                          border="1px solid var(--color-card-border)"
-                          style={{ background: "var(--color-card-bg)" }}
-                        >
-                          <Flex justify="space-between" align="start" mb={3} gap={4} flexWrap="wrap">
-                            <HStack gap={3}>
-                              {/* Avatar circle */}
-                              <Flex
-                                w="36px"
-                                h="36px"
-                                borderRadius="full"
-                                bg="var(--color-surface)"
-                                border="1px solid var(--color-card-border)"
-                                align="center"
-                                justify="center"
-                                overflow="hidden"
-                              >
-                                {review.reviewer_profile_picture ? (
-                                  <Box as="img" src={review.reviewer_profile_picture} w="full" h="full" style={{ objectFit: "cover" }} />
-                                ) : (
-                                  <Text fontSize="xs" fontWeight="bold" color="var(--color-text-primary)">
-                                    {review.reviewer_name.charAt(0).toUpperCase()}
-                                  </Text>
-                                )}
-                              </Flex>
-                              <VStack align="start" gap={0}>
-                                <Text fontSize="xs" fontWeight="bold" color="var(--color-text-primary)">
-                                  {review.reviewer_name}
-                                </Text>
-                                <Text fontSize="3xs" color="var(--color-text-muted)">
-                                  {new Date(review.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
-                                </Text>
-                              </VStack>
-                            </HStack>
-                            <HStack gap={0.5}>
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <Star
-                                  key={star}
-                                  size={12}
-                                  style={{
-                                    fill: star <= review.rating ? "#F59E0B" : "none",
-                                    stroke: star <= review.rating ? "#F59E0B" : "var(--color-text-muted)",
-                                  }}
-                                />
-                              ))}
-                            </HStack>
-                          </Flex>
-                          <Text fontSize="xs" color="var(--color-text-secondary)" lineHeight="1.6" style={{ whiteSpace: "pre-line" }}>
-                            {review.review_text}
-                          </Text>
+                  if (activeCount === 0) {
+                    return (
+                      <Flex direction="column" align="center" py={8} gap={3}>
+                        <Box w="60px" h="60px" borderRadius="xl" display="flex" alignItems="center" justify="center"
+                          style={{ background: "var(--color-card-bg)", border: "1px solid var(--color-card-border)" }}>
+                          <Star size={22} color="var(--color-text-muted)" />
                         </Box>
-                      ))}
-                    </VStack>
-                  </Grid>
-                )}
+                        <Text color="var(--color-text-muted)" fontSize="sm" fontWeight="medium">{noReviewsMsg}</Text>
+                      </Flex>
+                    );
+                  }
+
+                  return (
+                    <Grid templateColumns={{ base: "1fr", md: "250px 1fr" }} gap={8}>
+                      {/* Summary statistics */}
+                      <Box p={6} borderRadius="xl" border="1px solid var(--color-card-border)" style={{ background: "var(--color-card-bg)" }} textAlign="center">
+                        <Text fontSize="5xl" fontWeight="black" lineHeight="1" style={{ color: accentColor }}>
+                          {activeAvg}
+                        </Text>
+                        <HStack justify="center" my={3} gap={1}>
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              size={16}
+                              style={{
+                                fill: star <= Math.round(activeAvg) ? "#F59E0B" : "none",
+                                stroke: star <= Math.round(activeAvg) ? "#F59E0B" : "var(--color-text-muted)",
+                              }}
+                            />
+                          ))}
+                        </HStack>
+                        <Text color="var(--color-text-muted)" fontSize="xs" fontWeight="semibold">
+                          Based on {activeCount} {activeCount === 1 ? "review" : "reviews"}
+                        </Text>
+
+                        {/* Simple visual bar breakdown */}
+                        <VStack mt={6} gap={2} w="full">
+                          {[5, 4, 3, 2, 1].map((ratingVal) => {
+                            const count = activeReviews.filter(r => r.rating === ratingVal).length;
+                            const pct = activeCount > 0 ? (count / activeCount) * 100 : 0;
+                            return (
+                              <HStack key={ratingVal} w="full" fontSize="2xs" gap={2}>
+                                <Text color="var(--color-text-muted)" w="12px" fontWeight="bold">{ratingVal}★</Text>
+                                <Box flex={1} h="6px" borderRadius="full" bg="var(--color-card-border)" overflow="hidden">
+                                  <Box h="full" bg="#F59E0B" w={`${pct}%`} borderRadius="full" />
+                                </Box>
+                                <Text color="var(--color-text-muted)" w="20px" textAlign="right">{count}</Text>
+                              </HStack>
+                            );
+                          })}
+                        </VStack>
+                      </Box>
+
+                      {/* Scrollable list of reviews */}
+                      <VStack align="stretch" gap={4} maxH="400px" overflowY="auto" pr={2} css={{
+                        "&::-webkit-scrollbar": { width: "5px" },
+                        "&::-webkit-scrollbar-track": { background: "transparent" },
+                        "&::-webkit-scrollbar-thumb": { background: "var(--color-card-border)", borderRadius: "10px" }
+                      }}>
+                        {activeReviews.map((review) => (
+                          <Box
+                            key={review.id}
+                            p={5}
+                            borderRadius="xl"
+                            border="1px solid var(--color-card-border)"
+                            style={{ background: "var(--color-card-bg)" }}
+                          >
+                            <Flex justify="space-between" align="start" mb={3} gap={4} flexWrap="wrap">
+                              <HStack gap={3}>
+                                {/* Avatar circle */}
+                                <Flex
+                                  w="36px"
+                                  h="36px"
+                                  borderRadius="full"
+                                  bg="var(--color-surface)"
+                                  border="1px solid var(--color-card-border)"
+                                  align="center"
+                                  justify="center"
+                                  overflow="hidden"
+                                >
+                                  {review.reviewer_profile_picture ? (
+                                    <Box as="img" src={review.reviewer_profile_picture} w="full" h="full" style={{ objectFit: "cover" }} />
+                                  ) : (
+                                    <Text fontSize="xs" fontWeight="bold" color="var(--color-text-primary)">
+                                      {review.reviewer_name.charAt(0).toUpperCase()}
+                                    </Text>
+                                  )}
+                                </Flex>
+                                <VStack align="start" gap={0}>
+                                  <Text fontSize="xs" fontWeight="bold" color="var(--color-text-primary)">
+                                    {review.reviewer_name}
+                                  </Text>
+                                  <Text fontSize="3xs" color="var(--color-text-muted)">
+                                    {new Date(review.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                                  </Text>
+                                </VStack>
+                              </HStack>
+                              <HStack gap={0.5}>
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <Star
+                                    key={star}
+                                    size={12}
+                                    style={{
+                                      fill: star <= review.rating ? "#F59E0B" : "none",
+                                      stroke: star <= review.rating ? "#F59E0B" : "var(--color-text-muted)",
+                                    }}
+                                  />
+                                ))}
+                              </HStack>
+                            </Flex>
+                            <Text fontSize="xs" color="var(--color-text-secondary)" lineHeight="1.6" style={{ whiteSpace: "pre-line" }}>
+                              {review.review_text}
+                            </Text>
+                          </Box>
+                        ))}
+                      </VStack>
+                    </Grid>
+                  );
+                })()}
               </MotionBox>
             </GridItem>
 
