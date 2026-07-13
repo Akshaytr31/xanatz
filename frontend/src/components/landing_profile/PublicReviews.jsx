@@ -1,8 +1,10 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Star, MessageSquare } from "lucide-react";
+import { Star, MessageSquare, Flag } from "lucide-react";
 
-const PublicReviews = ({ reviews = [], average_rating = 0, reviews_count = 0 }) => {
+const PublicReviews = ({ reviews = [], average_rating = 0, reviews_count = 0, onFlagReview }) => {
+  const token = localStorage.getItem("access");
+  const isAuthenticated = token && token !== "null" && token !== "undefined";
   const accentColor = "#10b981"; // Unified branding emerald color for success/approvals/proposals
 
   return (
@@ -119,17 +121,38 @@ const PublicReviews = ({ reviews = [], average_rating = 0, reviews_count = 0 }) 
                       </div>
                     </div>
 
-                    <div style={{ display: "flex", gap: "0.15rem" }}>
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          size={14}
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                      <div style={{ display: "flex", gap: "0.15rem" }}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            size={14}
+                            style={{
+                              fill: star <= review.rating ? "#F59E0B" : "none",
+                              stroke: star <= review.rating ? "#F59E0B" : "#4b5563",
+                            }}
+                          />
+                        ))}
+                      </div>
+                      {isAuthenticated && onFlagReview && (
+                        <button
+                          onClick={() => onFlagReview(review.id)}
+                          title={review.is_flagged ? "Review flagged" : "Flag inappropriate review"}
                           style={{
-                            fill: star <= review.rating ? "#F59E0B" : "none",
-                            stroke: star <= review.rating ? "#F59E0B" : "#4b5563",
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            color: review.is_flagged ? "#EF4444" : "#6b7280",
+                            display: "flex",
+                            alignItems: "center",
+                            padding: "2px",
+                            borderRadius: "4px",
+                            transition: "all 0.2s"
                           }}
-                        />
-                      ))}
+                        >
+                          <Flag size={14} fill={review.is_flagged ? "#EF4444" : "none"} />
+                        </button>
+                      )}
                     </div>
                   </div>
 

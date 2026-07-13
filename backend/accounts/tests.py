@@ -244,3 +244,127 @@ class CompanyReviewSegregationTests(APITestCase):
         self.assertEqual(data['partner_average_rating'], 5.0)
         self.assertEqual(data['partner_reviews'][0]['review_text'], 'Excellent partner')
 
+
+class ReviewModerationTests(APITestCase):
+    def setUp(self):
+        self.admin_user = User.objects.create_superuser(
+            email='admin@example.com',
+            password='password123',
+            first_name='Admin',
+            last_name='User'
+        )
+        self.regular_user = User.objects.create_user(
+            email='user@example.com',
+            password='password123',
+            first_name='John',
+            last_name='Doe'
+        )
+        self.freelancer_user = User.objects.create_user(
+            email='freelancer@example.com',
+            password='password123',
+            first_name='Free',
+            last_name='Lancer'
+        )
+        self.company = Company.objects.create(
+            name='Test Co',
+            creator=self.regular_user
+        )
+        self.company_review = CompanyReview.objects.create(
+            company=self.company,
+            reviewer=self.regular_user,
+            rating=5,
+            review_text='Original Company Review'
+        )
+        self.freelancer_review = FreelancerReview.objects.create(
+            freelancer=self.freelancer_user,
+            reviewer=self.regular_user,
+            rating=4,
+            review_text='Original Freelancer Review'
+        )
+
+    def test_flag_company_review_via_api(self):
+        self.client.force_authenticate(user=self.regular_user)
+        response = self.client.post(f'/api/reviews/{self.company_review.id}/flag/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        self.company_review.refresh_from_db()
+        self.assertTrue(self.company_review.is_flagged)
+
+    def test_flag_freelancer_review_via_api(self):
+        self.client.force_authenticate(user=self.regular_user)
+        response = self.client.post(f'/api/freelancer-reviews/{self.freelancer_review.id}/flag/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        self.freelancer_review.refresh_from_db()
+        self.assertTrue(self.freelancer_review.is_flagged)
+
+    def test_flagged_reviews_admin_access_only(self):
+        self.company_review.is_flagged = True
+        self.company_review.save()
+        self.freelancer_review.is_flagged = True
+        self.freelancer_review.save()
+
+        # Regular user should be forbidden
+        self.client.force_authenticate(user=self.regular_user)
+        response = self.client.get('/api/admin/reviews/flagged/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Admin user should succeed
+        self.client.force_authenticate(user=self.admin_user)
+        response = self.client.get('/api/admin/reviews/flagged/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+
+    def test_admin_moderation_dismiss_action(self):
+        self.company_review.is_flagged = True
+        self.company_review.save()
+
+        self.client.force_authenticate(user=self.admin_user)
+        data = {
+            'review_id': self.company_review.id,
+            'review_type': 'company',
+            'action': 'dismiss'
+        }
+        response = self.client.post('/api/admin/reviews/flagged/', data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.company_review.refresh_from_db()
+        self.assertFalse(self.company_review.is_flagged)
+
+    def test_admin_moderation_edit_action(self):
+        self.company_review.is_flagged = True
+        self.company_review.save()
+
+        self.client.force_authenticate(user=self.admin_user)
+        data = {
+            'review_id': self.company_review.id,
+            'review_type': 'company',
+            'action': 'edit',
+            'review_text': 'Edited and Moderated Review Text',
+            'rating': 3
+        }
+        response = self.client.post('/api/admin/reviews/flagged/', data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.company_review.refresh_from_db()
+        self.assertEqual(self.company_review.review_text, 'Edited and Moderated Review Text')
+        self.assertEqual(self.company_review.rating, 3)
+        self.assertFalse(self.company_review.is_flagged)
+
+    def test_admin_moderation_delete_action(self):
+        self.freelancer_review.is_flagged = True
+        self.freelancer_review.save()
+
+        self.client.force_authenticate(user=self.admin_user)
+        data = {
+            'review_id': self.freelancer_review.id,
+            'review_type': 'freelancer',
+            'action': 'delete'
+        }
+        response = self.client.post('/api/admin/reviews/flagged/', data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        with self.assertRaises(FreelancerReview.DoesNotExist):
+            FreelancerReview.objects.get(id=self.freelancer_review.id)
+
+

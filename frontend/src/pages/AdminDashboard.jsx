@@ -11,10 +11,11 @@ import {
   Circle,
   Button,
 } from "@chakra-ui/react";
-import { LayoutDashboard, ShieldCheck, Users, Settings, FileText, CreditCard } from "lucide-react";
+import { LayoutDashboard, ShieldCheck, Users, Settings, FileText, CreditCard, ShieldAlert } from "lucide-react";
 import AdminNavbar from "../components/AdminNavbar";
 import PrivacyPolicyEditor from "../components/PrivacyPolicyEditor";
 import PlanManager from "../components/PlanManager";
+import FlaggedReviewModerator from "../components/FlaggedReviewModerator";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -103,12 +104,37 @@ const AdminDashboard = () => {
               <Text fontSize="xs">Privacy Policy</Text>
             </HStack>
           </Button>
+          <Button
+            size="sm"
+            onClick={() => setActiveTab("flagged_reviews")}
+            style={{
+              background: activeTab === "flagged_reviews" ? "var(--color-accent)" : "rgba(255,255,255,0.05)",
+              color: "white",
+              border: "1px solid",
+              borderColor: activeTab === "flagged_reviews" ? "var(--color-accent)" : "rgba(255,255,255,0.1)",
+              borderRadius: "8px",
+              fontWeight: "bold",
+              cursor: "pointer",
+            }}
+            _hover={{ opacity: 0.9 }}
+          >
+            <HStack gap={2} px={1}>
+              <ShieldAlert size={14} />
+              <Text fontSize="xs">Flagged Reviews</Text>
+            </HStack>
+          </Button>
         </HStack>
 
         <Grid templateColumns={{ base: "1fr", lg: "1fr 300px" }} gap={8}>
           <GridItem>
             <VStack align="stretch" gap={8}>
-              {activeTab === "plans" ? <PlanManager /> : <PrivacyPolicyEditor />}
+              {activeTab === "plans" ? (
+                <PlanManager />
+              ) : activeTab === "policy" ? (
+                <PrivacyPolicyEditor />
+              ) : (
+                <FlaggedReviewModerator />
+              )}
             </VStack>
           </GridItem>
 

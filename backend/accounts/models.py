@@ -416,6 +416,7 @@ class CompanyReview(models.Model):
     company_name = models.CharField(max_length=255)
     rating = models.PositiveIntegerField()
     review_text = models.TextField()
+    is_flagged = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -436,6 +437,7 @@ class FreelancerReview(models.Model):
     rfp_interest = models.ForeignKey(RFPInterest, on_delete=models.SET_NULL, null=True, blank=True, related_name='freelancer_reviews')
     rating = models.PositiveIntegerField()
     review_text = models.TextField()
+    is_flagged = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -168,7 +168,7 @@ class FreelancerReviewSerializer(serializers.ModelSerializer):
         model = FreelancerReview
         fields = [
             'id', 'reviewer', 'reviewer_name', 'reviewer_profile_picture',
-            'freelancer', 'rfp_interest', 'rating', 'review_text', 'created_at'
+            'freelancer', 'rfp_interest', 'rating', 'review_text', 'is_flagged', 'created_at'
         ]
         read_only_fields = ['reviewer', 'freelancer']
 
@@ -237,7 +237,7 @@ class CompanyReviewSerializer(serializers.ModelSerializer):
         model = CompanyReview
         fields = [
             'id', 'reviewer', 'reviewer_name', 'reviewer_profile_picture',
-            'company', 'company_name', 'company_details', 'rfp_interest', 'rating', 'review_text', 'created_at'
+            'company', 'company_name', 'company_details', 'rfp_interest', 'rating', 'review_text', 'is_flagged', 'created_at'
         ]
         read_only_fields = ['reviewer', 'company']
 

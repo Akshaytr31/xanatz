@@ -770,6 +770,13 @@ class CompanyReviewViewSet(viewsets.ModelViewSet):
                         company = membership.company
         serializer.save(reviewer=self.request.user, company=company, company_name=company_name, rfp_interest=rfp_interest)
 
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def flag(self, request, pk=None):
+        review = self.get_object()
+        review.is_flagged = True
+        review.save()
+        return Response({"message": "Review flagged successfully"}, status=status.HTTP_200_OK)
+
 
 class FreelancerReviewViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -791,4 +798,94 @@ class FreelancerReviewViewSet(viewsets.ModelViewSet):
         if rfp_interest_id:
             rfp_interest = RFPInterest.objects.filter(id=rfp_interest_id).first()
         serializer.save(reviewer=self.request.user, freelancer=freelancer, rfp_interest=rfp_interest)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def flag(self, request, pk=None):
+        review = self.get_object()
+        review.is_flagged = True
+        review.save()
+        return Response({"message": "Review flagged successfully"}, status=status.HTTP_200_OK)
+
+
+class AdminFlaggedReviewsView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        company_reviews = CompanyReview.objects.filter(is_flagged=True).order_by('created_at')
+        freelancer_reviews = FreelancerReview.objects.filter(is_flagged=True).order_by('created_at')
+
+        results = []
+        for r in company_reviews:
+            results.append({
+                'id': r.id,
+                'review_type': 'company',
+                'reviewer_email': r.reviewer.email,
+                'reviewer_name': f"{r.reviewer.first_name} {r.reviewer.last_name}".strip() or r.reviewer.email,
+                'subject_name': r.company.name if r.company else r.company_name,
+                'rating': r.rating,
+                'review_text': r.review_text,
+                'created_at': r.created_at
+            })
+
+        for r in freelancer_reviews:
+            results.append({
+                'id': r.id,
+                'review_type': 'freelancer',
+                'reviewer_email': r.reviewer.email,
+                'reviewer_name': f"{r.reviewer.first_name} {r.reviewer.last_name}".strip() or r.reviewer.email,
+                'subject_name': f"{r.freelancer.first_name} {r.freelancer.last_name}".strip() or r.freelancer.email,
+                'rating': r.rating,
+                'review_text': r.review_text,
+                'created_at': r.created_at
+            })
+
+        results.sort(key=lambda x: x['created_at'])
+        return Response(results, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        review_id = request.data.get('review_id')
+        review_type = request.data.get('review_type')
+        action = request.data.get('action')
+
+        if not review_id or not review_type or not action:
+            return Response({"error": "review_id, review_type, and action are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if review_type == 'company':
+            model = CompanyReview
+        elif review_type == 'freelancer':
+            model = FreelancerReview
+        else:
+            return Response({"error": "Invalid review_type"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            review = model.objects.get(id=review_id)
+        except model.DoesNotExist:
+            return Response({"error": "Review not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if action == 'dismiss':
+            review.is_flagged = False
+            review.save()
+            return Response({"message": "Flag dismissed successfully"}, status=status.HTTP_200_OK)
+
+        elif action == 'edit':
+            review_text = request.data.get('review_text')
+            rating = request.data.get('rating')
+            if review_text is not None:
+                review.review_text = review_text
+            if rating is not None:
+                try:
+                    review.rating = int(rating)
+                except ValueError:
+                    return Response({"error": "Invalid rating"}, status=status.HTTP_400_BAD_REQUEST)
+            review.is_flagged = False
+            review.save()
+            return Response({"message": "Review edited and unflagged successfully"}, status=status.HTTP_200_OK)
+
+        elif action == 'delete':
+            review.delete()
+            return Response({"message": "Review deleted successfully"}, status=status.HTTP_200_OK)
+
+        else:
+            return Response({"error": "Invalid action"}, status=status.HTTP_400_BAD_REQUEST)
+
 
