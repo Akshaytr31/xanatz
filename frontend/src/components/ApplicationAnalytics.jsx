@@ -1,20 +1,39 @@
-import React from "react";
-import { Box, Flex, Text, VStack, HStack, Grid } from "@chakra-ui/react";
+import React, { useState } from "react";
+import { Box, Flex, Text, VStack, HStack, Grid, Button } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 
 const MotionBox = motion.create(Box);
 
 const ApplicationAnalytics = ({ applications = [] }) => {
-  const totalApps = applications.length;
+  const [timeFilter, setTimeFilter] = useState("all");
 
-  const appliedVal = applications.filter(a => a.status === 'applied').length;
-  const reviewedVal = applications.filter(a => a.status === 'reviewed').length;
-  const shortlistedVal = applications.filter(a => a.status === 'shortlisted').length;
-  const hiredVal = applications.filter(a => a.status === 'accepted').length;
-  const rejectedVal = applications.filter(a => a.status === 'rejected').length;
+  const filteredApplications = applications.filter((app) => {
+    if (timeFilter === "all") return true;
+    if (!app.created_at) return false;
+    const appDate = new Date(app.created_at);
+    const cutoff = new Date();
+
+    if (timeFilter === "1m") {
+      cutoff.setMonth(cutoff.getMonth() - 1);
+    } else if (timeFilter === "6m") {
+      cutoff.setMonth(cutoff.getMonth() - 6);
+    } else if (timeFilter === "1y") {
+      cutoff.setFullYear(cutoff.getFullYear() - 1);
+    }
+
+    return appDate >= cutoff;
+  });
+
+  const totalApps = filteredApplications.length;
+
+  const appliedVal = filteredApplications.filter(a => a.status === 'applied').length;
+  const reviewedVal = filteredApplications.filter(a => a.status === 'reviewed').length;
+  const shortlistedVal = filteredApplications.filter(a => a.status === 'shortlisted').length;
+  const hiredVal = filteredApplications.filter(a => a.status === 'accepted').length;
+  const rejectedVal = filteredApplications.filter(a => a.status === 'rejected').length;
 
   // For Pipeline funnel
-  const funnelShortlisted = applications.filter(a => ['shortlisted', 'accepted'].includes(a.status)).length;
+  const funnelShortlisted = filteredApplications.filter(a => ['shortlisted', 'accepted'].includes(a.status)).length;
 
   const list = [
     { count: appliedVal, color: "#3b82f6" },
@@ -34,16 +53,54 @@ const ApplicationAnalytics = ({ applications = [] }) => {
   ];
 
   return (
-    <Box p={6} borderRadius="3xl" border="1px solid var(--color-card-border)" 
+    <Box py={4} px={5} borderRadius="3xl" border="1px solid var(--color-card-border)" 
       style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }}>
+
+      {/* Time Range Filter Bar */}
+      <Flex gap={1} mb={4} justify="center" p={1} borderRadius="xl" bg="var(--color-input-bg)" border="1px solid var(--color-card-border)">
+        {[
+          { label: "1 Month", value: "1m" },
+          { label: "6 Months", value: "6m" },
+          { label: "1 Year", value: "1y" },
+          { label: "All Time", value: "all" },
+        ].map((btn) => {
+          const isActive = timeFilter === btn.value;
+          return (
+            <Button
+              key={btn.value}
+              size="xs"
+              variant="ghost"
+              onClick={() => setTimeFilter(btn.value)}
+              style={{
+                flex: 1,
+                fontSize: "10px",
+                fontWeight: "black",
+                letterSpacing: "0.05em",
+                borderRadius: "lg",
+                height: "26px",
+                background: isActive ? "var(--color-surface)" : "transparent",
+                color: isActive ? "white" : "var(--color-text-muted)",
+                border: isActive ? "1px solid var(--color-card-border)" : "1px solid transparent",
+              }}
+              _hover={{
+                background: isActive ? "var(--color-surface)" : "var(--color-card-hover-bg)",
+                color: "white",
+              }}
+              transition="all 0.2s"
+            >
+              {btn.label.toUpperCase()}
+            </Button>
+          );
+        })}
+      </Flex>
       
       {/* Donut Chart Visualization */}
-      <Flex direction="column" align="center" justify="center" p={2} borderBottom="1px solid var(--color-card-border)" pb={6}>
-        <Text color="var(--color-text-muted)" fontSize="2xs" fontWeight="black" letterSpacing="widest" mb={4}>
+      <Flex direction="column" align="center" justify="center" p={1} borderBottom="1px solid var(--color-card-border)" pb={4}>
+        <Text color="var(--color-text-muted)" fontSize="2xs" fontWeight="black" letterSpacing="widest" mb={3}>
           STATUS DISTRIBUTION
         </Text>
         
-        <Box position="relative" w="160px" h="160px" display="flex" alignItems="center" justify="center">
+        <Box position="relative" w="140px" h="140px" display="flex" alignItems="center" justify="center">
           <svg width="100%" height="100%" viewBox="0 0 120 120" style={{ transform: "rotate(-90deg)" }}>
             {/* Background trace circle */}
             <circle cx="60" cy="60" r="50" fill="transparent" stroke="var(--color-glass)" strokeWidth="12" />
@@ -103,13 +160,13 @@ const ApplicationAnalytics = ({ applications = [] }) => {
       </Flex>
       
       {/* Pipeline funnel success tracking */}
-      <VStack align="stretch" gap={4} pt={6}>
+      <VStack align="stretch" gap={3} pt={4}>
         <Text color="var(--color-text-muted)" fontSize="2xs" fontWeight="black" letterSpacing="widest">
           RECRUITMENT FUNNEL
         </Text>
         
         {stages.map((stage, sIdx) => (
-          <VStack key={stage.label} align="stretch" gap={1.5}>
+          <VStack key={stage.label} align="stretch" gap={1}>
             <Flex justify="space-between" align="center">
               <HStack gap={2}>
                 <Box px={1.5} py={0.5} borderRadius="md" bg="var(--color-glass)" border="1px solid var(--color-card-border)">
