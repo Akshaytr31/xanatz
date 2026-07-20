@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../api";
-import { ArrowRight, Globe, MapPin, Users, Calendar, Link2, AtSign, Briefcase, ExternalLink, Share2, Check, Mail, ArrowUpRight, Star, Flag, ShieldAlert, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Globe, MapPin, Users, Calendar, Link2, AtSign, Briefcase, ExternalLink, Share2, Check, Mail, ArrowUpRight, Star, Flag, ShieldAlert, CheckCircle2, HelpCircle, ChevronDown } from "lucide-react";
 import { motion, useScroll, useSpring, useTransform, AnimatePresence } from "framer-motion";
 
 const INDUSTRY_LABELS = {
@@ -24,6 +24,7 @@ const PublicCompanyProfile = () => {
   const [copied, setCopied] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [reviewTab, setReviewTab] = useState("employee");
+  const [expandedFaqId, setExpandedFaqId] = useState(null);
   const [flagModal, setFlagModal] = useState({
     isOpen: false,
     reviewId: null,
@@ -911,6 +912,98 @@ const PublicCompanyProfile = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          </section>
+        )}        {/* Frequently Asked Questions Section */}
+        {company.faqs && company.faqs.length > 0 && (
+          <section className="pub-section">
+            <div className="pub-inner">
+              {/* Divider */}
+              <div style={{ height: "1px", width: "100%", marginBottom: "3.5rem", background: "linear-gradient(90deg, transparent, var(--color-card-border), transparent)" }} />
+
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "2.5rem" }}>
+                <div style={{ width: "3px", height: "1.25rem", borderRadius: "9999px", backgroundColor: accentColor }} />
+                <h2 style={{ fontSize: "0.65rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.3em", color: "#6b7280" }}>Frequently Asked Questions</h2>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem", maxWidth: "48rem", margin: "0 auto" }}>
+                {company.faqs.map((faq) => {
+                  const isOpen = expandedFaqId === faq.id;
+                  return (
+                    <div
+                      key={faq.id}
+                      style={{
+                        borderRadius: "1.25rem",
+                        border: "1px solid",
+                        borderColor: isOpen ? `${accentColor}30` : "rgba(255,255,255,0.05)",
+                        background: isOpen ? "rgba(255,255,255,0.02)" : "rgba(15,23,42,0.4)",
+                        transition: "all 0.2s",
+                        overflow: "hidden"
+                      }}
+                    >
+                      <button
+                        onClick={() => setExpandedFaqId(isOpen ? null : faq.id)}
+                        style={{
+                          width: "100%",
+                          background: "none",
+                          border: "none",
+                          padding: "1.25rem 1.5rem",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: "1rem",
+                          cursor: "pointer",
+                          textAlign: "left"
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                          <HelpCircle size={16} color={isOpen ? accentColor : "#9ca3af"} />
+                          <span style={{ fontSize: "0.95rem", fontWeight: "bold", color: "white", fontFamily: "'Outfit', sans-serif" }}>
+                            {faq.question}
+                          </span>
+                        </div>
+                        <div
+                          style={{
+                            transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                            transition: "transform 0.2s",
+                            color: "#9ca3af",
+                            display: "flex",
+                            alignItems: "center"
+                          }}
+                        >
+                          <ChevronDown size={16} />
+                        </div>
+                      </button>
+
+                      <AnimatePresence initial={false}>
+                        {isOpen && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <div
+                              style={{
+                                padding: "0 1.5rem 1.5rem 1.5rem",
+                                color: "#9ca3af",
+                                fontSize: "0.875rem",
+                                lineHeight: "1.6",
+                                fontWeight: 300,
+                                borderTop: "1px solid rgba(255,255,255,0.05)",
+                                paddingTop: "1rem",
+                                whiteSpace: "pre-line"
+                              }}
+                            >
+                              {faq.answer}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </section>

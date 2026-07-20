@@ -5,7 +5,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 import random
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import PrivacyPolicy, Profile, Experience, Education, Company, OTP, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview
+from .models import PrivacyPolicy, Profile, Experience, Education, Company, OTP, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ
 
 User = get_user_model()
 
@@ -272,6 +272,13 @@ class CompanyReviewSerializer(serializers.ModelSerializer):
         return None
 
 
+class CompanyFAQSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyFAQ
+        fields = ['id', 'company', 'question', 'answer', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
 class CompanySerializer(serializers.ModelSerializer):
     members = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     members_details = serializers.SerializerMethodField()
@@ -288,6 +295,7 @@ class CompanySerializer(serializers.ModelSerializer):
     partner_reviews = serializers.SerializerMethodField()
     partner_average_rating = serializers.SerializerMethodField()
     partner_reviews_count = serializers.SerializerMethodField()
+    faqs = CompanyFAQSerializer(many=True, read_only=True)
 
     class Meta:
         model = Company
@@ -299,7 +307,8 @@ class CompanySerializer(serializers.ModelSerializer):
             'active_subscription', 'created_at', 'updated_at',
             'reviews', 'average_rating', 'reviews_count',
             'employee_reviews', 'employee_average_rating', 'employee_reviews_count',
-            'partner_reviews', 'partner_average_rating', 'partner_reviews_count'
+            'partner_reviews', 'partner_average_rating', 'partner_reviews_count',
+            'faqs'
         ]
 
     def get_members_details(self, obj):
@@ -570,6 +579,7 @@ class PublicCompanySerializer(serializers.ModelSerializer):
     partner_reviews = serializers.SerializerMethodField()
     partner_average_rating = serializers.SerializerMethodField()
     partner_reviews_count = serializers.SerializerMethodField()
+    faqs = CompanyFAQSerializer(many=True, read_only=True)
 
     class Meta:
         model = Company
@@ -579,7 +589,8 @@ class PublicCompanySerializer(serializers.ModelSerializer):
             'linkedin_url', 'twitter_url', 'members_details', 'jobs', 'rfps',
             'reviews', 'average_rating', 'reviews_count',
             'employee_reviews', 'employee_average_rating', 'employee_reviews_count',
-            'partner_reviews', 'partner_average_rating', 'partner_reviews_count'
+            'partner_reviews', 'partner_average_rating', 'partner_reviews_count',
+            'faqs'
         ]
 
     def get_members_details(self, obj):

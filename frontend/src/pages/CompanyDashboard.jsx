@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Box, Flex, Text, Button, VStack, HStack, Container, Spinner, Badge, Grid, GridItem } from "@chakra-ui/react";
-import { Building2, ArrowLeft, Globe, MapPin, Users, Calendar, Link2, AtSign, Settings2, Briefcase, TrendingUp, Award, ExternalLink, Plus, FileText, CreditCard, Zap, Share2, Check, Star, Flag, ShieldAlert, CheckCircle2 } from "lucide-react";
+import { Building2, ArrowLeft, Globe, MapPin, Users, Calendar, Link2, AtSign, Settings2, Briefcase, TrendingUp, Award, ExternalLink, Plus, FileText, CreditCard, Zap, Share2, Check, Star, Flag, ShieldAlert, CheckCircle2, HelpCircle, Edit, Trash2, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -9,6 +9,7 @@ import CompanyMembersList from "../components/company/CompanyMembersList";
 import JobOpeningModal from "../components/company/JobOpeningModal";
 import RFPModal from "../components/company/RFPModal";
 import PricingPlansModal from "../components/company/PricingPlansModal";
+import CompanyFAQModal from "../components/company/CompanyFAQModal";
 import api from "../api";
 
 
@@ -91,6 +92,9 @@ const CompanyDashboard = () => {
   const [isRfpModalOpen, setIsRfpModalOpen] = useState(false);
   const [selectedRfp, setSelectedRfp] = useState(null);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
+  const [isFaqModalOpen, setIsFaqModalOpen] = useState(false);
+  const [selectedFaq, setSelectedFaq] = useState(null);
+  const [expandedFaqId, setExpandedFaqId] = useState(null);
   const [copied, setCopied] = useState(false);
   const [reviewTab, setReviewTab] = useState("employee");
   const [flagModal, setFlagModal] = useState({
@@ -210,6 +214,30 @@ const CompanyDashboard = () => {
   const handleAddRfp = () => {
     setSelectedRfp(null);
     setIsRfpModalOpen(true);
+  };
+
+  const handleAddFaq = () => {
+    setSelectedFaq(null);
+    setIsFaqModalOpen(true);
+  };
+
+  const handleEditFaq = (faq) => {
+    setSelectedFaq(faq);
+    setIsFaqModalOpen(true);
+  };
+
+  const handleDeleteFaq = async (faqId) => {
+    if (!window.confirm("Are you sure you want to delete this FAQ?")) return;
+    try {
+      await api.delete(`faqs/${faqId}/`);
+      fetchCompany();
+    } catch (err) {
+      console.error("Failed to delete FAQ", err);
+    }
+  };
+
+  const toggleFaq = (faqId) => {
+    setExpandedFaqId(expandedFaqId === faqId ? null : faqId);
   };
 
   const isOwner = currentUser && company && company.creator === currentUser.id;
@@ -1160,6 +1188,135 @@ const CompanyDashboard = () => {
               </MotionBox>
             </GridItem>
 
+            {/* Frequently Asked Questions */}
+            <GridItem colSpan={2}>
+              <MotionBox
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.27 }}
+                p={7}
+                borderRadius="2xl"
+                border="1px solid var(--color-card-border)"
+                style={{ background: "var(--color-surface)" }}
+              >
+                <HStack justify="space-between" mb={6} borderBottom="1px solid var(--color-card-border)" pb={4}>
+                  <HStack gap={3}>
+                    <Box w="3px" h="18px" borderRadius="full" style={{ background: `linear-gradient(to bottom, ${accentColor}, transparent)` }} />
+                    <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest">COMPANY FAQS</Text>
+                    <Box px={2} py={0.5} borderRadius="full" style={{ background: `${accentColor}15`, border: `1px solid ${accentColor}25` }}>
+                      <Text fontSize="10px" fontWeight="black" color={accentColor}>{company.faqs?.length || 0}</Text>
+                    </Box>
+                  </HStack>
+
+                  {hasAccess && (
+                    <Button h="7" px={3.5} borderRadius="full" fontWeight="black" fontSize="3xs" letterSpacing="widest"
+                      color="white"
+                      bg={accentColor}
+                      _hover={{ bg: `${accentColor}cc`, transform: "translateY(-1px)" }}
+                      transition="all 0.2s"
+                      onClick={handleAddFaq}
+                    >
+                      <Plus size={10} style={{ marginRight: "4px" }} /> ADD FAQ
+                    </Button>
+                  )}
+                </HStack>
+
+                {!company.faqs || company.faqs.length === 0 ? (
+                  <Flex direction="column" align="center" py={8} gap={3}>
+                    <Box w="60px" h="60px" borderRadius="xl" display="flex" alignItems="center" justify="center"
+                      style={{ background: "var(--color-card-bg)", border: "1px solid var(--color-card-border)" }}>
+                      <HelpCircle size={22} color="var(--color-text-muted)" />
+                    </Box>
+                    <Text color="var(--color-text-muted)" fontSize="sm" fontWeight="medium">No FAQs posted yet</Text>
+                  </Flex>
+                ) : (
+                  <VStack align="stretch" gap={3}>
+                    {company.faqs.map((faq) => {
+                      const isOpen = expandedFaqId === faq.id;
+                      return (
+                        <Box
+                          key={faq.id}
+                          borderRadius="xl"
+                          border="1px solid"
+                          borderColor={isOpen ? `${accentColor}30` : "var(--color-card-border)"}
+                          style={{ background: isOpen ? "rgba(255, 255, 255, 0.02)" : "var(--color-card-bg)" }}
+                          transition="all 0.2s"
+                          overflow="hidden"
+                        >
+                          <Flex align="center" justify="space-between" p={4} cursor="pointer" onClick={() => toggleFaq(faq.id)}>
+                            <HStack gap={3} flex={1}>
+                              <HelpCircle size={15} color={isOpen ? accentColor : "var(--color-text-muted)"} />
+                              <Text fontSize="xs" fontWeight="bold" color="white" textAlign="left">
+                                {faq.question}
+                              </Text>
+                            </HStack>
+                            <HStack gap={3} onClick={(e) => e.stopPropagation()}>
+                              {hasAccess && (
+                                <HStack gap={1.5}>
+                                  <Button
+                                    h="6"
+                                    w="6"
+                                    minW="6"
+                                    p={0}
+                                    borderRadius="md"
+                                    bg="var(--color-surface)"
+                                    border="1px solid var(--color-card-border)"
+                                    _hover={{ bg: "var(--color-card-hover-bg)", borderColor: "rgba(255,255,255,0.2)" }}
+                                    onClick={() => handleEditFaq(faq)}
+                                  >
+                                    <Edit size={10} color="var(--color-text-secondary)" />
+                                  </Button>
+                                  <Button
+                                    h="6"
+                                    w="6"
+                                    minW="6"
+                                    p={0}
+                                    borderRadius="md"
+                                    bg="var(--color-surface)"
+                                    border="1px solid var(--color-card-border)"
+                                    _hover={{ bg: "rgba(239, 68, 68, 0.1)", borderColor: "rgba(239, 68, 68, 0.2)" }}
+                                    onClick={() => handleDeleteFaq(faq.id)}
+                                  >
+                                    <Trash2 size={10} color="#EF4444" />
+                                  </Button>
+                                </HStack>
+                              )}
+                              <Box
+                                style={{
+                                  transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                                  transition: "transform 0.2s"
+                                }}
+                                color="var(--color-text-muted)"
+                              >
+                                <ChevronDown size={14} />
+                              </Box>
+                            </HStack>
+                          </Flex>
+
+                          <AnimatePresence initial={false}>
+                            {isOpen && (
+                              <MotionBox
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                              >
+                                <Box px={4} pb={4} pt={1} borderTop="1px solid" borderColor="var(--color-card-border)">
+                                  <Text fontSize="xs" color="var(--color-text-secondary)" lineHeight="1.6" textAlign="left" style={{ whiteSpace: "pre-line" }}>
+                                    {faq.answer}
+                                  </Text>
+                                </Box>
+                              </MotionBox>
+                            )}
+                          </AnimatePresence>
+                        </Box>
+                      );
+                    })}
+                  </VStack>
+                )}
+              </MotionBox>
+            </GridItem>
+
             {/* Row 4: Wide Full Width Members Grid */}
             <GridItem colSpan={2}>
               <CompanyMembersList members={company.members_details || []} accentColor={accentColor} companyId={company.id} isOwner={hasAccess} />
@@ -1199,6 +1356,14 @@ const CompanyDashboard = () => {
         companyId={company.id}
         currentPlan={company.active_subscription?.plan_name}
         onSubscribed={fetchCompany}
+      />
+
+      <CompanyFAQModal
+        isOpen={isFaqModalOpen}
+        onClose={() => setIsFaqModalOpen(false)}
+        companyId={company.id}
+        faq={selectedFaq}
+        onSaved={fetchCompany}
       />
 
       {/* Premium Flag Confirmation Modal */}

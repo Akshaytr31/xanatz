@@ -458,3 +458,18 @@ def link_company_reviews(sender, instance, created, **kwargs):
             company__isnull=True
         ).update(company=instance)
 
+
+class CompanyFAQ(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='faqs')
+    question = models.CharField(max_length=255)
+    answer = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"{self.question} - {self.company.name}"
+
+

@@ -2,14 +2,14 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
-from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview
+from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ
 from .serializers import (
     SendOTPSerializer, VerifyOTPSerializer, RegisterUserSerializer, 
     PrivacyPolicySerializer, UserSerializer, ProfileSerializer,
     ExperienceSerializer, EducationSerializer, CompanySerializer,
     UserSearchSerializer, JobOpeningSerializer, JobApplicationSerializer,
     RFPSerializer, RFPInterestSerializer, JobPostPlanSerializer, CompanySubscriptionSerializer, NotificationSerializer, MessageSerializer,
-    PortfolioProjectSerializer, PublicCompanySerializer, CompanyReviewSerializer, FreelancerReviewSerializer
+    PortfolioProjectSerializer, PublicCompanySerializer, CompanyReviewSerializer, FreelancerReviewSerializer, CompanyFAQSerializer
 )
 
 class SendOTPView(APIView):
@@ -887,5 +887,39 @@ class AdminFlaggedReviewsView(APIView):
 
         else:
             return Response({"error": "Invalid action"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CompanyFAQViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = CompanyFAQSerializer
+
+    def get_queryset(self):
+        queryset = CompanyFAQ.objects.all()
+        company_id = self.request.query_params.get('company_id')
+        if company_id:
+            queryset = queryset.filter(company_id=company_id)
+        return queryset.order_by('created_at')
+
+    def check_company_access(self, company):
+        is_owner = company.creator == self.request.user
+        is_admin = CompanyMember.objects.filter(company=company, user=self.request.user, access_role='admin').exists()
+        if not (is_owner or is_admin):
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You do not have permission to manage this company's FAQs.")
+
+    def perform_create(self, serializer):
+        company = serializer.validated_data.get('company')
+        self.check_company_access(company)
+        serializer.save()
+
+    def perform_update(self, serializer):
+        company = self.get_object().company
+        self.check_company_access(company)
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        self.check_company_access(instance.company)
+        instance.delete()
+
 
 
