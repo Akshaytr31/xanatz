@@ -367,18 +367,27 @@ class JobOpeningViewSet(viewsets.ModelViewSet):
                     company=company, user=self.request.user, access_role='admin'
                 ).exists()
                 if not (is_owner or is_admin):
-                    queryset = queryset.filter(is_active=True)
+                    queryset = queryset.filter(is_active=True, is_flagged=False)
             except Company.DoesNotExist:
-                queryset = queryset.filter(is_active=True)
+                queryset = queryset.filter(is_active=True, is_flagged=False)
         else:
             # Candidate/user dashboard: only show active and non-expired jobs
             queryset = queryset.filter(
-                is_active=True
+                is_active=True,
+                is_flagged=False
             ).filter(
                 Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now())
             )
 
         return queryset.order_by('-created_at')
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def flag(self, request, pk=None):
+        job = self.get_object()
+        job.is_flagged = True
+        job.flag_reason = request.data.get('reason', '')
+        job.save()
+        return Response({"message": "Job opening flagged successfully"}, status=status.HTTP_200_OK)
 
     def check_company_access(self, company):
         is_owner = company.creator == self.request.user
@@ -496,13 +505,21 @@ class RFPViewSet(viewsets.ModelViewSet):
                 is_owner = company.creator == self.request.user
                 is_admin = CompanyMember.objects.filter(company=company, user=self.request.user, access_role='admin').exists()
                 if not (is_owner or is_admin):
-                    queryset = queryset.filter(is_active=True)
+                    queryset = queryset.filter(is_active=True, is_flagged=False)
             except Company.DoesNotExist:
-                queryset = queryset.filter(is_active=True)
+                queryset = queryset.filter(is_active=True, is_flagged=False)
         else:
-            queryset = queryset.filter(is_active=True)
+            queryset = queryset.filter(is_active=True, is_flagged=False)
             
         return queryset.order_by('-created_at')
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def flag(self, request, pk=None):
+        rfp = self.get_object()
+        rfp.is_flagged = True
+        rfp.flag_reason = request.data.get('reason', '')
+        rfp.save()
+        return Response({"message": "RFP flagged successfully"}, status=status.HTTP_200_OK)
 
     def check_company_access(self, company):
         is_owner = company.creator == self.request.user
@@ -774,6 +791,7 @@ class CompanyReviewViewSet(viewsets.ModelViewSet):
     def flag(self, request, pk=None):
         review = self.get_object()
         review.is_flagged = True
+        review.flag_reason = request.data.get('reason', '')
         review.save()
         return Response({"message": "Review flagged successfully"}, status=status.HTTP_200_OK)
 
@@ -803,6 +821,7 @@ class FreelancerReviewViewSet(viewsets.ModelViewSet):
     def flag(self, request, pk=None):
         review = self.get_object()
         review.is_flagged = True
+        review.flag_reason = request.data.get('reason', '')
         review.save()
         return Response({"message": "Review flagged successfully"}, status=status.HTTP_200_OK)
 
@@ -813,6 +832,8 @@ class AdminFlaggedReviewsView(APIView):
     def get(self, request):
         company_reviews = CompanyReview.objects.filter(is_flagged=True).order_by('created_at')
         freelancer_reviews = FreelancerReview.objects.filter(is_flagged=True).order_by('created_at')
+        flagged_jobs = JobOpening.objects.filter(is_flagged=True).order_by('created_at')
+        flagged_rfps = RFP.objects.filter(is_flagged=True).order_by('created_at')
 
         results = []
         for r in company_reviews:
@@ -824,7 +845,8 @@ class AdminFlaggedReviewsView(APIView):
                 'subject_name': r.company.name if r.company else r.company_name,
                 'rating': r.rating,
                 'review_text': r.review_text,
-                'created_at': r.created_at
+                'created_at': r.created_at,
+                'flag_reason': r.flag_reason or ''
             })
 
         for r in freelancer_reviews:
@@ -836,10 +858,37 @@ class AdminFlaggedReviewsView(APIView):
                 'subject_name': f"{r.freelancer.first_name} {r.freelancer.last_name}".strip() or r.freelancer.email,
                 'rating': r.rating,
                 'review_text': r.review_text,
-                'created_at': r.created_at
+                'created_at': r.created_at,
+                'flag_reason': r.flag_reason or ''
             })
 
-        results.sort(key=lambda x: x['created_at'])
+        for j in flagged_jobs:
+            results.append({
+                'id': j.id,
+                'review_type': 'job',
+                'reviewer_email': j.company.creator.email,
+                'reviewer_name': "System Job",
+                'subject_name': f"{j.title} at {j.company.name}",
+                'rating': None,
+                'review_text': j.description,
+                'created_at': j.created_at,
+                'flag_reason': j.flag_reason or ''
+            })
+
+        for rfp in flagged_rfps:
+            results.append({
+                'id': rfp.id,
+                'review_type': 'rfp',
+                'reviewer_email': rfp.company.creator.email,
+                'reviewer_name': "System RFP",
+                'subject_name': f"{rfp.title} by {rfp.company.name}",
+                'rating': None,
+                'review_text': rfp.description,
+                'created_at': rfp.created_at,
+                'flag_reason': rfp.flag_reason or ''
+            })
+
+        results.sort(key=lambda x: x['created_at'], reverse=True)
         return Response(results, status=status.HTTP_200_OK)
 
     def post(self, request):
@@ -854,36 +903,48 @@ class AdminFlaggedReviewsView(APIView):
             model = CompanyReview
         elif review_type == 'freelancer':
             model = FreelancerReview
+        elif review_type == 'job':
+            model = JobOpening
+        elif review_type == 'rfp':
+            model = RFP
         else:
             return Response({"error": "Invalid review_type"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             review = model.objects.get(id=review_id)
         except model.DoesNotExist:
-            return Response({"error": "Review not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Item not found"}, status=status.HTTP_404_NOT_FOUND)
 
         if action == 'dismiss':
             review.is_flagged = False
+            review.flag_reason = None
             review.save()
             return Response({"message": "Flag dismissed successfully"}, status=status.HTTP_200_OK)
 
         elif action == 'edit':
-            review_text = request.data.get('review_text')
-            rating = request.data.get('rating')
-            if review_text is not None:
-                review.review_text = review_text
-            if rating is not None:
-                try:
-                    review.rating = int(rating)
-                except ValueError:
-                    return Response({"error": "Invalid rating"}, status=status.HTTP_400_BAD_REQUEST)
+            if review_type in ['company', 'freelancer']:
+                review_text = request.data.get('review_text')
+                rating = request.data.get('rating')
+                if review_text is not None:
+                    review.review_text = review_text
+                if rating is not None:
+                    try:
+                        review.rating = int(rating)
+                    except ValueError:
+                        return Response({"error": "Invalid rating"}, status=status.HTTP_400_BAD_REQUEST)
+            elif review_type in ['job', 'rfp']:
+                description = request.data.get('review_text')
+                if description is not None:
+                    review.description = description
+            
             review.is_flagged = False
+            review.flag_reason = None
             review.save()
-            return Response({"message": "Review edited and unflagged successfully"}, status=status.HTTP_200_OK)
+            return Response({"message": "Content edited and unflagged successfully"}, status=status.HTTP_200_OK)
 
         elif action == 'delete':
             review.delete()
-            return Response({"message": "Review deleted successfully"}, status=status.HTTP_200_OK)
+            return Response({"message": "Item deleted successfully"}, status=status.HTTP_200_OK)
 
         else:
             return Response({"error": "Invalid action"}, status=status.HTTP_400_BAD_REQUEST)

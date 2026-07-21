@@ -258,6 +258,8 @@ class JobOpening(models.Model):
     salary_range = models.CharField(max_length=100, blank=True, null=True)
     is_active = models.BooleanField(default=True)
     expires_at = models.DateTimeField(blank=True, null=True)
+    is_flagged = models.BooleanField(default=False)
+    flag_reason = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -306,6 +308,8 @@ class RFP(models.Model):
     category = models.CharField(max_length=100, blank=True, null=True)
     sub_category = models.CharField(max_length=100, blank=True, null=True)
     is_active = models.BooleanField(default=True)
+    is_flagged = models.BooleanField(default=False)
+    flag_reason = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -417,6 +421,7 @@ class CompanyReview(models.Model):
     rating = models.PositiveIntegerField()
     review_text = models.TextField()
     is_flagged = models.BooleanField(default=False)
+    flag_reason = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -438,6 +443,7 @@ class FreelancerReview(models.Model):
     rating = models.PositiveIntegerField()
     review_text = models.TextField()
     is_flagged = models.BooleanField(default=False)
+    flag_reason = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

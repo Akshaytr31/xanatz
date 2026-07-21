@@ -120,7 +120,7 @@ const AdminDashboard = () => {
           >
             <HStack gap={2} px={1}>
               <ShieldAlert size={14} />
-              <Text fontSize="xs">Flagged Reviews</Text>
+              <Text fontSize="xs">Flagged Content</Text>
             </HStack>
           </Button>
         </HStack>

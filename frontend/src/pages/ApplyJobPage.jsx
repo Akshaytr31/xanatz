@@ -32,7 +32,9 @@ import {
   Sparkles,
   UploadCloud,
   Trash2,
+  Flag,
 } from "lucide-react";
+import FlagConfirmationModal from "../components/FlagConfirmationModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -75,8 +77,44 @@ const ApplyJobPage = () => {
 
   // Drag and Drop Resume Uploader States
   const [dragActive, setDragActive] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+
+  const [flagModal, setFlagModal] = useState({
+    isOpen: false,
+    status: 'confirm',
+    loading: false
+  });
+
+  const handleOpenFlagModal = () => {
+    setFlagModal({
+      isOpen: true,
+      status: 'confirm',
+      loading: false
+    });
+  };
+
+  const handleCloseFlagModal = () => {
+    const wasSuccess = flagModal.status === 'success';
+    setFlagModal({
+      isOpen: false,
+      status: 'confirm',
+      loading: false
+    });
+    if (wasSuccess) {
+      navigate("/dashboard");
+    }
+  };
+
+  const handleConfirmFlag = async (reason) => {
+    setFlagModal(prev => ({ ...prev, loading: true }));
+    try {
+      await api.post(`jobs/${id}/flag/`, { reason });
+      setFlagModal(prev => ({ ...prev, loading: false, status: 'success' }));
+    } catch (err) {
+      console.error("Error flagging job:", err);
+      setFlagModal(prev => ({ ...prev, loading: false, status: 'error' }));
+    }
+  };
 
   const validateEmail = (emailStr) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailStr);
@@ -566,39 +604,61 @@ const ApplyJobPage = () => {
                           </VStack>
                         </HStack>
 
-                        <Button
-                          disabled={job.is_expired}
-                          onClick={() => !job.is_expired && setShowForm(true)}
-                          px={6}
-                          h="40px"
-                          borderRadius="xl"
-                          fontWeight="black"
-                          fontSize="xs"
-                          letterSpacing="widest"
-                          color={job.is_expired ? "var(--color-text-muted)" : "white"}
-                          style={{
-                            background: job.is_expired
-                              ? "var(--color-card-border)"
-                              : `linear-gradient(135deg, ${accentColor} 0%, #8b5cf6 100%)`,
-                            boxShadow: job.is_expired
-                              ? "none"
-                              : `0 8px 20px rgba(59, 130, 246, 0.2)`,
-                            border: "1px solid var(--color-card-border)",
-                            transition: "all 0.3s ease",
-                            cursor: job.is_expired ? "not-allowed" : "pointer"
-                          }}
-                          _hover={
-                            !job.is_expired
-                              ? {
-                                  transform: "translateY(-2px)",
-                                  boxShadow: `0 12px 28px rgba(59, 130, 246, 0.35)`,
-                                  filter: "brightness(1.1)",
-                                }
-                              : {}
-                          }
-                        >
-                          {job.is_expired ? "EXPIRED" : "APPLY NOW"}
-                        </Button>
+                        <HStack gap={3}>
+                          <Button
+                            disabled={job.is_expired}
+                            onClick={() => !job.is_expired && setShowForm(true)}
+                            px={6}
+                            h="40px"
+                            borderRadius="xl"
+                            fontWeight="black"
+                            fontSize="xs"
+                            letterSpacing="widest"
+                            color={job.is_expired ? "var(--color-text-muted)" : "white"}
+                            style={{
+                              background: job.is_expired
+                                ? "var(--color-card-border)"
+                                : `linear-gradient(135deg, ${accentColor} 0%, #8b5cf6 100%)`,
+                              boxShadow: job.is_expired
+                                ? "none"
+                                : `0 8px 20px rgba(59, 130, 246, 0.2)`,
+                              border: "1px solid var(--color-card-border)",
+                              transition: "all 0.3s ease",
+                              cursor: job.is_expired ? "not-allowed" : "pointer"
+                            }}
+                            _hover={
+                              !job.is_expired
+                                ? {
+                                    transform: "translateY(-2px)",
+                                    boxShadow: `0 12px 28px rgba(59, 130, 246, 0.35)`,
+                                    filter: "brightness(1.1)",
+                                  }
+                                : {}
+                            }
+                          >
+                            {job.is_expired ? "EXPIRED" : "APPLY NOW"}
+                          </Button>
+                          <Button
+                            onClick={handleOpenFlagModal}
+                            px={4}
+                            h="40px"
+                            borderRadius="xl"
+                            fontWeight="black"
+                            fontSize="xs"
+                            letterSpacing="widest"
+                            variant="outline"
+                            color="var(--color-text-secondary)"
+                            borderColor="var(--color-card-border)"
+                            _hover={{
+                              bg: "rgba(239, 68, 68, 0.1)",
+                              borderColor: "#EF4444",
+                              color: "#EF4444"
+                            }}
+                          >
+                            <Flag size={14} style={{ marginRight: "6px" }} />
+                            FLAG JOB
+                          </Button>
+                        </HStack>
                       </Flex>
 
                       <HStack
@@ -1433,6 +1493,17 @@ const ApplyJobPage = () => {
           </AnimatePresence>
         </Container>
       </Box>
+
+      {/* Flag Confirmation Modal */}
+      <FlagConfirmationModal
+        isOpen={flagModal.isOpen}
+        onClose={handleCloseFlagModal}
+        onConfirm={handleConfirmFlag}
+        loading={flagModal.loading}
+        status={flagModal.status}
+        title="Flag this job opening?"
+        description="Are you sure you want to flag this job opening as inappropriate? It will be removed from your view and sent to the administrator for moderation."
+      />
     </Box>
   );
 };

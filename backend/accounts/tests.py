@@ -368,3 +368,144 @@ class ReviewModerationTests(APITestCase):
             FreelancerReview.objects.get(id=self.freelancer_review.id)
 
 
+class JobAndRFPModerationTests(APITestCase):
+    def setUp(self):
+        self.admin_user = User.objects.create_superuser(
+            email='admin@example.com',
+            password='password123',
+            first_name='Admin',
+            last_name='User'
+        )
+        self.regular_user = User.objects.create_user(
+            email='user@example.com',
+            password='password123',
+            first_name='John',
+            last_name='Doe'
+        )
+        self.company = Company.objects.create(
+            name='Test Co',
+            creator=self.regular_user
+        )
+        # Create a JobPostPlan so we can create JobOpenings
+        from .models import JobPostPlan, CompanySubscription, JobOpening
+        self.plan = JobPostPlan.objects.create(
+            name='basic',
+            display_name='Basic',
+            price=0,
+            max_jobs=10,
+            job_duration_days=30
+        )
+        self.sub = CompanySubscription.objects.create(
+            company=self.company,
+            plan=self.plan
+        )
+        self.job = JobOpening.objects.create(
+            company=self.company,
+            title='Software Engineer',
+            description='Write code',
+            is_active=True
+        )
+        self.rfp = RFP.objects.create(
+            company=self.company,
+            title='Build mobile app',
+            description='Build iOS/Android app',
+            is_active=True
+        )
+
+    def test_flag_job_via_api(self):
+        self.client.force_authenticate(user=self.regular_user)
+        response = self.client.post(f'/api/jobs/{self.job.id}/flag/', {'reason': 'Spam job offer'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.job.refresh_from_db()
+        self.assertTrue(self.job.is_flagged)
+        self.assertEqual(self.job.flag_reason, 'Spam job offer')
+
+    def test_flag_rfp_via_api(self):
+        self.client.force_authenticate(user=self.regular_user)
+        response = self.client.post(f'/api/rfps/{self.rfp.id}/flag/', {'reason': 'Scam RFP'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.rfp.refresh_from_db()
+        self.assertTrue(self.rfp.is_flagged)
+        self.assertEqual(self.rfp.flag_reason, 'Scam RFP')
+
+    def test_public_views_exclude_flagged_items(self):
+        self.client.force_authenticate(user=self.regular_user)
+        # Flag the job
+        self.job.is_flagged = True
+        self.job.save()
+
+        # Flag the rfp
+        self.rfp.is_flagged = True
+        self.rfp.save()
+
+        # Fetch company profile and check jobs/rfps are empty
+        response = self.client.get(f'/api/public-company/{self.company.public_id}/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['jobs']), 0)
+        self.assertEqual(len(response.data['rfps']), 0)
+
+        # General listings should also be empty
+        response = self.client.get('/api/jobs/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+
+        # RFP view is authenticated-only, so let's check it
+        response = self.client.get('/api/rfps/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+
+    def test_admin_moderation_actions_for_job_and_rfp(self):
+        self.job.is_flagged = True
+        self.job.flag_reason = 'Flagged reason'
+        self.job.save()
+
+        self.client.force_authenticate(user=self.admin_user)
+        
+        # 1. Check get flagged items shows the job
+        response = self.client.get('/api/admin/reviews/flagged/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        job_data = [item for item in response.data if item['review_type'] == 'job']
+        self.assertEqual(len(job_data), 1)
+        self.assertEqual(job_data[0]['flag_reason'], 'Flagged reason')
+
+        # 2. Dismiss action
+        response = self.client.post('/api/admin/reviews/flagged/', {
+            'review_id': self.job.id,
+            'review_type': 'job',
+            'action': 'dismiss'
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.job.refresh_from_db()
+        self.assertFalse(self.job.is_flagged)
+        self.assertIsNone(self.job.flag_reason)
+
+        # Flag the RFP
+        self.rfp.is_flagged = True
+        self.rfp.flag_reason = 'Another reason'
+        self.rfp.save()
+
+        # 3. Edit action
+        response = self.client.post('/api/admin/reviews/flagged/', {
+            'review_id': self.rfp.id,
+            'review_type': 'rfp',
+            'action': 'edit',
+            'review_text': 'Moderated RFP Description'
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.rfp.refresh_from_db()
+        self.assertEqual(self.rfp.description, 'Moderated RFP Description')
+        self.assertFalse(self.rfp.is_flagged)
+        self.assertIsNone(self.rfp.flag_reason)
+
+        # 4. Delete action
+        response = self.client.post('/api/admin/reviews/flagged/', {
+            'review_id': self.rfp.id,
+            'review_type': 'rfp',
+            'action': 'delete'
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        with self.assertRaises(RFP.DoesNotExist):
+            RFP.objects.get(id=self.rfp.id)
+
+
+

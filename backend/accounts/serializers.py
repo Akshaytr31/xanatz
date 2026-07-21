@@ -419,7 +419,8 @@ class JobOpeningSerializer(serializers.ModelSerializer):
             'id', 'company', 'company_name', 'company_logo_url', 'industry',
             'title', 'description', 'requirements', 'location',
             'job_type', 'salary_range',
-            'is_active', 'expires_at', 'is_expired', 'created_at', 'updated_at'
+            'is_active', 'expires_at', 'is_expired', 'created_at', 'updated_at',
+            'is_flagged', 'flag_reason'
         ]
 
     def get_company_logo_url(self, obj):
@@ -456,7 +457,8 @@ class RFPSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'company', 'company_name', 'company_logo_url',
             'title', 'description', 'requirements', 'budget',
-            'deadline', 'category', 'sub_category', 'is_active', 'created_at', 'updated_at'
+            'deadline', 'category', 'sub_category', 'is_active', 'created_at', 'updated_at',
+            'is_flagged', 'flag_reason'
         ]
 
     def get_company_logo_url(self, obj):
@@ -627,13 +629,13 @@ class PublicCompanySerializer(serializers.ModelSerializer):
 
     def get_jobs(self, obj):
         from django.utils import timezone
-        jobs = obj.job_openings.filter(is_active=True).filter(
+        jobs = obj.job_openings.filter(is_active=True, is_flagged=False).filter(
             models.Q(expires_at__isnull=True) | models.Q(expires_at__gt=timezone.now())
         )
         return JobOpeningSerializer(jobs, many=True, context=self.context).data
 
     def get_rfps(self, obj):
-        rfps = obj.rfps.filter(is_active=True)
+        rfps = obj.rfps.filter(is_active=True, is_flagged=False)
         return RFPSerializer(rfps, many=True, context=self.context).data
 
     def get_reviews(self, obj):

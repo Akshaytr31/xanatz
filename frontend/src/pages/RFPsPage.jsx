@@ -4,13 +4,14 @@ import {
 } from "@chakra-ui/react";
 import {
   FileText, Search, Clock, DollarSign, Calendar, Building2, ChevronRight, AlertCircle, ArrowLeft,
-  TrendingUp, User as UserIcon, Briefcase, Award, Info, MapPin, Users, CheckCircle2, MessageSquare, ExternalLink
+  TrendingUp, User as UserIcon, Briefcase, Award, Info, MapPin, Users, CheckCircle2, MessageSquare, ExternalLink, Flag
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import RFPInterestModal from "../components/company/RFPInterestModal";
 import RFPFilterSidebar from "../components/RFPFilterSidebar";
+import FlagConfirmationModal from "../components/FlagConfirmationModal";
 import { ALL_CATEGORY_LABELS, ALL_SUBCATEGORY_LABELS, CATEGORY_OPTIONS } from "../components/company/JobOpeningModal";
 import api, { backendUrl } from "../api";
 
@@ -55,6 +56,48 @@ const RFPsPage = () => {
   const handleLogout = () => {
     localStorage.clear();
     navigate("/login");
+  };
+
+  const [flagModal, setFlagModal] = useState({
+    isOpen: false,
+    rfpId: null,
+    status: 'confirm',
+    loading: false
+  });
+
+  const handleOpenFlagModal = (rfp) => {
+    setFlagModal({
+      isOpen: true,
+      rfpId: rfp.id,
+      status: 'confirm',
+      loading: false
+    });
+  };
+
+  const handleCloseFlagModal = () => {
+    const wasSuccess = flagModal.status === 'success';
+    setFlagModal({
+      isOpen: false,
+      rfpId: null,
+      status: 'confirm',
+      loading: false
+    });
+    if (wasSuccess) {
+      fetchData();
+    }
+  };
+
+  const handleConfirmFlag = async (reason) => {
+    const { rfpId } = flagModal;
+    if (!rfpId) return;
+    setFlagModal(prev => ({ ...prev, loading: true }));
+    try {
+      await api.post(`rfps/${rfpId}/flag/`, { reason });
+      setFlagModal(prev => ({ ...prev, loading: false, status: 'success' }));
+    } catch (err) {
+      console.error("Error flagging RFP:", err);
+      setFlagModal(prev => ({ ...prev, loading: false, status: 'error' }));
+    }
   };
 
   const fetchData = async () => {
@@ -329,10 +372,27 @@ const RFPsPage = () => {
                               </VStack>
                             </HStack>
 
-                            {/* Options / Share button */}
-                            <Button variant="ghost" size="xs" color="var(--color-text-muted)" _hover={{ color: accentColor, bg: "transparent" }}>
-                              <ExternalLink size={14} />
-                            </Button>
+                            {/* Options / Share / Flag button */}
+                            <HStack gap={1}>
+                              <Button variant="ghost" size="xs" color="var(--color-text-muted)" _hover={{ color: accentColor, bg: "transparent" }}>
+                                <ExternalLink size={14} />
+                              </Button>
+                              {(!currentUser || rfp.company !== currentUser.company_id) && (
+                                <Button
+                                  variant="ghost"
+                                  size="xs"
+                                  color="var(--color-text-muted)"
+                                  _hover={{ color: "#EF4444", bg: "rgba(239, 68, 68, 0.1)" }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenFlagModal(rfp);
+                                  }}
+                                  title="Flag this RFP as inappropriate"
+                                >
+                                  <Flag size={14} />
+                                </Button>
+                              )}
+                            </HStack>
                           </Flex>
 
                           {/* Post Content */}
@@ -673,11 +733,31 @@ const RFPsPage = () => {
 
               {/* Footer */}
               <Flex justify="space-between" align="center" pt={4} borderTop="1px solid var(--color-card-border)">
-                <Button variant="ghost" color="var(--color-text-secondary)" fontWeight="black" fontSize="xs" letterSpacing="wider"
-                  _hover={{ color: "var(--color-text-primary)", bg: "var(--color-card-border)" }} onClick={() => setIsDetailsOpen(false)}
-                >
-                  CLOSE
-                </Button>
+                <HStack gap={2}>
+                  <Button variant="ghost" color="var(--color-text-secondary)" fontWeight="black" fontSize="xs" letterSpacing="wider"
+                    _hover={{ color: "var(--color-text-primary)", bg: "var(--color-card-border)" }} onClick={() => setIsDetailsOpen(false)}
+                  >
+                    CLOSE
+                  </Button>
+                  {(!currentUser || selectedRfp.company !== currentUser.company_id) && (
+                    <Button
+                      variant="outline"
+                      color="var(--color-text-secondary)"
+                      borderColor="var(--color-card-border)"
+                      _hover={{ bg: "rgba(239, 68, 68, 0.1)", borderColor: "#EF4444", color: "#EF4444" }}
+                      size="sm"
+                      h="8"
+                      borderRadius="lg"
+                      onClick={() => {
+                        setIsDetailsOpen(false);
+                        handleOpenFlagModal(selectedRfp);
+                      }}
+                    >
+                      <Flag size={12} style={{ marginRight: "4px" }} />
+                      FLAG RFP
+                    </Button>
+                  )}
+                </HStack>
 
                 {/* If company creator, direct to manage, else show Express Interest */}
                 {currentUser && selectedRfp.company === currentUser.company_id ? (
@@ -708,6 +788,17 @@ const RFPsPage = () => {
           rfp={selectedRfp}
         />
       )}
+
+      {/* RFP Flag Confirmation Modal */}
+      <FlagConfirmationModal
+        isOpen={flagModal.isOpen}
+        onClose={handleCloseFlagModal}
+        onConfirm={handleConfirmFlag}
+        loading={flagModal.loading}
+        status={flagModal.status}
+        title="Flag this RFP?"
+        description="Are you sure you want to flag this RFP as inappropriate? It will be removed from your view and sent to the administrator for moderation."
+      />
     </Box>
   );
 };
