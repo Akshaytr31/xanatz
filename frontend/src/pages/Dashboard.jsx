@@ -113,7 +113,10 @@ const Dashboard = () => {
   let filteredJobs = jobs.filter((job) => {
     const { titleSearch, companySearch, locationSearch, jobTypeFilter, salaryBucket, industryFilter } = filters;
 
-    if (titleSearch && !job.title.toLowerCase().includes(titleSearch.toLowerCase())) return false;
+    if (titleSearch && !(
+      job.title.toLowerCase().includes(titleSearch.toLowerCase()) ||
+      (job.job_id && job.job_id.toLowerCase().includes(titleSearch.toLowerCase()))
+    )) return false;
     if (companySearch && !job.company_name.toLowerCase().includes(companySearch.toLowerCase())) return false;
     if (locationSearch && !(job.location && job.location.toLowerCase().includes(locationSearch.toLowerCase()))) return false;
     if (jobTypeFilter !== "all" && job.job_type !== jobTypeFilter) return false;

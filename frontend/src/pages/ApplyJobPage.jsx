@@ -78,6 +78,7 @@ const ApplyJobPage = () => {
   // Drag and Drop Resume Uploader States
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploading, setUploading] = useState(false);
 
   const [flagModal, setFlagModal] = useState({
     isOpen: false,
@@ -549,14 +550,21 @@ const ApplyJobPage = () => {
                           </Box>
 
                           <VStack align="start" gap={2} flex={1}>
-                            <Heading
-                              size="lg"
-                              color="var(--color-text-primary)"
-                              fontWeight="black"
-                              letterSpacing="tight"
-                            >
-                              {job.title}
-                            </Heading>
+                            <HStack gap={2.5} align="center" wrap="wrap">
+                              {job.job_id && (
+                                <Badge variant="outline" colorScheme="gray" fontSize="xs" px={2} py={0.5} borderRadius="md" color="var(--color-text-secondary)">
+                                  {job.job_id}
+                                </Badge>
+                              )}
+                              <Heading
+                                size="lg"
+                                color="var(--color-text-primary)"
+                                fontWeight="black"
+                                letterSpacing="tight"
+                              >
+                                {job.title}
+                              </Heading>
+                            </HStack>
                             <HStack gap={3} flexWrap="wrap">
                               <Text
                                 color="var(--color-secondary)"
@@ -1005,14 +1013,21 @@ const ApplyJobPage = () => {
                     </Box>
 
                     <VStack align="start" gap={1} flex={1}>
-                      <Heading
-                        size="md"
-                        color="var(--color-text-primary)"
-                        fontWeight="black"
-                        letterSpacing="tight"
-                      >
-                        {job.title}
-                      </Heading>
+                      <HStack gap={2.5} align="center" wrap="wrap">
+                        {job.job_id && (
+                          <Badge variant="outline" colorScheme="gray" fontSize="xs" px={2} py={0.5} borderRadius="md" color="var(--color-text-secondary)">
+                            {job.job_id}
+                          </Badge>
+                        )}
+                        <Heading
+                          size="md"
+                          color="var(--color-text-primary)"
+                          fontWeight="black"
+                          letterSpacing="tight"
+                        >
+                          {job.title}
+                        </Heading>
+                      </HStack>
                       <HStack gap={2} flexWrap="wrap">
                         <Text
                           color="var(--color-secondary)"

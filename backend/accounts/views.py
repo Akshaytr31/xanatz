@@ -356,6 +356,11 @@ class JobOpeningViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         from django.utils import timezone
         queryset = JobOpening.objects.all()
+        
+        search = self.request.query_params.get('search')
+        if search:
+            queryset = queryset.filter(Q(title__icontains=search) | Q(job_id__icontains=search))
+
         company_id = self.request.query_params.get('company_id')
 
         if company_id:
@@ -497,6 +502,11 @@ class RFPViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = RFP.objects.all()
+        
+        search = self.request.query_params.get('search')
+        if search:
+            queryset = queryset.filter(Q(title__icontains=search) | Q(rfp_id__icontains=search))
+
         company_id = self.request.query_params.get('company_id')
         if company_id:
             queryset = queryset.filter(company_id=company_id)
@@ -839,6 +849,7 @@ class AdminFlaggedReviewsView(APIView):
         for r in company_reviews:
             results.append({
                 'id': r.id,
+                'custom_id': r.review_id,
                 'review_type': 'company',
                 'reviewer_email': r.reviewer.email,
                 'reviewer_name': f"{r.reviewer.first_name} {r.reviewer.last_name}".strip() or r.reviewer.email,
@@ -852,6 +863,7 @@ class AdminFlaggedReviewsView(APIView):
         for r in freelancer_reviews:
             results.append({
                 'id': r.id,
+                'custom_id': r.review_id,
                 'review_type': 'freelancer',
                 'reviewer_email': r.reviewer.email,
                 'reviewer_name': f"{r.reviewer.first_name} {r.reviewer.last_name}".strip() or r.reviewer.email,
@@ -865,6 +877,7 @@ class AdminFlaggedReviewsView(APIView):
         for j in flagged_jobs:
             results.append({
                 'id': j.id,
+                'custom_id': j.job_id,
                 'review_type': 'job',
                 'reviewer_email': j.company.creator.email,
                 'reviewer_name': "System Job",
@@ -878,6 +891,7 @@ class AdminFlaggedReviewsView(APIView):
         for rfp in flagged_rfps:
             results.append({
                 'id': rfp.id,
+                'custom_id': rfp.rfp_id,
                 'review_type': 'rfp',
                 'reviewer_email': rfp.company.creator.email,
                 'reviewer_name': "System RFP",

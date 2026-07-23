@@ -1137,9 +1137,16 @@ const CompanyDashboard = () => {
                                   )}
                                 </Flex>
                                 <VStack align="start" gap={0}>
-                                  <Text fontSize="xs" fontWeight="bold" color="var(--color-text-primary)">
-                                    {review.reviewer_name}
-                                  </Text>
+                                  <HStack gap={2} align="center">
+                                    <Text fontSize="xs" fontWeight="bold" color="var(--color-text-primary)">
+                                      {review.reviewer_name}
+                                    </Text>
+                                    {review.review_id && (
+                                      <Badge variant="outline" colorScheme="gray" fontSize="3xs" px={1} py={0.1} borderRadius="sm" color="var(--color-text-muted)">
+                                        {review.review_id}
+                                      </Badge>
+                                    )}
+                                  </HStack>
                                   <Text fontSize="3xs" color="var(--color-text-muted)">
                                     {new Date(review.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
                                   </Text>

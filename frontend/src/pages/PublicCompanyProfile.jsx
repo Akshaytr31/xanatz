@@ -1198,7 +1198,17 @@ const PublicCompanyProfile = () => {
                               )}
                             </div>
                             <div>
-                              <div style={{ fontSize: "0.875rem", fontWeight: "bold", color: "white" }}>{review.reviewer_name}</div>
+                              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                                <span style={{ fontSize: "0.875rem", fontWeight: "bold", color: "white" }}>{review.reviewer_name}</span>
+                                {review.review_id && (
+                                  <span style={{
+                                    padding: "0.1rem 0.35rem", borderRadius: "0.25rem", fontSize: "0.55rem", fontWeight: "bold",
+                                    border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.05)", color: "#9ca3af"
+                                  }}>
+                                    {review.review_id}
+                                  </span>
+                                )}
+                              </div>
                               <div style={{ fontSize: "0.65rem", color: "#6b7280" }}>
                                 {new Date(review.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
                               </div>

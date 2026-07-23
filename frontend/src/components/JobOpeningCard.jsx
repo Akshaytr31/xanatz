@@ -125,10 +125,17 @@ const JobOpeningCard = ({ job, onClick, viewMode = "grid" }) => {
           <MetaBadges job={job} />
         </Box>
 
-        {/* Arrow */}
-        <Box flexShrink={0} color="var(--color-text-muted)">
-          <ChevronRight size={16} />
-        </Box>
+        {/* ID + Arrow */}
+        <HStack gap={3} flexShrink={0}>
+          {job.job_id && (
+            <Badge variant="outline" colorScheme="gray" fontSize="2xs" px={1.5} py={0.2} borderRadius="sm" color="var(--color-text-muted)">
+              {job.job_id}
+            </Badge>
+          )}
+          <Box color="var(--color-text-muted)">
+            <ChevronRight size={16} />
+          </Box>
+        </HStack>
       </Flex>
     );
   }
@@ -149,17 +156,24 @@ const JobOpeningCard = ({ job, onClick, viewMode = "grid" }) => {
       cursor="pointer"
       onClick={onClick}
     >
-      <Flex gap={4} align="start" mb={4}>
-        <CompanyLogo job={job} size="48px" />
-        <VStack align="start" gap={0.5} overflow="hidden">
-          <Heading size="sm" color="var(--color-text-primary)" fontWeight="black" noOfLines={1} letterSpacing="tight">
-            {job.title}
-          </Heading>
-          <HStack gap={1.5} color="var(--color-secondary)" fontSize="xs" fontWeight="bold">
-            <Text>{job.company_name}</Text>
-            <ExternalLink size={10} />
-          </HStack>
-        </VStack>
+      <Flex gap={4} align="start" mb={4} justify="space-between" w="full">
+        <HStack gap={4} align="start" flex={1}>
+          <CompanyLogo job={job} size="48px" />
+          <VStack align="start" gap={0.5} overflow="hidden">
+            <Heading size="sm" color="var(--color-text-primary)" fontWeight="black" noOfLines={1} letterSpacing="tight">
+              {job.title}
+            </Heading>
+            <HStack gap={1.5} color="var(--color-secondary)" fontSize="xs" fontWeight="bold">
+              <Text>{job.company_name}</Text>
+              <ExternalLink size={10} />
+            </HStack>
+          </VStack>
+        </HStack>
+        {job.job_id && (
+          <Badge variant="outline" colorScheme="gray" fontSize="2xs" px={1.5} py={0.2} borderRadius="sm" color="var(--color-text-muted)" mt={1} flexShrink={0}>
+            {job.job_id}
+          </Badge>
+        )}
       </Flex>
 
       <Text color="var(--color-text-secondary)" fontSize="xs" noOfLines={3} mb={4} lineHeight="relaxed">

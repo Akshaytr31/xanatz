@@ -244,9 +244,16 @@ const ManageRFPsPage = () => {
               <Flex direction={{ base: "column", sm: "row" }} justify="space-between" align={{ base: "start", sm: "center" }} gap={4}>
                 {/* Information */}
                 <VStack align="start" gap={1.5} flex={1}>
-                  <Heading size="xs" color="var(--color-text-primary)" fontWeight="black" letterSpacing="tight">
-                    {rfp.title}
-                  </Heading>
+                  <HStack gap={2} align="center" wrap="wrap">
+                    {rfp.rfp_id && (
+                      <Badge variant="outline" colorScheme="gray" fontSize="2xs" px={1.5} py={0.2} borderRadius="sm" color="var(--color-text-muted)">
+                        {rfp.rfp_id}
+                      </Badge>
+                    )}
+                    <Heading size="xs" color="var(--color-text-primary)" fontWeight="black" letterSpacing="tight">
+                      {rfp.title}
+                    </Heading>
+                  </HStack>
                   <HStack gap={4} wrap="wrap">
                     {rfp.budget && (
                       <HStack gap={1}>

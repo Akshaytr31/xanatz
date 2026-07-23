@@ -971,6 +971,11 @@ const JobCard = ({
       <VStack align="start" gap={3} flex={1} minW={0}>
         <VStack align="start" gap={1.5}>
           <HStack gap={2.5} flexWrap="wrap">
+            {job.job_id && (
+              <Badge variant="outline" colorScheme="gray" fontSize="2xs" px={1.5} py={0.2} borderRadius="sm" color="var(--color-text-muted)">
+                {job.job_id}
+              </Badge>
+            )}
             <Text
               color="var(--color-text-primary)"
               fontSize="md"

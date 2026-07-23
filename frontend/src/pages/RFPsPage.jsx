@@ -176,6 +176,7 @@ const RFPsPage = () => {
     const q = searchQuery.toLowerCase();
     const matchesSearch = !q || (
       rfp.title.toLowerCase().includes(q) ||
+      (rfp.rfp_id && rfp.rfp_id.toLowerCase().includes(q)) ||
       rfp.company_name.toLowerCase().includes(q) ||
       (rfp.description && rfp.description.toLowerCase().includes(q)) ||
       (rfp.requirements && rfp.requirements.toLowerCase().includes(q))
@@ -396,9 +397,16 @@ const RFPsPage = () => {
                           </Flex>
 
                           {/* Post Content */}
-                          <Heading size="sm" color="var(--color-text-primary)" fontWeight="black" mb={2} letterSpacing="tight">
-                            {rfp.title}
-                          </Heading>
+                          <HStack gap={2} align="center" mb={2} wrap="wrap">
+                            {rfp.rfp_id && (
+                              <Badge variant="outline" colorScheme="gray" fontSize="2xs" px={1.5} py={0.2} borderRadius="sm" color="var(--color-text-muted)">
+                                {rfp.rfp_id}
+                              </Badge>
+                            )}
+                            <Heading size="sm" color="var(--color-text-primary)" fontWeight="black" letterSpacing="tight" mb={0}>
+                              {rfp.title}
+                            </Heading>
+                          </HStack>
                           
                           <Box mb={5}>
                             <Text color="var(--color-text-secondary)" fontSize="xs" lineHeight="1.6" whiteSpace="pre-wrap">
@@ -682,9 +690,16 @@ const RFPsPage = () => {
                   <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="black" letterSpacing="widest">
                     {selectedRfp.company_name.toUpperCase()}
                   </Text>
-                  <Heading size="md" color="var(--color-text-primary)" fontWeight="black" letterSpacing="tight">
-                    {selectedRfp.title}
-                  </Heading>
+                  <HStack gap={2} align="center" wrap="wrap">
+                    {selectedRfp.rfp_id && (
+                      <Badge variant="outline" colorScheme="gray" fontSize="2xs" px={1.5} py={0.2} borderRadius="sm" color="var(--color-text-muted)">
+                        {selectedRfp.rfp_id}
+                      </Badge>
+                    )}
+                    <Heading size="md" color="var(--color-text-primary)" fontWeight="black" letterSpacing="tight">
+                      {selectedRfp.title}
+                    </Heading>
+                  </HStack>
                   <HStack gap={3} pt={1} wrap="wrap">
                     {selectedRfp.budget && (
                       <HStack gap={1}>

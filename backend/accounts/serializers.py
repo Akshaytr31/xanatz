@@ -167,7 +167,7 @@ class FreelancerReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = FreelancerReview
         fields = [
-            'id', 'reviewer', 'reviewer_name', 'reviewer_profile_picture',
+            'id', 'review_id', 'reviewer', 'reviewer_name', 'reviewer_profile_picture',
             'freelancer', 'rfp_interest', 'rating', 'review_text', 'is_flagged', 'created_at'
         ]
         read_only_fields = ['reviewer', 'freelancer']
@@ -236,7 +236,7 @@ class CompanyReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyReview
         fields = [
-            'id', 'reviewer', 'reviewer_name', 'reviewer_profile_picture',
+            'id', 'review_id', 'reviewer', 'reviewer_name', 'reviewer_profile_picture',
             'company', 'company_name', 'company_details', 'rfp_interest', 'rating', 'review_text', 'is_flagged', 'created_at'
         ]
         read_only_fields = ['reviewer', 'company']
@@ -416,7 +416,7 @@ class JobOpeningSerializer(serializers.ModelSerializer):
     class Meta:
         model = JobOpening
         fields = [
-            'id', 'company', 'company_name', 'company_logo_url', 'industry',
+            'id', 'job_id', 'company', 'company_name', 'company_logo_url', 'industry',
             'title', 'description', 'requirements', 'location',
             'job_type', 'salary_range',
             'is_active', 'expires_at', 'is_expired', 'created_at', 'updated_at',
@@ -455,7 +455,7 @@ class RFPSerializer(serializers.ModelSerializer):
     class Meta:
         model = RFP
         fields = [
-            'id', 'company', 'company_name', 'company_logo_url',
+            'id', 'rfp_id', 'company', 'company_name', 'company_logo_url',
             'title', 'description', 'requirements', 'budget',
             'deadline', 'category', 'sub_category', 'is_active', 'created_at', 'updated_at',
             'is_flagged', 'flag_reason'

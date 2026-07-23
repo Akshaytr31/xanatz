@@ -315,6 +315,11 @@ const FlaggedReviewModerator = () => {
                           ? "Job Opening"
                           : "RFP Proposal"}
                       </Badge>
+                      {review.custom_id && (
+                        <Badge variant="outline" colorScheme="gray" fontSize="2xs" px={2.5} py={0.5} borderRadius="md" color="var(--color-text-secondary)">
+                          {review.custom_id}
+                        </Badge>
+                      )}
                       <Text fontSize="2xs" color="var(--color-text-muted)">
                         {new Date(review.created_at).toLocaleDateString(undefined, {
                           year: "numeric",
@@ -491,7 +496,7 @@ const FlaggedReviewModerator = () => {
               </HStack>
 
               <Text fontSize="2xs" color="var(--color-text-muted)">
-                Editing {editingReview.review_type} ID #{editingReview.id} for {editingReview.subject_name}.
+                Editing {editingReview.review_type} {editingReview.custom_id || `ID #${editingReview.id}`} for {editingReview.subject_name}.
               </Text>
 
               {/* Edit Rating (Only for company/freelancer reviews) */}

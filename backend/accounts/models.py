@@ -260,6 +260,7 @@ class JobOpening(models.Model):
     expires_at = models.DateTimeField(blank=True, null=True)
     is_flagged = models.BooleanField(default=False)
     flag_reason = models.TextField(blank=True, null=True)
+    job_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -271,6 +272,12 @@ class JobOpening(models.Model):
 
     def __str__(self):
         return f"{self.title} at {self.company.name}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if not self.job_id:
+            self.job_id = f"JOB-{self.pk:05d}"
+            super().save(update_fields=['job_id'])
 
 
 class JobApplication(models.Model):
@@ -310,11 +317,18 @@ class RFP(models.Model):
     is_active = models.BooleanField(default=True)
     is_flagged = models.BooleanField(default=False)
     flag_reason = models.TextField(blank=True, null=True)
+    rfp_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.title} by {self.company.name}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if not self.rfp_id:
+            self.rfp_id = f"RFP-{self.pk:05d}"
+            super().save(update_fields=['rfp_id'])
 
 
 class RFPInterest(models.Model):
@@ -422,6 +436,7 @@ class CompanyReview(models.Model):
     review_text = models.TextField()
     is_flagged = models.BooleanField(default=False)
     flag_reason = models.TextField(blank=True, null=True)
+    review_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -431,6 +446,9 @@ class CompanyReview(models.Model):
         if not self.company and self.company_name:
             self.company = Company.objects.filter(name__iexact=self.company_name.strip()).first()
         super().save(*args, **kwargs)
+        if not self.review_id:
+            self.review_id = f"RIV-{self.pk:05d}"
+            super().save(update_fields=['review_id'])
         if self.rfp_interest:
             self.rfp_interest.is_reviewed = True
             self.rfp_interest.save(update_fields=['is_reviewed'])
@@ -444,6 +462,7 @@ class FreelancerReview(models.Model):
     review_text = models.TextField()
     is_flagged = models.BooleanField(default=False)
     flag_reason = models.TextField(blank=True, null=True)
+    review_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -451,6 +470,9 @@ class FreelancerReview(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
+        if not self.review_id:
+            self.review_id = f"RIV-{self.pk:05d}"
+            super().save(update_fields=['review_id'])
         if self.rfp_interest:
             self.rfp_interest.is_reviewed = True
             self.rfp_interest.save(update_fields=['is_reviewed'])
