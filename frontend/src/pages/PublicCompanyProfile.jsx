@@ -481,6 +481,11 @@ const PublicCompanyProfile = () => {
                   transition={{ delay: 0.1 }}
                   style={{ display: "flex", flexWrap: "wrap", gap: "0.6rem", marginBottom: "1.25rem" }}
                 >
+                  {company.company_id && (
+                    <span style={{ padding: "0.35rem 0.8rem", borderRadius: "9999px", fontSize: "0.58rem", fontWeight: 800, letterSpacing: "0.15em", textTransform: "uppercase", border: "1px solid rgba(59,130,246,0.25)", background: "rgba(59,130,246,0.1)", color: "#60a5fa" }}>
+                      ID: {company.company_id}
+                    </span>
+                  )}
                   {company.industry && (
                     <span style={{ padding: "0.35rem 0.8rem", borderRadius: "9999px", fontSize: "0.58rem", fontWeight: 800, letterSpacing: "0.15em", textTransform: "uppercase", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)", color: "#d1d5db" }}>
                       {INDUSTRY_LABELS[company.industry] || company.industry}

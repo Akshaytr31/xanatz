@@ -192,6 +192,19 @@ class CompanyMember(models.Model):
     def __str__(self):
         return f"{self.user.email} - {self.company.name} ({self.access_role})"
 
+def generate_company_id(pk):
+    if not pk or pk < 1:
+        return "0001"
+    digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    n = pk
+    res = []
+    while n > 0:
+        n, remainder = divmod(n, 36)
+        res.append(digits[remainder])
+    code = "".join(reversed(res))
+    return code.zfill(4)
+
+
 class Company(models.Model):
     INDUSTRY_CHOICES = [
         ('technology', 'Technology'),
@@ -219,6 +232,7 @@ class Company(models.Model):
     ]
 
     name = models.CharField(max_length=255)
+    company_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
     public_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     tagline = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
@@ -238,6 +252,12 @@ class Company(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if not self.company_id:
+            self.company_id = generate_company_id(self.pk)
+            super().save(update_fields=['company_id'])
 
 
 class JobOpening(models.Model):
@@ -276,7 +296,13 @@ class JobOpening(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if not self.job_id:
-            self.job_id = f"JOB-{self.pk:05d}"
+            if self.company:
+                if not self.company.company_id:
+                    self.company.save()
+                cid = self.company.company_id
+            else:
+                cid = "0000"
+            self.job_id = f"JOB-{cid}-{self.pk:06d}"
             super().save(update_fields=['job_id'])
 
 
@@ -327,7 +353,13 @@ class RFP(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if not self.rfp_id:
-            self.rfp_id = f"RFP-{self.pk:05d}"
+            if self.company:
+                if not self.company.company_id:
+                    self.company.save()
+                cid = self.company.company_id
+            else:
+                cid = "0000"
+            self.rfp_id = f"RFP-{cid}-{self.pk:06d}"
             super().save(update_fields=['rfp_id'])
 
 
@@ -346,10 +378,30 @@ class RFPInterest(models.Model):
     attached_file = models.FileField(upload_to='rfp_proposals/', blank=True, null=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
     is_reviewed = models.BooleanField(default=False)
+    quotation_id = models.CharField(max_length=50, unique=True, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Interest in {self.rfp.title} by {self.user.email} ({self.status})"
+        return f"Interest ({self.quotation_id or self.pk}) in {self.rfp.title} by {self.user.email} ({self.status})"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if not self.quotation_id:
+            company = None
+            if hasattr(self.user, 'created_companies') and self.user.created_companies.exists():
+                company = self.user.created_companies.first()
+            elif hasattr(self.user, 'companies') and self.user.companies.exists():
+                company = self.user.companies.first()
+
+            if company:
+                if not company.company_id:
+                    company.save()
+                cid = company.company_id
+            else:
+                cid = f"USR{self.user.pk:04d}"
+
+            self.quotation_id = f"QTN-{cid}-{self.pk:05d}"
+            super().save(update_fields=['quotation_id'])
 
 
 class JobPostPlan(models.Model):

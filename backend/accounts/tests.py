@@ -23,6 +23,20 @@ class CompanyReviewTests(APITestCase):
             description='We build everything',
             creator=self.user
         )
+
+    def test_company_id_and_job_id_format(self):
+        # Verify company_id auto-generation (e.g. 0001, 0002, etc.)
+        self.assertIsNotNone(self.company.company_id)
+        self.assertTrue(len(self.company.company_id) >= 4)
+
+        # Create a job for this company
+        from .models import JobOpening
+        job = JobOpening.objects.create(
+            company=self.company,
+            title='Software Developer',
+            description='Django React developer'
+        )
+        self.assertTrue(job.job_id.startswith(f"JOB-{self.company.company_id}-"))
         
     def test_review_creation_and_linking(self):
         # Create a review for Acme Corp

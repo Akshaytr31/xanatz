@@ -351,12 +351,19 @@ const ManageRFPInterestsPage = () => {
                       {/* Identity & Header Info */}
                       <Flex direction={{ base: "column", md: "row" }} justify="space-between" align={{ base: "start", md: "center" }} gap={4} mb={4}>
                         <HStack gap={4} align="center">
-                          <Box w="10" h="10" borderRadius="xl" bg="rgba(16,185,129,0.1)" display="flex" alignItems="center" justify="center"
+                          <Flex w="40px" h="40px" flexShrink={0} borderRadius="xl" bg="rgba(16,185,129,0.1)" align="center" justify="center"
                             border="1px solid rgba(16,185,129,0.25)">
                             <User size={18} color={accentColor} />
-                          </Box>
+                          </Flex>
                           <VStack align="start" gap={0.5}>
-                            <Text color="var(--color-text-primary)" fontWeight="black" fontSize="sm" letterSpacing="tight">{interest.company_name}</Text>
+                            <HStack gap={2} align="center" flexWrap="wrap">
+                              <Text color="var(--color-text-primary)" fontWeight="black" fontSize="sm" letterSpacing="tight">{interest.company_name}</Text>
+                              {interest.quotation_id && (
+                                <Badge variant="outline" colorScheme="gray" fontSize="2xs" px={1.5} py={0.2} borderRadius="sm" color="var(--color-text-muted)" style={{ background: "rgba(255,255,255,0.03)", borderColor: "var(--color-card-border)" }}>
+                                  {interest.quotation_id}
+                                </Badge>
+                              )}
+                            </HStack>
                             <HStack gap={3} flexWrap="wrap">
                               <HStack gap={1.5} fontSize="xs" color="var(--color-text-muted)">
                                 <Mail size={12} />

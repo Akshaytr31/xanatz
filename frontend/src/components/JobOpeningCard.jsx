@@ -143,7 +143,8 @@ const JobOpeningCard = ({ job, onClick, viewMode = "grid" }) => {
   /* ── GRID / TILE VIEW (default) ── */
   return (
     <Box
-      p={6}
+      px={6} pb={6} pt={8}
+      position="relative"
       borderRadius="lg"
       border="1px solid var(--color-card-border)"
       style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }}
@@ -156,24 +157,40 @@ const JobOpeningCard = ({ job, onClick, viewMode = "grid" }) => {
       cursor="pointer"
       onClick={onClick}
     >
+      {job.job_id && (
+        <Badge
+          variant="outline"
+          colorScheme="gray"
+          fontSize="2xs"
+          px={1.5}
+          py={0.2}
+          borderRadius="sm"
+          color="var(--color-text-muted)"
+          style={{
+            position: "absolute",
+            top: "8px",
+            right: "16px",
+            background: "rgba(255,255,255,0.03)",
+            borderColor: "var(--color-card-border)",
+          }}
+        >
+          {job.job_id}
+        </Badge>
+      )}
+
       <Flex gap={4} align="start" mb={4} justify="space-between" w="full">
-        <HStack gap={4} align="start" flex={1}>
+        <HStack gap={4} align="start" flex={1} minW={0}>
           <CompanyLogo job={job} size="48px" />
           <VStack align="start" gap={0.5} overflow="hidden">
             <Heading size="sm" color="var(--color-text-primary)" fontWeight="black" noOfLines={1} letterSpacing="tight">
               {job.title}
             </Heading>
             <HStack gap={1.5} color="var(--color-secondary)" fontSize="xs" fontWeight="bold">
-              <Text>{job.company_name}</Text>
+              <Text noOfLines={1}>{job.company_name}</Text>
               <ExternalLink size={10} />
             </HStack>
           </VStack>
         </HStack>
-        {job.job_id && (
-          <Badge variant="outline" colorScheme="gray" fontSize="2xs" px={1.5} py={0.2} borderRadius="sm" color="var(--color-text-muted)" mt={1} flexShrink={0}>
-            {job.job_id}
-          </Badge>
-        )}
       </Flex>
 
       <Text color="var(--color-text-secondary)" fontSize="xs" noOfLines={3} mb={4} lineHeight="relaxed">

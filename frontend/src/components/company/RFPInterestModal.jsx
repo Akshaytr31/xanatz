@@ -13,6 +13,7 @@ import {
   DialogPositioner,
   DialogContent,
   DialogCloseTrigger,
+  Badge,
 } from "@chakra-ui/react";
 import {
   FileText,
@@ -99,6 +100,7 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
   const [myCompanies, setMyCompanies] = useState([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [userInfo, setUserInfo] = useState(null);
+  const [submittedQuotationId, setSubmittedQuotationId] = useState("");
 
   useEffect(() => {
     if (isOpen) {
@@ -107,6 +109,7 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
       setAttachedFile(null);
       setProfileType("personal");
       setSelectedCompanyId("");
+      setSubmittedQuotationId("");
       
       const loadData = async () => {
         try {
@@ -160,16 +163,19 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
         formData.append("attached_file", attachedFile);
       }
 
-      await api.post("rfp-interests/", formData, {
+      const res = await api.post("rfp-interests/", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
+      if (res.data?.quotation_id) {
+        setSubmittedQuotationId(res.data.quotation_id);
+      }
       setSuccess(true);
       setTimeout(() => {
         onClose();
-      }, 3000);
+      }, 4000);
     } catch (err) {
       console.error(err);
       setErrorMsg(
@@ -300,10 +306,24 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
                         >
                           <CheckCircle size={30} color="#10b981" />
                         </Box>
-                        <VStack gap={1}>
+                        <VStack gap={2}>
                           <Text fontSize="lg" fontWeight="black" color="var(--color-text-primary)" letterSpacing="tight">
                             Proposal Submitted!
                           </Text>
+                          {submittedQuotationId && (
+                            <Badge
+                              variant="outline"
+                              colorScheme="gray"
+                              fontSize="2xs"
+                              px={2.5}
+                              py={0.5}
+                              borderRadius="md"
+                              color="var(--color-text-primary)"
+                              style={{ background: "rgba(255,255,255,0.05)", borderColor: "var(--color-card-border)" }}
+                            >
+                              Quotation ID: {submittedQuotationId}
+                            </Badge>
+                          )}
                           <Text color="var(--color-text-muted)" fontSize="xs" maxW="380px" mx="auto">
                             Your expressions of interest has been sent successfully to the company. They will review and contact you shortly.
                           </Text>

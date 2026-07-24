@@ -263,6 +263,7 @@ class CompanyReviewSerializer(serializers.ModelSerializer):
                     logo_url = obj.company.logo.url
             return {
                 'id': obj.company.id,
+                'company_id': obj.company.company_id,
                 'public_id': str(obj.company.public_id),
                 'name': obj.company.name,
                 'logo_url': logo_url,
@@ -300,7 +301,7 @@ class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = [
-            'id', 'public_id', 'name', 'tagline', 'description', 'logo', 'logo_url',
+            'id', 'company_id', 'public_id', 'name', 'tagline', 'description', 'logo', 'logo_url',
             'website', 'industry', 'company_size', 'location', 'founded_year',
             'linkedin_url', 'twitter_url', 'is_active',
             'creator', 'creator_name', 'members', 'members_details',
@@ -477,11 +478,11 @@ class RFPInterestSerializer(serializers.ModelSerializer):
     class Meta:
         model = RFPInterest
         fields = [
-            'id', 'rfp', 'rfp_title', 'rfp_company_name', 'user', 'user_email',
+            'id', 'quotation_id', 'rfp', 'rfp_title', 'rfp_company_name', 'user', 'user_email',
             'company_name', 'email', 'phone_number', 'proposal_summary',
             'attached_file', 'status', 'is_reviewed', 'associated_review', 'created_at'
         ]
-        read_only_fields = ['user']
+        read_only_fields = ['user', 'quotation_id']
 
     def get_associated_review(self, obj):
         company_review = obj.company_reviews.first()

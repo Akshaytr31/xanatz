@@ -373,6 +373,12 @@ const CompanyDashboard = () => {
                         ADMIN
                       </Badge>
                     )}
+                    {company.company_id && (
+                      <Badge px={2.5} py={0.5} fontSize="3xs" fontWeight="black" borderRadius="full"
+                        style={{ background: "rgba(59,130,246,0.1)", color: "#3b82f6", border: "1px solid rgba(59,130,246,0.25)" }}>
+                        ID: {company.company_id}
+                      </Badge>
+                    )}
                     {company.industry && (
                       <Badge px={2.5} py={0.5} fontSize="3xs" fontWeight="black" borderRadius="full"
                         style={{ background: "var(--color-card-bg)", color: "var(--color-text-secondary)", border: "1px solid var(--color-card-border)" }}>

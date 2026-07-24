@@ -225,20 +225,26 @@ const Navbar = () => {
   }, []);
 
   const fetchNotifications = async () => {
+    if (!localStorage.getItem("access")) return;
     try {
       const res = await api.get("notifications/");
       setNotifications(res.data);
     } catch (err) {
-      console.error("Failed to fetch notifications", err);
+      if (err.response?.status !== 401) {
+        console.error("Failed to fetch notifications", err);
+      }
     }
   };
 
   const fetchConversations = async () => {
+    if (!localStorage.getItem("access")) return;
     try {
       const res = await api.get("messages/conversations/");
       setConversations(res.data);
     } catch (err) {
-      console.error("Failed to fetch conversations", err);
+      if (err.response?.status !== 401) {
+        console.error("Failed to fetch conversations", err);
+      }
     }
   };
 
@@ -247,8 +253,10 @@ const Navbar = () => {
       fetchNotifications();
       fetchConversations();
       const interval = setInterval(() => {
-        fetchNotifications();
-        fetchConversations();
+        if (localStorage.getItem("access")) {
+          fetchNotifications();
+          fetchConversations();
+        }
       }, 12000);
       return () => clearInterval(interval);
     }
