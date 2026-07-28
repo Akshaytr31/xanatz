@@ -250,6 +250,11 @@ const ManageRFPsPage = () => {
                         {rfp.rfp_id}
                       </Badge>
                     )}
+                    {rfp.version && (
+                      <Badge variant="subtle" colorScheme="blue" fontSize="2xs" px={1.5} py={0.2} borderRadius="sm" color="rgba(147,197,253,0.9)" style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.25)" }}>
+                        V{rfp.version}
+                      </Badge>
+                    )}
                     <Heading size="xs" color="var(--color-text-primary)" fontWeight="black" letterSpacing="tight">
                       {rfp.title}
                     </Heading>

@@ -403,6 +403,11 @@ const RFPsPage = () => {
                                 {rfp.rfp_id}
                               </Badge>
                             )}
+                            {rfp.version && (
+                              <Badge variant="subtle" colorScheme="blue" fontSize="2xs" px={1.5} py={0.2} borderRadius="sm" color="rgba(147,197,253,0.9)" style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.25)" }}>
+                                V{rfp.version}
+                              </Badge>
+                            )}
                             <Heading size="sm" color="var(--color-text-primary)" fontWeight="black" letterSpacing="tight" mb={0}>
                               {rfp.title}
                             </Heading>
@@ -694,6 +699,11 @@ const RFPsPage = () => {
                     {selectedRfp.rfp_id && (
                       <Badge variant="outline" colorScheme="gray" fontSize="2xs" px={1.5} py={0.2} borderRadius="sm" color="var(--color-text-muted)">
                         {selectedRfp.rfp_id}
+                      </Badge>
+                    )}
+                    {selectedRfp.version && (
+                      <Badge variant="subtle" colorScheme="blue" fontSize="2xs" px={1.5} py={0.2} borderRadius="sm" color="rgba(147,197,253,0.9)" style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.25)" }}>
+                        V{selectedRfp.version}
                       </Badge>
                     )}
                     <Heading size="md" color="var(--color-text-primary)" fontWeight="black" letterSpacing="tight">

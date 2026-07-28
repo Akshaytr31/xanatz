@@ -355,6 +355,7 @@ class RFP(models.Model):
     is_flagged = models.BooleanField(default=False)
     flag_reason = models.TextField(blank=True, null=True)
     rfp_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
+    version = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -362,6 +363,13 @@ class RFP(models.Model):
         return f"{self.title} by {self.company.name}"
 
     def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        if not is_new:
+            update_fields = kwargs.get('update_fields')
+            is_internal_save = update_fields and 'rfp_id' in update_fields and len(update_fields) == 1
+            if not is_internal_save:
+                self.version += 1
+
         super().save(*args, **kwargs)
         if not self.rfp_id:
             if self.company:
