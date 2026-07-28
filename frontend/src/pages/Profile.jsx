@@ -309,7 +309,7 @@ const Profile = () => {
               {/* ── Switch to Company Account ── */}
               {(() => {
                 const accessibleCompanies = (user?.companies || []).filter(
-                  (c) => c.is_owner || c.access_role === 'admin'
+                  (c) => c.is_owner || Boolean(c.access_role)
                 );
                 if (accessibleCompanies.length === 0) return null;
                 return (
@@ -471,7 +471,7 @@ const Profile = () => {
                                       flexShrink={0}
                                     >
                                       <Text fontSize="8px" fontWeight="black" color="#ef4444" letterSpacing="widest">
-                                        ADMIN
+                                        {company.access_role ? company.access_role.replace('_', ' ').toUpperCase() : 'MEMBER'}
                                       </Text>
                                     </Box>
                                   )}

@@ -206,10 +206,10 @@ class UserSerializer(serializers.ModelSerializer):
         result = []
         for c in user_companies:
             is_owner = c.creator_id == obj.id
-            access_role = 'owner' if is_owner else None
+            access_role = 'super_admin' if is_owner else None
             if not is_owner:
                 membership = CompanyMember.objects.filter(company=c, user=obj).first()
-                access_role = membership.access_role if membership else 'member'
+                access_role = membership.access_role if membership else 'user'
             result.append({"id": c.id, "name": c.name, "is_owner": is_owner, "access_role": access_role})
         return result
 
@@ -287,6 +287,7 @@ class CompanySerializer(serializers.ModelSerializer):
     creator_name = serializers.SerializerMethodField()
     logo_url = serializers.SerializerMethodField()
     active_subscription = serializers.SerializerMethodField()
+    user_permissions = serializers.SerializerMethodField()
     reviews = serializers.SerializerMethodField()
     average_rating = serializers.SerializerMethodField()
     reviews_count = serializers.SerializerMethodField()
@@ -305,7 +306,7 @@ class CompanySerializer(serializers.ModelSerializer):
             'website', 'industry', 'company_size', 'location', 'founded_year',
             'linkedin_url', 'twitter_url', 'is_active',
             'creator', 'creator_name', 'members', 'members_details',
-            'active_subscription', 'created_at', 'updated_at',
+            'active_subscription', 'user_permissions', 'created_at', 'updated_at',
             'reviews', 'average_rating', 'reviews_count',
             'employee_reviews', 'employee_average_rating', 'employee_reviews_count',
             'partner_reviews', 'partner_average_rating', 'partner_reviews_count',
@@ -364,6 +365,38 @@ class CompanySerializer(serializers.ModelSerializer):
                 'is_credits_exhausted': sub.is_credits_exhausted,
             }
         return None
+
+    def get_user_permissions(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user or not request.user.is_authenticated:
+            return {
+                'role': None,
+                'can_manage_roles': False,
+                'can_assign_super_admin': False,
+                'can_manage_profile': False,
+                'can_manage_hr': False,
+                'can_manage_accounting': False,
+                'can_manage_rfp': False,
+            }
+        from .utils import (
+            get_user_company_role,
+            can_manage_company_roles,
+            can_assign_super_admin,
+            can_manage_company_profile,
+            can_manage_company_hr,
+            can_manage_company_accounting,
+            can_manage_company_rfp
+        )
+        user = request.user
+        return {
+            'role': get_user_company_role(user, obj),
+            'can_manage_roles': can_manage_company_roles(user, obj),
+            'can_assign_super_admin': can_assign_super_admin(user, obj),
+            'can_manage_profile': can_manage_company_profile(user, obj),
+            'can_manage_hr': can_manage_company_hr(user, obj),
+            'can_manage_accounting': can_manage_company_accounting(user, obj),
+            'can_manage_rfp': can_manage_company_rfp(user, obj),
+        }
 
     def get_reviews(self, obj):
         reviews = obj.reviews.all().order_by('-created_at')

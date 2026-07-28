@@ -11,6 +11,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import RFPModal from "../components/company/RFPModal";
 import api from "../api";
+import { getMemberPermissions } from "../utils/companyPermissions";
 
 const MotionBox = motion.create(Box);
 const MotionFlex = motion.create(Flex);
@@ -127,10 +128,9 @@ const ManageRFPsPage = () => {
     );
   }
 
-  const isOwner = currentUser && company.creator === currentUser.id;
-  const currentUserMemberInfo = company?.members_details?.find((m) => m.id === currentUser?.id);
-  const isAdmin = currentUserMemberInfo?.access_role === "admin";
-  const hasAccess = isOwner || isAdmin;
+  const permissions = getMemberPermissions(company, currentUser);
+  const isOwner = permissions.isOwner;
+  const hasAccess = permissions.canManageRFPs;
 
   if (!hasAccess) {
     return (

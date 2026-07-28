@@ -9,6 +9,8 @@ import Navbar from "../components/Navbar";
 import CompanyMemberSearch from "../components/company/CompanyMemberSearch";
 import api from "../api";
 
+import { getMemberPermissions } from "../utils/companyPermissions";
+
 const MotionBox = motion.create(Box);
 const MotionFlex = motion.create(Flex);
 
@@ -126,10 +128,9 @@ const CompanyMembersPage = () => {
     );
   }
 
-  const isOwner = currentUser && company.creator === currentUser.id;
-  const currentUserMemberInfo = company?.members_details?.find(m => m.id === currentUser?.id);
-  const isAdmin = currentUserMemberInfo?.access_role === 'admin';
-  const hasAccess = isOwner || isAdmin;
+  const permissions = getMemberPermissions(company, currentUser);
+  const hasAccess = permissions.canManageRoles;
+  const canAssignSuperAdmin = permissions.canAssignSuperAdmin;
   const accentColor = "#CD2426"; // Red accent from index.css
 
   if (!hasAccess) {
@@ -137,7 +138,7 @@ const CompanyMembersPage = () => {
       <Flex h="100vh" direction="column" align="center" justify="center" bg="var(--color-primary)" gap={4}>
         <ShieldAlert size={48} color="#ef4444" />
         <Text color="var(--color-text-primary)" fontSize="xl" fontWeight="bold">Access Denied</Text>
-        <Text color="var(--color-text-secondary)">Only company admins can manage members.</Text>
+        <Text color="var(--color-text-secondary)">Only Super Admins and Admins can assign or manage team roles.</Text>
         <Button mt={4} onClick={() => navigate(`/company/${id}`)} colorScheme="blue">
           Back to Dashboard
         </Button>
@@ -241,9 +242,19 @@ const CompanyMembersPage = () => {
                         >
                           <Text fontSize="9px" fontWeight="black" color="var(--color-text-primary)" letterSpacing="widest">OWNER</Text>
                         </Box>
+                      ) : member.access_role === 'super_admin' ? (
+                        <Box
+                          position="absolute" top="1px" right="1px"
+                          px={3} py={0.5} borderRadius="0 0 10px 10px"
+                          bg="linear-gradient(135deg, #8b5cf6, #7c3aed)"
+                          boxShadow="0 4px 15px rgba(139,92,246,0.5)"
+                          zIndex={2}
+                        >
+                          <Text fontSize="9px" fontWeight="black" color="var(--color-text-primary)" letterSpacing="widest">SUPER ADMIN</Text>
+                        </Box>
                       ) : member.access_role === 'admin' ? (
                         <Box
-                          position="absolute" top="1px" right="1px" transform="translateX(-50%)"
+                          position="absolute" top="1px" right="1px"
                           px={3} py={0.5} borderRadius="0 0 10px 10px"
                           bg="linear-gradient(135deg, #ef4444, #dc2626)"
                           boxShadow="0 4px 15px rgba(239,68,68,0.5)"
@@ -251,7 +262,36 @@ const CompanyMembersPage = () => {
                         >
                           <Text fontSize="9px" fontWeight="black" color="var(--color-text-primary)" letterSpacing="widest">ADMIN</Text>
                         </Box>
-                      ) : null}
+                      ) : member.access_role === 'hr' ? (
+                        <Box
+                          position="absolute" top="1px" right="1px"
+                          px={3} py={0.5} borderRadius="0 0 10px 10px"
+                          bg="linear-gradient(135deg, #f59e0b, #d97706)"
+                          boxShadow="0 4px 15px rgba(245,158,11,0.5)"
+                          zIndex={2}
+                        >
+                          <Text fontSize="9px" fontWeight="black" color="var(--color-text-primary)" letterSpacing="widest">HR MANAGER</Text>
+                        </Box>
+                      ) : member.access_role === 'accountant' ? (
+                        <Box
+                          position="absolute" top="1px" right="1px"
+                          px={3} py={0.5} borderRadius="0 0 10px 10px"
+                          bg="linear-gradient(135deg, #10b981, #059669)"
+                          boxShadow="0 4px 15px rgba(16,185,129,0.5)"
+                          zIndex={2}
+                        >
+                          <Text fontSize="9px" fontWeight="black" color="var(--color-text-primary)" letterSpacing="widest">ACCOUNTANT</Text>
+                        </Box>
+                      ) : (
+                        <Box
+                          position="absolute" top="1px" right="1px"
+                          px={3} py={0.5} borderRadius="0 0 10px 10px"
+                          bg="linear-gradient(135deg, #6b7280, #4b5563)"
+                          zIndex={2}
+                        >
+                          <Text fontSize="9px" fontWeight="black" color="var(--color-text-primary)" letterSpacing="widest">EMPLOYEE</Text>
+                        </Box>
+                      )}
 
                       <Flex align="center" gap={4} flex={1} overflow="hidden">
                         <Box w="60px" h="60px" borderRadius="full" overflow="hidden" border={`2px solid var(--color-card-border)`}
@@ -285,7 +325,7 @@ const CompanyMembersPage = () => {
                       </Flex>
 
                       {/* Actions */}
-                      {member.id !== company.creator && hasAccess && (
+                      {member.id !== company.creator && hasAccess && (canAssignSuperAdmin || member.access_role !== 'super_admin') && (
                         <Flex opacity={0.3} _hover={{ opacity: 1 }} transition="all 0.2s" gap={1}>
                           <IconButton aria-label="Edit member" size="sm" borderRadius="full"
                             bg="var(--color-card-border)" color="white" _hover={{ bg: "var(--color-card-border)" }} 
@@ -318,12 +358,12 @@ const CompanyMembersPage = () => {
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setModalOpen(false)} />
             
             {/* Modal Content */}
-            <MotionBox position="relative" w="full" maxW="400px" bg="rgba(15,23,42,0.9)" border="1px solid var(--color-card-border)"
+            <MotionBox position="relative" w="full" maxW="450px" bg="rgba(15,23,42,0.95)" border="1px solid var(--color-card-border)"
               borderRadius="2xl" p={6} boxShadow="0 25px 50px -12px rgba(0,0,0,0.5)"
               initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}>
               
               <Text fontSize="xl" fontWeight="black" color="var(--color-text-primary)" mb={4}>
-                {isEditing ? "Edit Member" : "Add Member"}
+                {isEditing ? "Edit Member Access" : "Add Team Member"}
               </Text>
 
               <VStack gap={4} align="stretch">
@@ -348,17 +388,19 @@ const CompanyMembersPage = () => {
 
                 {/* Role Selection */}
                 <Box>
-                  <Text color="var(--color-text-secondary)" fontSize="xs" fontWeight="bold" mb={2} letterSpacing="widest">ACCESS ROLE</Text>
-                  <Flex gap={2}>
-                    <Button flex={1} 
-                      bg={role === "user" ? accentColor : "transparent"} 
-                      color={role === "user" ? "white" : "var(--color-text-muted)"}
-                      border="1px solid" borderColor={role === "user" ? accentColor : "var(--color-card-border)"}
-                      _hover={{ filter: role === "user" ? "brightness(1.1)" : "none", bg: role !== "user" ? "var(--color-glass)" : accentColor }}
-                      onClick={() => setRole("user")}>
-                      User
-                    </Button>
-                    <Button flex={1} 
+                  <Text color="var(--color-text-secondary)" fontSize="xs" fontWeight="bold" mb={2} letterSpacing="widest">ASSIGN ACCESS ROLE</Text>
+                  <Grid templateColumns="repeat(2, 1fr)" gap={2}>
+                    {canAssignSuperAdmin && (
+                      <Button size="sm" py={2}
+                        bg={role === "super_admin" ? "#8b5cf6" : "transparent"} 
+                        color={role === "super_admin" ? "white" : "var(--color-text-muted)"}
+                        border="1px solid" borderColor={role === "super_admin" ? "#8b5cf6" : "var(--color-card-border)"}
+                        _hover={{ bg: role === "super_admin" ? "#7c3aed" : "var(--color-glass)" }}
+                        onClick={() => setRole("super_admin")}>
+                        Super Admin
+                      </Button>
+                    )}
+                    <Button size="sm" py={2}
                       bg={role === "admin" ? "#ef4444" : "transparent"} 
                       color={role === "admin" ? "white" : "var(--color-text-muted)"}
                       border="1px solid" borderColor={role === "admin" ? "#ef4444" : "var(--color-card-border)"}
@@ -366,7 +408,31 @@ const CompanyMembersPage = () => {
                       onClick={() => setRole("admin")}>
                       Admin
                     </Button>
-                  </Flex>
+                    <Button size="sm" py={2}
+                      bg={role === "hr" ? "#f59e0b" : "transparent"} 
+                      color={role === "hr" ? "white" : "var(--color-text-muted)"}
+                      border="1px solid" borderColor={role === "hr" ? "#f59e0b" : "var(--color-card-border)"}
+                      _hover={{ bg: role === "hr" ? "#d97706" : "var(--color-glass)" }}
+                      onClick={() => setRole("hr")}>
+                      HR Manager
+                    </Button>
+                    <Button size="sm" py={2}
+                      bg={role === "accountant" ? "#10b981" : "transparent"} 
+                      color={role === "accountant" ? "white" : "var(--color-text-muted)"}
+                      border="1px solid" borderColor={role === "accountant" ? "#10b981" : "var(--color-card-border)"}
+                      _hover={{ bg: role === "accountant" ? "#059669" : "var(--color-glass)" }}
+                      onClick={() => setRole("accountant")}>
+                      Accountant
+                    </Button>
+                  </Grid>
+                  <Button size="sm" w="full" mt={2} py={2}
+                    bg={role === "user" ? accentColor : "transparent"} 
+                    color={role === "user" ? "white" : "var(--color-text-muted)"}
+                    border="1px solid" borderColor={role === "user" ? accentColor : "var(--color-card-border)"}
+                    _hover={{ filter: role === "user" ? "brightness(1.1)" : "none", bg: role !== "user" ? "var(--color-glass)" : accentColor }}
+                    onClick={() => setRole("user")}>
+                    Employee (Default Member)
+                  </Button>
                 </Box>
 
                 {/* Position Input */}

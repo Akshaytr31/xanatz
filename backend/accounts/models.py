@@ -177,8 +177,11 @@ def handle_user_profile(sender, instance, created, **kwargs):
 
 class CompanyMember(models.Model):
     ROLE_CHOICES = [
+        ('super_admin', 'Super Admin'),
         ('admin', 'Admin'),
-        ('user', 'User'),
+        ('hr', 'HR Manager'),
+        ('accountant', 'Accountant'),
+        ('user', 'Employee'),
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='company_memberships')
     company = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='company_members')

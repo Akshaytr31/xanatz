@@ -11,6 +11,15 @@ from .serializers import (
     RFPSerializer, RFPInterestSerializer, JobPostPlanSerializer, CompanySubscriptionSerializer, NotificationSerializer, MessageSerializer,
     PortfolioProjectSerializer, PublicCompanySerializer, CompanyReviewSerializer, FreelancerReviewSerializer, CompanyFAQSerializer
 )
+from .utils import (
+    get_user_company_role,
+    can_manage_company_roles,
+    can_assign_super_admin,
+    can_manage_company_profile,
+    can_manage_company_hr,
+    can_manage_company_accounting,
+    can_manage_company_rfp
+)
 
 class SendOTPView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -214,6 +223,13 @@ class CompanyViewSet(viewsets.ModelViewSet):
         company = serializer.save(creator=self.request.user)
         company.members.add(self.request.user)
 
+    def perform_update(self, serializer):
+        company = self.get_object()
+        if not can_manage_company_profile(self.request.user, company):
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only Super Admin or Admin can edit company profile.")
+        serializer.save()
+
     @action(detail=False, methods=['get'], url_path='my-companies')
     def my_companies(self, request):
         """Returns only companies created by the current user."""
@@ -224,9 +240,14 @@ class CompanyViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def attach_user(self, request, pk=None):
         company = self.get_object()
+        if not can_manage_company_roles(request.user, company):
+            return Response({"error": "Only Super Admin and Admin can manage team roles."}, status=status.HTTP_403_FORBIDDEN)
         user_id = request.data.get('user_id')
         access_role = request.data.get('access_role', 'user')
         position = request.data.get('position', '')
+
+        if access_role == 'super_admin' and not can_assign_super_admin(request.user, company):
+            return Response({"error": "Only Super Admin can assign the Super Admin role."}, status=status.HTTP_403_FORBIDDEN)
         
         if not user_id:
             return Response({"error": "user_id is required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -243,11 +264,16 @@ class CompanyViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def detach_user(self, request, pk=None):
         company = self.get_object()
+        if not can_manage_company_roles(request.user, company):
+            return Response({"error": "Only Super Admin and Admin can remove team members."}, status=status.HTTP_403_FORBIDDEN)
         user_id = request.data.get('user_id')
         if not user_id:
             return Response({"error": "user_id is required"}, status=status.HTTP_400_BAD_REQUEST)
         try:
             user = User.objects.get(id=user_id)
+            target_role = get_user_company_role(user, company)
+            if (target_role == 'super_admin' or user.id == company.creator_id) and not can_assign_super_admin(request.user, company):
+                return Response({"error": "Admins cannot remove a Super Admin or Company Owner."}, status=status.HTTP_403_FORBIDDEN)
             CompanyMember.objects.filter(company=company, user=user).delete()
             return Response({"message": "User detached successfully"}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
@@ -256,12 +282,20 @@ class CompanyViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['patch'])
     def update_member(self, request, pk=None):
         company = self.get_object()
+        if not can_manage_company_roles(request.user, company):
+            return Response({"error": "Only Super Admin and Admin can edit member roles."}, status=status.HTTP_403_FORBIDDEN)
         user_id = request.data.get('user_id')
         if not user_id:
             return Response({"error": "user_id is required"}, status=status.HTTP_400_BAD_REQUEST)
             
         try:
             member = CompanyMember.objects.get(company=company, user_id=user_id)
+            new_role = request.data.get('access_role')
+            if new_role == 'super_admin' and not can_assign_super_admin(request.user, company):
+                return Response({"error": "Only Super Admin can assign the Super Admin role."}, status=status.HTTP_403_FORBIDDEN)
+            if (member.access_role == 'super_admin' or member.user_id == company.creator_id) and not can_assign_super_admin(request.user, company):
+                return Response({"error": "Admins cannot edit a Super Admin or Company Owner."}, status=status.HTTP_403_FORBIDDEN)
+
             if 'access_role' in request.data:
                 member.access_role = request.data['access_role']
             if 'position' in request.data:
@@ -275,11 +309,8 @@ class CompanyViewSet(viewsets.ModelViewSet):
     def subscribe_plan(self, request, pk=None):
         """Activate a job posting plan for this company (test mode — no payment)."""
         company = self.get_object()
-        # Only owner/admin can subscribe
-        is_owner = company.creator == request.user
-        is_admin = CompanyMember.objects.filter(company=company, user=request.user, access_role='admin').exists()
-        if not (is_owner or is_admin):
-            return Response({"error": "Only the owner or admin can manage subscriptions."}, status=status.HTTP_403_FORBIDDEN)
+        if not can_manage_company_accounting(request.user, company):
+            return Response({"error": "Only Super Admin, Admin, or Accountant can manage subscriptions."}, status=status.HTTP_403_FORBIDDEN)
 
         plan_id = request.data.get('plan_id')
         if not plan_id:
@@ -367,11 +398,7 @@ class JobOpeningViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(company_id=company_id)
             try:
                 company = Company.objects.get(id=company_id)
-                is_owner = self.request.user.is_authenticated and company.creator == self.request.user
-                is_admin = self.request.user.is_authenticated and CompanyMember.objects.filter(
-                    company=company, user=self.request.user, access_role='admin'
-                ).exists()
-                if not (is_owner or is_admin):
+                if not can_manage_company_hr(self.request.user, company):
                     queryset = queryset.filter(is_active=True, is_flagged=False)
             except Company.DoesNotExist:
                 queryset = queryset.filter(is_active=True, is_flagged=False)
@@ -395,9 +422,7 @@ class JobOpeningViewSet(viewsets.ModelViewSet):
         return Response({"message": "Job opening flagged successfully"}, status=status.HTTP_200_OK)
 
     def check_company_access(self, company):
-        is_owner = company.creator == self.request.user
-        is_admin = CompanyMember.objects.filter(company=company, user=self.request.user, access_role='admin').exists()
-        if not (is_owner or is_admin):
+        if not can_manage_company_hr(self.request.user, company):
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("You do not have permission to manage this company's job openings.")
 
@@ -446,16 +471,17 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         job_id = self.request.query_params.get('job_id')
         company_id = self.request.query_params.get('company_id')
 
-        # Company owner/admin should see applications for their company/job
+        # Company owner, admin, or HR should see applications for their company/job
         # Otherwise, user should only see applications they submitted.
         my_companies = Company.objects.filter(creator=user).values_list('id', flat=True)
-        my_member_companies = CompanyMember.objects.filter(user=user, access_role='admin').values_list('company_id', flat=True)
-        all_my_company_ids = list(my_companies) + list(my_member_companies)
+        my_member_companies = CompanyMember.objects.filter(
+            user=user, access_role__in=['super_admin', 'admin', 'hr']
+        ).values_list('company_id', flat=True)
+        all_my_company_ids = list(set(list(my_companies) + list(my_member_companies)))
 
         queryset = JobApplication.objects.all()
 
         if self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
-            # For detail actions, allow access if the user is the applicant or is the company owner/admin
             queryset = queryset.filter(
                 Q(applicant=user) | 
                 Q(job_opening__company_id__in=all_my_company_ids)
@@ -485,11 +511,10 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         instance = self.get_object()
         user = self.request.user
-        is_owner = instance.job_opening.company.creator == user
-        is_admin = CompanyMember.objects.filter(company=instance.job_opening.company, user=user, access_role='admin').exists()
+        is_hr = can_manage_company_hr(user, instance.job_opening.company)
         is_applicant = instance.applicant == user
 
-        if not (is_owner or is_admin or is_applicant):
+        if not (is_hr or is_applicant):
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("You do not have permission to update this application.")
         
@@ -512,9 +537,7 @@ class RFPViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(company_id=company_id)
             try:
                 company = Company.objects.get(id=company_id)
-                is_owner = company.creator == self.request.user
-                is_admin = CompanyMember.objects.filter(company=company, user=self.request.user, access_role='admin').exists()
-                if not (is_owner or is_admin):
+                if not can_manage_company_rfp(self.request.user, company):
                     queryset = queryset.filter(is_active=True, is_flagged=False)
             except Company.DoesNotExist:
                 queryset = queryset.filter(is_active=True, is_flagged=False)
@@ -532,9 +555,7 @@ class RFPViewSet(viewsets.ModelViewSet):
         return Response({"message": "RFP flagged successfully"}, status=status.HTTP_200_OK)
 
     def check_company_access(self, company):
-        is_owner = company.creator == self.request.user
-        is_admin = CompanyMember.objects.filter(company=company, user=self.request.user, access_role='admin').exists()
-        if not (is_owner or is_admin):
+        if not can_manage_company_rfp(self.request.user, company):
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("You do not have permission to manage this company's RFPs.")
 
@@ -563,8 +584,10 @@ class RFPInterestViewSet(viewsets.ModelViewSet):
         company_id = self.request.query_params.get('company_id')
 
         my_companies = Company.objects.filter(creator=user).values_list('id', flat=True)
-        my_member_companies = CompanyMember.objects.filter(user=user, access_role='admin').values_list('company_id', flat=True)
-        all_my_company_ids = list(my_companies) + list(my_member_companies)
+        my_member_companies = CompanyMember.objects.filter(
+            user=user, access_role__in=['super_admin', 'admin', 'accountant']
+        ).values_list('company_id', flat=True)
+        all_my_company_ids = list(set(list(my_companies) + list(my_member_companies)))
 
         queryset = RFPInterest.objects.all()
 
@@ -976,9 +999,7 @@ class CompanyFAQViewSet(viewsets.ModelViewSet):
         return queryset.order_by('created_at')
 
     def check_company_access(self, company):
-        is_owner = company.creator == self.request.user
-        is_admin = CompanyMember.objects.filter(company=company, user=self.request.user, access_role='admin').exists()
-        if not (is_owner or is_admin):
+        if not can_manage_company_profile(self.request.user, company):
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("You do not have permission to manage this company's FAQs.")
 

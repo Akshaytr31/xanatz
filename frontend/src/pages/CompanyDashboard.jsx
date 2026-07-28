@@ -12,6 +12,7 @@ import RFPModal from "../components/company/RFPModal";
 import PricingPlansModal from "../components/company/PricingPlansModal";
 import CompanyFAQModal from "../components/company/CompanyFAQModal";
 import api from "../api";
+import { getMemberPermissions } from "../utils/companyPermissions";
 
 
 const MotionBox = motion.create(Box);
@@ -241,10 +242,17 @@ const CompanyDashboard = () => {
     setExpandedFaqId(expandedFaqId === faqId ? null : faqId);
   };
 
-  const isOwner = currentUser && company && company.creator === currentUser.id;
-  const currentUserMemberInfo = company?.members_details?.find(m => m.id === currentUser?.id);
-  const isAdmin = currentUserMemberInfo?.access_role === 'admin';
-  const hasAccess = isOwner || isAdmin;
+  const permissions = getMemberPermissions(company, currentUser);
+  const {
+    role,
+    isOwner,
+    canManageRoles,
+    canManageProfile,
+    canAccessHR,
+    canAccessAccounting,
+    canManageRFPs,
+  } = permissions;
+  const hasAccess = canManageProfile;
   const accentColor = "#CD2426"; // Red accent from index.css
 
   if (loading) return (
@@ -367,10 +375,34 @@ const CompanyDashboard = () => {
                         OWNER
                       </Badge>
                     )}
-                    {isAdmin && !isOwner && (
+                    {role === 'super_admin' && !isOwner && (
+                      <Badge px={2.5} py={0.5} fontSize="3xs" fontWeight="black" borderRadius="full"
+                        style={{ background: "rgba(139,92,246,0.1)", color: "#8b5cf6", border: "1px solid rgba(139,92,246,0.25)" }}>
+                        SUPER ADMIN
+                      </Badge>
+                    )}
+                    {role === 'admin' && (
                       <Badge px={2.5} py={0.5} fontSize="3xs" fontWeight="black" borderRadius="full"
                         style={{ background: "rgba(239,68,68,0.08)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.2)" }}>
                         ADMIN
+                      </Badge>
+                    )}
+                    {role === 'hr' && (
+                      <Badge px={2.5} py={0.5} fontSize="3xs" fontWeight="black" borderRadius="full"
+                        style={{ background: "rgba(245,158,11,0.1)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.25)" }}>
+                        HR MANAGER
+                      </Badge>
+                    )}
+                    {role === 'accountant' && (
+                      <Badge px={2.5} py={0.5} fontSize="3xs" fontWeight="black" borderRadius="full"
+                        style={{ background: "rgba(16,185,129,0.1)", color: "#10b981", border: "1px solid rgba(16,185,129,0.25)" }}>
+                        ACCOUNTANT
+                      </Badge>
+                    )}
+                    {role === 'user' && !isOwner && (
+                      <Badge px={2.5} py={0.5} fontSize="3xs" fontWeight="black" borderRadius="full"
+                        style={{ background: "rgba(107,114,128,0.1)", color: "#9ca3af", border: "1px solid rgba(107,114,128,0.2)" }}>
+                        EMPLOYEE
                       </Badge>
                     )}
                     {company.company_id && (
@@ -410,7 +442,7 @@ const CompanyDashboard = () => {
                     <Globe size={18} color="var(--color-text-muted)" />
                   </Box>
                 )}
-                {isOwner && (
+                {canManageProfile && (
                   <Box as="button" onClick={() => setIsModalOpen(true)}
                     w="44px" h="44px" borderRadius="full" display="flex" alignItems="center" justifyContent="center"
                     border="1px solid var(--color-card-border)"
@@ -446,7 +478,7 @@ const CompanyDashboard = () => {
           <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }} mb={6}>
             <Flex gap={4} flexWrap="wrap">
               <StatCard icon={Users} label="MEMBERS" value={company.members.length} color={accentColor} delay={0.1} />
-              {hasAccess && (
+              {canAccessAccounting && (
                 <MotionBox
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -581,7 +613,7 @@ const CompanyDashboard = () => {
             </GridItem>
 
             {/* Pair 2: Job Openings & Job Applications */}
-            <GridItem colSpan={{ base: 2, md: hasAccess ? 1 : 2 }}>
+            <GridItem colSpan={{ base: 2, md: canAccessHR ? 1 : 2 }}>
               <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.22 }}
                 h="full"
                 p={7} borderRadius="2xl" border="1px solid var(--color-card-border)"
@@ -607,7 +639,7 @@ const CompanyDashboard = () => {
                     >
                       MANAGE
                     </Button>
-                    {hasAccess && (
+                    {canAccessHR && (
                       <Button h="7" px={3.5} borderRadius="full" fontWeight="black" fontSize="3xs" letterSpacing="widest" color="white"
                         onClick={handleAddJob}
                         style={{
@@ -679,7 +711,7 @@ const CompanyDashboard = () => {
               </MotionBox>
             </GridItem>
 
-            {hasAccess && (
+            {canAccessHR && (
               <GridItem colSpan={{ base: 2, md: 1 }}>
                 <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.24 }}
                   h="full"
@@ -759,7 +791,7 @@ const CompanyDashboard = () => {
             )}
 
             {/* Pair 3: Public RFPs & RFP Proposals */}
-            <GridItem colSpan={{ base: 2, md: hasAccess ? 1 : 2 }}>
+            <GridItem colSpan={{ base: 2, md: canManageRFPs ? 1 : 2 }}>
               <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.23 }}
                 h="full"
                 p={7} borderRadius="2xl" border="1px solid var(--color-card-border)"
@@ -785,7 +817,7 @@ const CompanyDashboard = () => {
                     >
                       MANAGE
                     </Button>
-                    {hasAccess && (
+                    {canManageRFPs && (
                       <Button h="7" px={3.5} borderRadius="full" fontWeight="black" fontSize="3xs" letterSpacing="widest" color="white"
                         onClick={handleAddRfp}
                         style={{
@@ -857,7 +889,7 @@ const CompanyDashboard = () => {
               </MotionBox>
             </GridItem>
 
-            {hasAccess && (
+            {canAccessAccounting && (
               <GridItem colSpan={{ base: 2, md: 1 }}>
                 <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.25 }}
                   h="full"
@@ -1333,7 +1365,7 @@ const CompanyDashboard = () => {
 
             {/* Row 4: Wide Full Width Members Grid */}
             <GridItem colSpan={2}>
-              <CompanyMembersList members={company.members_details || []} accentColor={accentColor} companyId={company.id} isOwner={hasAccess} />
+              <CompanyMembersList members={company.members_details || []} accentColor={accentColor} companyId={company.id} isOwner={canManageRoles} />
             </GridItem>
           </Grid>
         </Container>

@@ -44,6 +44,7 @@ import JobOpeningModal, {
 } from "../components/company/JobOpeningModal";
 import PricingPlansModal from "../components/company/PricingPlansModal";
 import api from "../api";
+import { getMemberPermissions } from "../utils/companyPermissions";
 
 const MotionBox = motion.create(Box);
 const MotionFlex = motion.create(Flex);
@@ -173,12 +174,9 @@ const ManageOpeningsPage = () => {
       </Flex>
     );
 
-  const isOwner = currentUser && company.creator === currentUser.id;
-  const currentUserMemberInfo = company?.members_details?.find(
-    (m) => m.id === currentUser?.id,
-  );
-  const isAdmin = currentUserMemberInfo?.access_role === "admin";
-  const hasAccess = isOwner || isAdmin;
+  const permissions = getMemberPermissions(company, currentUser);
+  const isOwner = permissions.isOwner;
+  const hasAccess = permissions.canAccessHR;
 
   const activeJobs = jobs.filter((j) => j.is_active);
   const inactiveJobs = jobs.filter((j) => !j.is_active);

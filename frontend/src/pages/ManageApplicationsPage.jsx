@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import api, { backendUrl } from "../api";
+import { getMemberPermissions } from "../utils/companyPermissions";
 
 const MotionBox = motion.create(Box);
 
@@ -113,10 +114,8 @@ const ManageApplicationsPage = () => {
     }));
   };
 
-  const isOwner = currentUser && company && company.creator === currentUser.id;
-  const currentUserMemberInfo = company?.members_details?.find((m) => m.id === currentUser?.id);
-  const isAdmin = currentUserMemberInfo?.access_role === "admin";
-  const hasAccess = isOwner || isAdmin;
+  const permissions = getMemberPermissions(company, currentUser);
+  const hasAccess = permissions.canAccessHR;
 
   if (loading) {
     return (
