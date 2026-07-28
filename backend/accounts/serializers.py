@@ -453,7 +453,7 @@ class JobOpeningSerializer(serializers.ModelSerializer):
             'id', 'job_id', 'version', 'company', 'company_name', 'company_logo_url', 'industry',
             'title', 'description', 'requirements', 'location',
             'job_type', 'salary_range',
-            'is_active', 'expires_at', 'is_expired', 'created_at', 'updated_at',
+            'is_active', 'is_frozen', 'expires_at', 'is_expired', 'created_at', 'updated_at',
             'is_flagged', 'flag_reason'
         ]
 

@@ -477,6 +477,7 @@ const JobOpeningModal = ({ isOpen, onClose, companyId, company, job, onSaved, on
     description: "",
     requirements: "",
     is_active: true,
+    is_frozen: false,
   });
 
   useEffect(() => {
@@ -489,6 +490,7 @@ const JobOpeningModal = ({ isOpen, onClose, companyId, company, job, onSaved, on
         description: job.description || "",
         requirements: job.requirements || "",
         is_active: job.is_active !== undefined ? job.is_active : true,
+        is_frozen: job.is_frozen !== undefined ? job.is_frozen : false,
       });
     } else {
       setForm({
@@ -499,6 +501,7 @@ const JobOpeningModal = ({ isOpen, onClose, companyId, company, job, onSaved, on
         description: "",
         requirements: "",
         is_active: true,
+        is_frozen: false,
       });
     }
   }, [job, isOpen]);
@@ -782,16 +785,25 @@ const JobOpeningModal = ({ isOpen, onClose, companyId, company, job, onSaved, on
                     />
                   </Box>
 
-                  {/* Active Status Select */}
+                  {/* Active/Inactive/Frozen Status Select */}
                   {job && (
                     <Box>
                       <Text {...labelStyle}>STATUS</Text>
                       <SelectField
-                        value={form.is_active ? "true" : "false"}
-                        onChange={(val) => set("is_active")(val === "true")}
+                        value={form.is_frozen ? "frozen" : (form.is_active ? "active" : "inactive")}
+                        onChange={(val) => {
+                          if (val === "active") {
+                            setForm(prev => ({ ...prev, is_active: true, is_frozen: false }));
+                          } else if (val === "inactive") {
+                            setForm(prev => ({ ...prev, is_active: false, is_frozen: false }));
+                          } else if (val === "frozen") {
+                            setForm(prev => ({ ...prev, is_active: true, is_frozen: true }));
+                          }
+                        }}
                         options={[
-                          { value: "true", label: "Active (Visible)" },
-                          { value: "false", label: "Inactive (Hidden)" },
+                          { value: "active", label: "Active (Visible & Reviewing)" },
+                          { value: "inactive", label: "Inactive (Hidden)" },
+                          { value: "frozen", label: "Frozen (Taking applications but not reviewing)" },
                         ]}
                         placeholder="Select status..."
                       />

@@ -1080,6 +1080,14 @@ const ApplyJobPage = () => {
                     </VStack>
                   </Flex>
 
+                  {job.is_frozen && (
+                    <Box w="full" mt={4} p={3} borderRadius="lg" bg="rgba(59,130,246,0.08)" border="1px solid rgba(59,130,246,0.2)">
+                      <Text fontSize="xs" color="rgba(147,197,253,0.9)" fontWeight="bold">
+                        ❄️ Currently frozen but taking applications (Not currently reviewing)
+                      </Text>
+                    </Box>
+                  )}
+
                   <HStack
                     gap={5}
                     wrap="wrap"

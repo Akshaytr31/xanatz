@@ -137,6 +137,11 @@ const JobOpeningCard = ({ job, onClick, viewMode = "grid" }) => {
               v{job.version}
             </Badge>
           )}
+          {job.is_frozen && (
+            <Badge variant="subtle" colorScheme="blue" fontSize="2xs" px={1.5} py={0.2} borderRadius="sm" color="rgba(147,197,253,0.9)" style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.25)" }}>
+              FROZEN
+            </Badge>
+          )}
           <Box color="var(--color-text-muted)">
             <ChevronRight size={16} />
           </Box>
@@ -199,7 +204,7 @@ const JobOpeningCard = ({ job, onClick, viewMode = "grid" }) => {
               borderColor: "rgba(59,130,246,0.25)",
             }}
           >
-            v{job.version}
+            V{job.version}
           </Badge>
         )}
       </HStack>
@@ -218,6 +223,14 @@ const JobOpeningCard = ({ job, onClick, viewMode = "grid" }) => {
           </VStack>
         </HStack>
       </Flex>
+
+      {job.is_frozen && (
+        <Box mb={3} p={2.5} borderRadius="lg" bg="rgba(59,130,246,0.08)" border="1px solid rgba(59,130,246,0.2)">
+          <Text fontSize="2xs" color="rgba(147,197,253,0.9)" fontWeight="bold">
+            ❄️ Currently frozen but taking applications (Not currently reviewing)
+          </Text>
+        </Box>
+      )}
 
       <Text color="var(--color-text-secondary)" fontSize="xs" noOfLines={3} mb={4} lineHeight="relaxed">
         {job.description}

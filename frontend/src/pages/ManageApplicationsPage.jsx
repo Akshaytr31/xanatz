@@ -226,7 +226,7 @@ const ManageApplicationsPage = () => {
                 <option value="all" style={{ background: "#0f172a", color: "white" }}>All Job Openings ({jobs.length})</option>
                 {jobs.map((job) => (
                   <option key={job.id} value={job.id} style={{ background: "#0f172a", color: "white" }}>
-                    {job.title} ({job.is_active ? "Active" : "Inactive"})
+                    {job.title} ({job.is_frozen ? "Frozen" : (job.is_active ? "Active" : "Inactive")})
                   </option>
                 ))}
               </Box>
@@ -275,7 +275,8 @@ const ManageApplicationsPage = () => {
             ) : (
               <AnimatePresence>
                 {filteredApps.map((app, idx) => {
-                  const jobName = jobs.find((j) => j.id === app.job_opening)?.title || "Unknown Job";
+                  const job = jobs.find((j) => j.id === app.job_opening);
+                  const jobName = job?.title || "Unknown Job";
                   const isExpanded = !!expandedApps[app.id];
                   const statusInfo = STATUS_COLORS[app.status] || STATUS_COLORS.applied;
 
@@ -319,6 +320,11 @@ const ManageApplicationsPage = () => {
                           <HStack gap={1.5}>
                             <Briefcase size={12} color="var(--color-text-muted)" />
                             <Text color="var(--color-text-secondary)" fontSize="xs" fontWeight="black">{jobName}</Text>
+                            {job?.is_frozen && (
+                              <Badge variant="subtle" colorScheme="blue" fontSize="3xs" px={1.5} py={0.2} borderRadius="sm" color="rgba(147,197,253,0.9)" style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.25)" }}>
+                                FROZEN
+                              </Badge>
+                            )}
                           </HStack>
                           <HStack gap={1.5} fontSize="3xs" color="var(--color-text-muted)" fontWeight="bold" letterSpacing="wider">
                             <Clock size={10} />

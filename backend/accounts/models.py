@@ -280,6 +280,7 @@ class JobOpening(models.Model):
     job_type = models.CharField(max_length=50, choices=JOB_TYPE_CHOICES, default='full_time')
     salary_range = models.CharField(max_length=100, blank=True, null=True)
     is_active = models.BooleanField(default=True)
+    is_frozen = models.BooleanField(default=False)
     expires_at = models.DateTimeField(blank=True, null=True)
     is_flagged = models.BooleanField(default=False)
     flag_reason = models.TextField(blank=True, null=True)

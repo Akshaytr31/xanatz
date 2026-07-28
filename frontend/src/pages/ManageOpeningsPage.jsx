@@ -31,6 +31,7 @@ import {
   Zap,
   ChevronRight,
   ChevronLeft,
+  ChevronDown,
   ChevronsLeft,
   ChevronsRight,
   Sparkles,
@@ -73,6 +74,7 @@ const ManageOpeningsPage = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const accentColor = "#CD2426";
 
@@ -140,10 +142,18 @@ const ManageOpeningsPage = () => {
     }
   };
 
-  const handleToggleActive = async (job) => {
+  const handleStatusChange = async (job, newStatus) => {
     try {
-      await api.patch(`jobs/${job.id}/`, { is_active: !job.is_active });
-      showSuccess(`Job marked as ${!job.is_active ? "active" : "inactive"}.`);
+      let payload = {};
+      if (newStatus === "active") {
+        payload = { is_active: true, is_frozen: false };
+      } else if (newStatus === "inactive") {
+        payload = { is_active: false, is_frozen: false };
+      } else if (newStatus === "frozen") {
+        payload = { is_active: true, is_frozen: true };
+      }
+      await api.patch(`jobs/${job.id}/`, payload);
+      showSuccess(`Job status updated to ${newStatus}.`);
       fetchData();
     } catch (err) {
       showError("Failed to update job status.");
@@ -178,19 +188,22 @@ const ManageOpeningsPage = () => {
   const isOwner = permissions.isOwner;
   const hasAccess = permissions.canAccessHR;
 
-  const activeJobs = jobs.filter((j) => j.is_active);
-  const inactiveJobs = jobs.filter((j) => !j.is_active);
+  const activeJobsCount = jobs.filter((j) => j.is_active && !j.is_frozen).length;
+  const inactiveJobsCount = jobs.filter((j) => !j.is_active).length;
+  const frozenJobsCount = jobs.filter((j) => j.is_active && j.is_frozen).length;
 
   const sub = company?.active_subscription;
   const percentCreditsUsed = sub ? (sub.jobs_used / sub.max_jobs) * 100 : 0;
 
-  const JOBS_PER_PAGE = 5;
-  const sortedJobs = [...jobs].sort((a, b) => {
-    if (a.is_active !== b.is_active) {
-      return a.is_active ? -1 : 1;
-    }
-    return new Date(b.created_at) - new Date(a.created_at);
+  const filteredJobs = jobs.filter((j) => {
+    if (statusFilter === "active") return j.is_active && !j.is_frozen;
+    if (statusFilter === "inactive") return !j.is_active;
+    if (statusFilter === "frozen") return j.is_active && j.is_frozen;
+    return true;
   });
+
+  const JOBS_PER_PAGE = 5;
+  const sortedJobs = [...filteredJobs].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   const totalPages = Math.max(1, Math.ceil(sortedJobs.length / JOBS_PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
@@ -497,30 +510,49 @@ const ManageOpeningsPage = () => {
                   {/* Unified Openings list with stats */}
                   <Box>
                     <Flex justify="space-between" align="center" mb={4} wrap="wrap" gap={3}>
-                      <HStack gap={2.5}>
-                        <Box
-                          w="8px"
-                          h="8px"
-                          borderRadius="full"
-                          bg="#10b981"
-                          style={{ boxShadow: "0 0 10px #10b981" }}
-                        />
-                        <Text
-                          color="var(--color-text-muted)"
-                          fontSize="10px"
-                          fontWeight="black"
-                          letterSpacing="widest"
-                        >
-                          ADDED JOBS — {jobs.length}
+                      {/* Status Filter Pills */}
+                      <HStack gap={1.5} wrap="wrap">
+                        {[
+                          { key: "all", label: "ALL JOBS", count: jobs.length, color: "white" },
+                          { key: "active", label: "ACTIVE", count: activeJobsCount, color: "#10b981" },
+                          { key: "inactive", label: "INACTIVE", count: inactiveJobsCount, color: "var(--color-text-muted)" },
+                          { key: "frozen", label: "FROZEN", count: frozenJobsCount, color: "#93c5fd" },
+                        ].map((filter) => {
+                          const isActive = statusFilter === filter.key;
+                          return (
+                            <Button
+                              key={filter.key}
+                              size="xs"
+                              h="7"
+                              px={3}
+                              borderRadius="full"
+                              fontSize="10px"
+                              fontWeight="bold"
+                              letterSpacing="wider"
+                              color={isActive ? filter.color : "var(--color-text-muted)"}
+                              bg={isActive ? "rgba(255,255,255,0.08)" : "transparent"}
+                              border="1px solid"
+                              borderColor={isActive ? "rgba(255,255,255,0.2)" : "transparent"}
+                              _hover={{
+                                bg: "rgba(255,255,255,0.06)",
+                                color: isActive ? filter.color : "white",
+                              }}
+                              onClick={() => {
+                                setStatusFilter(filter.key);
+                                setCurrentPage(1);
+                              }}
+                            >
+                              {filter.label} ({filter.count})
+                            </Button>
+                          );
+                        })}
+                      </HStack>
+
+                      {totalPages > 1 && (
+                        <Text fontSize="11px" color="var(--color-text-muted)" fontWeight="bold">
+                          Page {safePage} of {totalPages}
                         </Text>
-                      </HStack>
-                      <HStack gap={3} fontSize="11px" color="var(--color-text-secondary)" fontWeight="bold">
-                        <Text color="#10b981">● {activeJobs.length} Active</Text>
-                        <Text color="var(--color-text-muted)">● {inactiveJobs.length} Inactive</Text>
-                        {totalPages > 1 && (
-                          <Text color="var(--color-text-muted)">· Page {safePage} of {totalPages}</Text>
-                        )}
-                      </HStack>
+                      )}
                     </Flex>
 
                     <Grid templateColumns={{ base: "1fr", md: "1fr" }} gap={4}>
@@ -534,7 +566,7 @@ const ManageOpeningsPage = () => {
                             accentColor={accentColor}
                             onEdit={handleEditJob}
                             onDelete={handleDeleteJob}
-                            onToggle={handleToggleActive}
+                            onToggle={handleStatusChange}
                           />
                         ))}
                       </AnimatePresence>
@@ -932,6 +964,126 @@ const ManageOpeningsPage = () => {
   );
 };
 
+// ── Custom Status Selector Dropdown ──────────────────────────────────────────
+const StatusSelector = ({ job, onToggle }) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const containerRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const currentStatus = job.is_frozen ? "frozen" : (job.is_active ? "active" : "inactive");
+
+  const statusConfig = {
+    active: {
+      label: "ACTIVE",
+      color: "#10b981",
+      bg: "rgba(16,185,129,0.08)",
+      border: "rgba(16,185,129,0.3)",
+      dotColor: "#10b981",
+    },
+    inactive: {
+      label: "INACTIVE",
+      color: "var(--color-text-muted)",
+      bg: "rgba(255,255,255,0.05)",
+      border: "var(--color-card-border)",
+      dotColor: "rgba(255,255,255,0.3)",
+    },
+    frozen: {
+      label: "FROZEN",
+      color: "#93c5fd",
+      bg: "rgba(59,130,246,0.15)",
+      border: "rgba(59,130,246,0.3)",
+      dotColor: "#3b82f6",
+    }
+  };
+
+  const current = statusConfig[currentStatus];
+
+  return (
+    <Box ref={containerRef} position="relative" display="inline-block">
+      <Button
+        size="xs"
+        h="7"
+        px={3.5}
+        borderRadius="full"
+        fontWeight="bold"
+        fontSize="2xs"
+        letterSpacing="wider"
+        color={current.color}
+        border="1px solid"
+        borderColor={current.border}
+        bg={current.bg}
+        _hover={{
+          bg: currentStatus === "active" ? "rgba(16,185,129,0.15)" : (currentStatus === "frozen" ? "rgba(59,130,246,0.25)" : "var(--color-card-border)"),
+        }}
+        onClick={() => setIsOpen(!isOpen)}
+        gap={1.5}
+      >
+        <Box w="6px" h="6px" borderRadius="full" bg={current.dotColor} />
+        {current.label}
+        <ChevronDown size={10} style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+      </Button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <MotionBox
+            initial={{ opacity: 0, y: -4, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.95 }}
+            transition={{ duration: 0.12, ease: "easeOut" }}
+            position="absolute"
+            top="calc(100% + 6px)"
+            right="0"
+            zIndex={100}
+            bg="rgba(15, 23, 42, 0.95)"
+            backdropFilter="blur(16px)"
+            border="1px solid var(--color-card-border)"
+            borderRadius="xl"
+            p={1.5}
+            gap={1}
+            w="full"
+            boxShadow="0 10px 25px -5px rgba(0,0,0,0.5), 0 8px 10px -6px rgba(0,0,0,0.5)"
+            style={{ display: "flex", flexDirection: "column" }}
+          >
+            {Object.entries(statusConfig).map(([statusKey, config]) => (
+              <Flex
+                key={statusKey}
+                as="button"
+                align="center"
+                gap={2}
+                px={2.5}
+                py={1.5}
+                borderRadius="lg"
+                fontSize="2xs"
+                fontWeight="bold"
+                color={statusKey === currentStatus ? "white" : "var(--color-text-muted)"}
+                bg={statusKey === currentStatus ? "rgba(255,255,255,0.06)" : "transparent"}
+                _hover={{ bg: "rgba(255,255,255,0.08)", color: "white" }}
+                onClick={() => {
+                  onToggle(job, statusKey);
+                  setIsOpen(false);
+                }}
+                style={{ transition: "all 0.15s ease", textAlign: "left" }}
+              >
+                <Box w="5px" h="5px" borderRadius="full" bg={config.dotColor} />
+                {config.label}
+              </Flex>
+            ))}
+          </MotionBox>
+        )}
+      </AnimatePresence>
+    </Box>
+  );
+};
+
 // ── Individual Job Card ──────────────────────────────────────────────────────
 const JobCard = ({
   job,
@@ -1003,6 +1155,22 @@ const JobCard = ({
                 }}
               >
                 INACTIVE
+              </Badge>
+            )}
+            {job.is_active && job.is_frozen && (
+              <Badge
+                fontSize="8px"
+                fontWeight="bold"
+                px={2}
+                py={0.5}
+                borderRadius="full"
+                style={{
+                  background: "rgba(59,130,246,0.15)",
+                  color: "rgba(147,197,253,0.9)",
+                  border: "1px solid rgba(59,130,246,0.25)"
+                }}
+              >
+                FROZEN
               </Badge>
             )}
             {job.is_expired && (
@@ -1112,38 +1280,8 @@ const JobCard = ({
       {/* Right: actions */}
       {hasAccess && (
         <VStack gap={3} flexShrink={0} align="end">
-          {/* Toggle active button */}
-          <Button
-            size="xs"
-            h="7"
-            px={3}
-            borderRadius="full"
-            fontWeight="bold"
-            fontSize="2xs"
-            letterSpacing="wider"
-            color={job.is_active ? "#10b981" : "var(--color-text-muted)"}
-            border="1px solid"
-            borderColor={
-              job.is_active
-                ? "rgba(16,185,129,0.3)"
-                : "var(--color-card-border)"
-            }
-            bg={job.is_active ? "rgba(16,185,129,0.08)" : "var(--color-glass)"}
-            _hover={{
-              bg: job.is_active
-                ? "rgba(16,185,129,0.15)"
-                : "var(--color-card-border)",
-            }}
-            onClick={() => onToggle(job)}
-            gap={1}
-          >
-            {job.is_active ? (
-              <ToggleRight size={12} />
-            ) : (
-              <ToggleLeft size={12} />
-            )}
-            {job.is_active ? "ACTIVE" : "INACTIVE"}
-          </Button>
+          {/* Status select dropdown */}
+          <StatusSelector job={job} onToggle={onToggle} />
 
           <HStack gap={1}>
             <Button
