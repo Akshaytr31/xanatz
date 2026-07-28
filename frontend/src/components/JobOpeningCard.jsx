@@ -126,10 +126,15 @@ const JobOpeningCard = ({ job, onClick, viewMode = "grid" }) => {
         </Box>
 
         {/* ID + Arrow */}
-        <HStack gap={3} flexShrink={0}>
+        <HStack gap={2} flexShrink={0}>
           {job.job_id && (
             <Badge variant="outline" colorScheme="gray" fontSize="2xs" px={1.5} py={0.2} borderRadius="sm" color="var(--color-text-muted)">
               {job.job_id}
+            </Badge>
+          )}
+          {job.version && (
+            <Badge variant="subtle" colorScheme="blue" fontSize="2xs" px={1.5} py={0.2} borderRadius="sm" color="rgba(147,197,253,0.9)" style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.25)" }}>
+              v{job.version}
             </Badge>
           )}
           <Box color="var(--color-text-muted)">
@@ -157,26 +162,47 @@ const JobOpeningCard = ({ job, onClick, viewMode = "grid" }) => {
       cursor="pointer"
       onClick={onClick}
     >
-      {job.job_id && (
-        <Badge
-          variant="outline"
-          colorScheme="gray"
-          fontSize="2xs"
-          px={1.5}
-          py={0.2}
-          borderRadius="sm"
-          color="var(--color-text-muted)"
-          style={{
-            position: "absolute",
-            top: "8px",
-            right: "16px",
-            background: "rgba(255,255,255,0.03)",
-            borderColor: "var(--color-card-border)",
-          }}
-        >
-          {job.job_id}
-        </Badge>
-      )}
+      <HStack
+        position="absolute"
+        top="8px"
+        right="16px"
+        gap={1.5}
+      >
+        {job.job_id && (
+          <Badge
+            variant="outline"
+            colorScheme="gray"
+            fontSize="2xs"
+            px={1.5}
+            py={0.2}
+            borderRadius="sm"
+            color="var(--color-text-muted)"
+            style={{
+              background: "rgba(255,255,255,0.03)",
+              borderColor: "var(--color-card-border)",
+            }}
+          >
+            {job.job_id}
+          </Badge>
+        )}
+        {job.version && (
+          <Badge
+            variant="subtle"
+            colorScheme="blue"
+            fontSize="2xs"
+            px={1.5}
+            py={0.2}
+            borderRadius="sm"
+            color="rgba(147,197,253,0.9)"
+            style={{
+              background: "rgba(59,130,246,0.15)",
+              borderColor: "rgba(59,130,246,0.25)",
+            }}
+          >
+            v{job.version}
+          </Badge>
+        )}
+      </HStack>
 
       <Flex gap={4} align="start" mb={4} justify="space-between" w="full">
         <HStack gap={4} align="start" flex={1} minW={0}>

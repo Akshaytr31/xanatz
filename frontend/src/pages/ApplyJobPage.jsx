@@ -556,6 +556,11 @@ const ApplyJobPage = () => {
                                   {job.job_id}
                                 </Badge>
                               )}
+                              {job.version && (
+                                <Badge variant="subtle" colorScheme="blue" fontSize="xs" px={2} py={0.5} borderRadius="md" color="rgba(147,197,253,0.9)" style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.25)" }}>
+                                  v{job.version}
+                                </Badge>
+                              )}
                               <Heading
                                 size="lg"
                                 color="var(--color-text-primary)"
@@ -1017,6 +1022,11 @@ const ApplyJobPage = () => {
                         {job.job_id && (
                           <Badge variant="outline" colorScheme="gray" fontSize="xs" px={2} py={0.5} borderRadius="md" color="var(--color-text-secondary)">
                             {job.job_id}
+                          </Badge>
+                        )}
+                        {job.version && (
+                          <Badge variant="subtle" colorScheme="blue" fontSize="xs" px={2} py={0.5} borderRadius="md" color="rgba(147,197,253,0.9)" style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.25)" }}>
+                            v{job.version}
                           </Badge>
                         )}
                         <Heading

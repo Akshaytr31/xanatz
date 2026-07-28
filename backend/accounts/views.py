@@ -388,6 +388,17 @@ class JobOpeningViewSet(viewsets.ModelViewSet):
         from django.utils import timezone
         queryset = JobOpening.objects.all()
         
+        user = self.request.user
+        if user.is_authenticated:
+            from .models import CompanyMember, Company
+            my_companies = Company.objects.filter(creator=user).values_list('id', flat=True)
+            my_member_companies = CompanyMember.objects.filter(
+                user=user, access_role__in=['super_admin', 'admin', 'hr']
+            ).values_list('company_id', flat=True)
+            managed_company_ids = set(list(my_companies) + list(my_member_companies))
+        else:
+            managed_company_ids = []
+
         search = self.request.query_params.get('search')
         if search:
             queryset = queryset.filter(Q(title__icontains=search) | Q(job_id__icontains=search))
@@ -397,19 +408,24 @@ class JobOpeningViewSet(viewsets.ModelViewSet):
         if company_id:
             queryset = queryset.filter(company_id=company_id)
             try:
-                company = Company.objects.get(id=company_id)
-                if not can_manage_company_hr(self.request.user, company):
+                if int(company_id) not in managed_company_ids:
                     queryset = queryset.filter(is_active=True, is_flagged=False)
-            except Company.DoesNotExist:
+            except (ValueError, TypeError):
                 queryset = queryset.filter(is_active=True, is_flagged=False)
         else:
-            # Candidate/user dashboard: only show active and non-expired jobs
-            queryset = queryset.filter(
-                is_active=True,
-                is_flagged=False
-            ).filter(
-                Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now())
-            )
+            if self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
+                # Allow access if it's active & non-flagged, OR if the job belongs to a managed company
+                queryset = queryset.filter(
+                    Q(is_active=True, is_flagged=False) | Q(company_id__in=managed_company_ids)
+                )
+            else:
+                # Candidate/user dashboard: only show active and non-expired jobs
+                queryset = queryset.filter(
+                    is_active=True,
+                    is_flagged=False
+                ).filter(
+                    Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now())
+                )
 
         return queryset.order_by('-created_at')
 
@@ -528,6 +544,17 @@ class RFPViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = RFP.objects.all()
         
+        user = self.request.user
+        if user.is_authenticated:
+            from .models import CompanyMember, Company
+            my_companies = Company.objects.filter(creator=user).values_list('id', flat=True)
+            my_member_companies = CompanyMember.objects.filter(
+                user=user, access_role__in=['super_admin', 'admin']
+            ).values_list('company_id', flat=True)
+            managed_company_ids = set(list(my_companies) + list(my_member_companies))
+        else:
+            managed_company_ids = []
+
         search = self.request.query_params.get('search')
         if search:
             queryset = queryset.filter(Q(title__icontains=search) | Q(rfp_id__icontains=search))
@@ -536,13 +563,18 @@ class RFPViewSet(viewsets.ModelViewSet):
         if company_id:
             queryset = queryset.filter(company_id=company_id)
             try:
-                company = Company.objects.get(id=company_id)
-                if not can_manage_company_rfp(self.request.user, company):
+                if int(company_id) not in managed_company_ids:
                     queryset = queryset.filter(is_active=True, is_flagged=False)
-            except Company.DoesNotExist:
+            except (ValueError, TypeError):
                 queryset = queryset.filter(is_active=True, is_flagged=False)
         else:
-            queryset = queryset.filter(is_active=True, is_flagged=False)
+            if self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
+                # Allow access if it's active & non-flagged, OR if the RFP belongs to a managed company
+                queryset = queryset.filter(
+                    Q(is_active=True, is_flagged=False) | Q(company_id__in=managed_company_ids)
+                )
+            else:
+                queryset = queryset.filter(is_active=True, is_flagged=False)
             
         return queryset.order_by('-created_at')
 

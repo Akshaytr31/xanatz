@@ -450,7 +450,7 @@ class JobOpeningSerializer(serializers.ModelSerializer):
     class Meta:
         model = JobOpening
         fields = [
-            'id', 'job_id', 'company', 'company_name', 'company_logo_url', 'industry',
+            'id', 'job_id', 'version', 'company', 'company_name', 'company_logo_url', 'industry',
             'title', 'description', 'requirements', 'location',
             'job_type', 'salary_range',
             'is_active', 'expires_at', 'is_expired', 'created_at', 'updated_at',

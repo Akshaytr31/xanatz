@@ -974,6 +974,11 @@ const JobCard = ({
                 {job.job_id}
               </Badge>
             )}
+            {job.version && (
+              <Badge variant="subtle" colorScheme="blue" fontSize="2xs" px={1.5} py={0.2} borderRadius="sm" color="rgba(147,197,253,0.9)" style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.25)" }}>
+                v{job.version}
+              </Badge>
+            )}
             <Text
               color="var(--color-text-primary)"
               fontSize="md"
