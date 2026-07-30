@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api, { backendUrl } from "../../api";
+import AIEnhancedTextarea from "../AIEnhancedTextarea";
 
 const MotionBox = motion.create(Box);
 
@@ -395,28 +396,14 @@ const CompanyProfileModal = ({ isOpen, onClose, company, onSaved }) => {
                         </Flex>
 
                         {/* Description */}
-                        <Box>
-                          <Text {...labelStyle}>MISSION STATEMENT</Text>
-                          <Box
-                            as="textarea"
-                            value={form.description}
-                            onChange={setE("description")}
-                            placeholder="Describe the company's purpose and what it does..."
-                            rows={3}
-                            style={{
-                              background: "var(--color-glass)",
-                              color: "white",
-                              borderRadius: "lg",
-                              border: "1px solid var(--color-card-border)",
-                              fontSize: "14px",
-                              padding: "12px 16px",
-                              width: "100%",
-                              outline: "none",
-                              resize: "vertical",
-                              fontFamily: "inherit",
-                            }}
-                          />
-                        </Box>
+                        <AIEnhancedTextarea
+                          label="MISSION STATEMENT"
+                          value={form.description}
+                          onChange={(val) => setForm(p => ({ ...p, description: val }))}
+                          placeholder="Describe the company's purpose and what it does..."
+                          rows={3}
+                          labelStyle={labelStyle}
+                        />
 
                         {/* Industry & Size */}
                         <Flex gap={4} direction={{ base: "column", sm: "row" }}>

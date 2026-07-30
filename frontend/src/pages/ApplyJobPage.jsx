@@ -38,8 +38,8 @@ import FlagConfirmationModal from "../components/FlagConfirmationModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import api from "../api";
 import { INDUSTRY_LABELS } from "../components/company/JobOpeningModal";
+import AIEnhancedTextarea from "../components/AIEnhancedTextarea";
 
 const MotionBox = motion.create(Box);
 const MotionFlex = motion.create(Flex);
@@ -1460,33 +1460,23 @@ const ApplyJobPage = () => {
                         </Box>
 
                         {/* Cover Letter */}
-                        <Box>
-                          <Text
-                            fontSize="2xs"
-                            fontWeight="black"
-                            color="var(--color-text-muted)"
-                            letterSpacing="wider"
-                            mb={2}
-                          >
-                            COVER LETTER / STATEMENT
-                          </Text>
-                          <Textarea
-                            placeholder="Write why you are the perfect fit for this job..."
-                            bg="var(--color-input-bg)"
-                            border="1px solid var(--color-card-border)"
-                            color="var(--color-text-primary)"
-                            fontSize="xs"
-                            rows={6}
-                            borderRadius="xl"
-                            _hover={{ borderColor: "var(--color-card-border)" }}
-                            _focus={{
-                              borderColor: accentColor,
-                              boxShadow: `0 0 0 1px ${accentColor}`,
-                            }}
-                            value={coverLetter}
-                            onChange={(e) => setCoverLetter(e.target.value)}
-                          />
-                        </Box>
+                        <AIEnhancedTextarea
+                          label="COVER LETTER / STATEMENT"
+                          value={coverLetter}
+                          onChange={setCoverLetter}
+                          placeholder="Write why you are the perfect fit for this job..."
+                          rows={6}
+                          labelStyle={{
+                            fontSize: "2xs",
+                            fontWeight: "black",
+                            color: "var(--color-text-muted)",
+                            letterSpacing: "wider"
+                          }}
+                          textareaStyle={{
+                            background: "var(--color-input-bg)",
+                            borderRadius: "xl"
+                          }}
+                        />
                       </VStack>
 
                       {/* Submit */}

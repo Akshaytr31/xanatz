@@ -7,7 +7,7 @@ from .views import (
     CompanyViewSet, PublicProfileView, UserSearchView, JobOpeningViewSet, JobApplicationViewSet,
     RFPViewSet, RFPInterestViewSet, JobPostPlanViewSet, NotificationViewSet, MessageViewSet,
     PublicCompanyProfileView, CompanyReviewViewSet, FreelancerReviewViewSet, AdminFlaggedReviewsView,
-    CompanyFAQViewSet
+    CompanyFAQViewSet, AIEnhanceView
 )
 
 router = DefaultRouter()
@@ -40,5 +40,6 @@ urlpatterns = [
     path('public-company/<uuid:public_id>/', PublicCompanyProfileView.as_view(), name='public_company_profile'),
     path('users/search/', UserSearchView.as_view(), name='user_search'),
     path('admin/reviews/flagged/', AdminFlaggedReviewsView.as_view(), name='admin_reviews_flagged'),
+    path('ai/enhance/', AIEnhanceView.as_view(), name='ai-enhance'),
     path('', include(router.urls)),
 ]

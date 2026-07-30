@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../api";
+import AIEnhancedTextarea from "../AIEnhancedTextarea";
 
 const MotionBox = motion.create(Box);
 
@@ -539,28 +540,21 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
                       </Flex>
 
                       {/* Proposal Summary */}
-                      <Box>
-                        <Text {...labelStyle}>PROPOSAL SUMMARY / INTEREST DETAILS *</Text>
-                        <Box
-                          as="textarea"
-                          value={form.proposal_summary}
-                          onChange={setE("proposal_summary")}
-                          placeholder="Summarize your experience, why you are qualified, and how you plan to deliver on this RFP..."
-                          rows={4}
-                          style={{
-                            background: "var(--color-input-bg)",
-                            color: "white",
-                            borderRadius: "xl",
-                            border: "1px solid var(--color-card-border)",
-                            fontSize: "13px",
-                            padding: "12px 14px",
-                            width: "100%",
-                            outline: "none",
-                            resize: "vertical",
-                            fontFamily: "inherit",
-                          }}
-                        />
-                      </Box>
+                      <AIEnhancedTextarea
+                        label="PROPOSAL SUMMARY / INTEREST DETAILS"
+                        required
+                        value={form.proposal_summary}
+                        onChange={(val) => setForm(p => ({ ...p, proposal_summary: val }))}
+                        placeholder="Summarize your experience, why you are qualified, and how you plan to deliver on this RFP..."
+                        rows={4}
+                        labelStyle={labelStyle}
+                        textareaStyle={{
+                          background: "var(--color-input-bg)",
+                          borderRadius: "xl",
+                          fontSize: "13px",
+                          padding: "12px 14px",
+                        }}
+                      />
 
                       {/* File Upload */}
                       <Box>

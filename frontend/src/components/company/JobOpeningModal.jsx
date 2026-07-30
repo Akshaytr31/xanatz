@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../api";
+import AIEnhancedTextarea from "../AIEnhancedTextarea";
 
 const MotionBox = motion.create(Box);
 
@@ -738,52 +739,25 @@ const JobOpeningModal = ({ isOpen, onClose, companyId, company, job, onSaved, on
                   </Flex>
 
                   {/* Description */}
-                  <Box>
-                    <Text {...labelStyle}>DESCRIPTION *</Text>
-                    <Box
-                      as="textarea"
-                      value={form.description}
-                      onChange={setE("description")}
-                      placeholder="Detail the responsibilities, project scope, and daily tasks..."
-                      rows={4}
-                      style={{
-                        background: "var(--color-glass)",
-                        color: "white",
-                        borderRadius: "lg",
-                        border: "1px solid var(--color-card-border)",
-                        fontSize: "14px",
-                        padding: "12px 16px",
-                        width: "100%",
-                        outline: "none",
-                        resize: "vertical",
-                        fontFamily: "inherit",
-                      }}
-                    />
-                  </Box>
+                  <AIEnhancedTextarea
+                    label="DESCRIPTION"
+                    required
+                    value={form.description}
+                    onChange={(val) => setForm(p => ({ ...p, description: val }))}
+                    placeholder="Detail the responsibilities, project scope, and daily tasks..."
+                    rows={4}
+                    labelStyle={labelStyle}
+                  />
 
                   {/* Requirements */}
-                  <Box>
-                    <Text {...labelStyle}>REQUIREMENTS & SKILLS</Text>
-                    <Box
-                      as="textarea"
-                      value={form.requirements}
-                      onChange={setE("requirements")}
-                      placeholder="List required experience, languages, frameworks, or certifications..."
-                      rows={3}
-                      style={{
-                        background: "var(--color-glass)",
-                        color: "white",
-                        borderRadius: "lg",
-                        border: "1px solid var(--color-card-border)",
-                        fontSize: "14px",
-                        padding: "12px 16px",
-                        width: "100%",
-                        outline: "none",
-                        resize: "vertical",
-                        fontFamily: "inherit",
-                      }}
-                    />
-                  </Box>
+                  <AIEnhancedTextarea
+                    label="REQUIREMENTS & SKILLS"
+                    value={form.requirements}
+                    onChange={(val) => setForm(p => ({ ...p, requirements: val }))}
+                    placeholder="List required experience, languages, frameworks, or certifications..."
+                    rows={3}
+                    labelStyle={labelStyle}
+                  />
 
                   {/* Active/Inactive/Frozen Status Select */}
                   {job && (
