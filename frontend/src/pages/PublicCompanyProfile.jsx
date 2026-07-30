@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../api";
 import FlagConfirmationModal from "../components/FlagConfirmationModal";
-import { ArrowRight, Globe, MapPin, Users, Calendar, Link2, AtSign, Briefcase, ExternalLink, Share2, Check, Mail, ArrowUpRight, Star, Flag, ShieldAlert, CheckCircle2, HelpCircle, ChevronDown } from "lucide-react";
+import { ArrowRight, Globe, MapPin, Users, Calendar, Link2, AtSign, Briefcase, ExternalLink, Share2, Check, Mail, ArrowUpRight, Star, Flag, ShieldAlert, CheckCircle2, HelpCircle, ChevronDown, MessageSquare } from "lucide-react";
 import { motion, useScroll, useSpring, useTransform, AnimatePresence } from "framer-motion";
 
 const INDUSTRY_LABELS = {
@@ -41,6 +41,18 @@ const PublicCompanyProfile = () => {
   const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
   const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+
+  const reviewsTabsRef = useRef(null);
+
+  useEffect(() => {
+    if (reviewsTabsRef.current) {
+      if (reviewTab === "employee") {
+        reviewsTabsRef.current.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        reviewsTabsRef.current.scrollTo({ left: reviewsTabsRef.current.scrollWidth, behavior: "smooth" });
+      }
+    }
+  }, [reviewTab]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -1072,19 +1084,22 @@ const PublicCompanyProfile = () => {
         <section className="pub-section" style={{ backgroundColor: "rgba(15,23,42,0.3)" }}>
           <div className="pub-inner">
             {/* Tab selection */}
-            <div style={{ display: "flex", gap: "1.5rem", marginBottom: "2rem", borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "0.75rem" }}>
-              <button
+            <div ref={reviewsTabsRef} className="scrollable-tabs-container" style={{ marginBottom: "2rem", borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "0.75rem" }}>
+              <motion.button
                 onClick={() => setReviewTab("employee")}
+                animate={{
+                  scale: reviewTab === "employee" ? 1.05 : 0.96,
+                  color: reviewTab === "employee" ? "white" : "#6b7280",
+                }}
+                transition={{ type: "spring", stiffness: 350, damping: 25 }}
                 style={{
                   background: "none",
                   border: "none",
                   padding: "0 0.5rem 0.75rem 0.5rem",
-                  color: reviewTab === "employee" ? "white" : "#6b7280",
                   fontSize: "0.875rem",
                   fontWeight: "bold",
                   cursor: "pointer",
                   position: "relative",
-                  transition: "all 0.2s"
                 }}
               >
                 Employee Reviews
@@ -1092,21 +1107,24 @@ const PublicCompanyProfile = () => {
                   {company.employee_reviews_count || 0}
                 </span>
                 {reviewTab === "employee" && (
-                  <span style={{ position: "absolute", bottom: "-1px", left: 0, right: 0, height: "2px", backgroundColor: accentColor }} />
+                  <motion.span layoutId="pubReviewsTabUnderline" style={{ position: "absolute", bottom: "-1px", left: 0, right: 0, height: "2px", backgroundColor: accentColor }} />
                 )}
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 onClick={() => setReviewTab("partner")}
+                animate={{
+                  scale: reviewTab === "partner" ? 1.05 : 0.96,
+                  color: reviewTab === "partner" ? "white" : "#6b7280",
+                }}
+                transition={{ type: "spring", stiffness: 350, damping: 25 }}
                 style={{
                   background: "none",
                   border: "none",
                   padding: "0 0.5rem 0.75rem 0.5rem",
-                  color: reviewTab === "partner" ? "white" : "#6b7280",
                   fontSize: "0.875rem",
                   fontWeight: "bold",
                   cursor: "pointer",
                   position: "relative",
-                  transition: "all 0.2s"
                 }}
               >
                 Client & Partner Reviews
@@ -1114,9 +1132,9 @@ const PublicCompanyProfile = () => {
                   {company.partner_reviews_count || 0}
                 </span>
                 {reviewTab === "partner" && (
-                  <span style={{ position: "absolute", bottom: "-1px", left: 0, right: 0, height: "2px", backgroundColor: accentColor }} />
+                  <motion.span layoutId="pubReviewsTabUnderline" style={{ position: "absolute", bottom: "-1px", left: 0, right: 0, height: "2px", backgroundColor: accentColor }} />
                 )}
-              </button>
+              </motion.button>
             </div>
 
             {/* Active Reviews Data */}
@@ -1131,7 +1149,7 @@ const PublicCompanyProfile = () => {
               if (activeCount === 0) {
                 return (
                   <div style={{ textAlign: "center", padding: "3rem 1.5rem", borderRadius: "1.5rem", border: "1px solid rgba(255,255,255,0.05)", background: "rgba(15,23,42,0.4)" }}>
-                    <Star size={36} color="#4b5563" style={{ margin: "0 auto 1rem auto", opacity: 0.5 }} />
+                    <MessageSquare size={36} color="#4b5563" style={{ margin: "0 auto 1rem auto", opacity: 0.5 }} />
                     <p style={{ color: "#9ca3af", fontSize: "0.875rem", fontWeight: 400 }}>{noReviewsMsg}</p>
                   </div>
                 );

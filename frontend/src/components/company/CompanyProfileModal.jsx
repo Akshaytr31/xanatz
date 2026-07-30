@@ -637,11 +637,13 @@ const CompanyProfileModal = ({ isOpen, onClose, company, onSaved }) => {
                 px={8}
                 py={5}
                 borderTop="1px solid var(--color-card-border)"
-                justify="space-between"
+                justify={{ base: "center", sm: "space-between" }}
                 align="center"
+                direction={{ base: "column", sm: "row" }}
+                gap={4}
                 style={{ background: "var(--color-glass)" }}
               >
-                <Text color="var(--color-card-border)" fontSize="xs" fontWeight="medium">
+                <Text color="var(--color-card-border)" fontSize="xs" fontWeight="medium" display={{ base: "none", sm: "block" }}>
                   Changes are saved to your company profile
                 </Text>
                 <HStack gap={3}>

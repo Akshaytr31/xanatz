@@ -311,3 +311,157 @@ body {
   background: rgba(15, 23, 42, 0.25);
 }
 
+/* Responsive adjustments for mobile screens */
+@media (max-width: 768px) {
+  html {
+    font-size: 13px !important;
+  }
+
+  body {
+    font-size: 13px !important;
+  }
+
+  /* Scale headings and texts proportionally on mobile views */
+  .chakra-heading, 
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.02em !important;
+  }
+
+  h1, .chakra-heading[data-size="3xl"], .chakra-heading[data-size="4xl"] {
+    font-size: 1.8rem !important;
+  }
+
+  h2, .chakra-heading[data-size="xl"], .chakra-heading[data-size="2xl"] {
+    font-size: 1.4rem !important;
+  }
+
+  h3, .chakra-heading[data-size="md"], .chakra-heading[data-size="lg"] {
+    font-size: 1.15rem !important;
+  }
+
+  /* Scale down buttons and form elements on mobile */
+  .chakra-button {
+    font-size: 0.8rem !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  input, textarea, select {
+    font-size: 0.85rem !important;
+    height: 38px !important;
+  }
+
+  /* Modal dialog responsive margins and widths */
+  div[role="dialog"] {
+    max-width: 94vw !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
+
+/* Navigation display helper classes */
+.display-desktop {
+  display: flex !important;
+}
+.display-mobile {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .display-desktop {
+    display: none !important;
+  }
+  .display-mobile {
+    display: flex !important;
+  }
+}
+
+/* Profile dropdown responsive styles */
+.profile-dropdown-card {
+  right: 0;
+  width: 290px;
+}
+
+@media (max-width: 768px) {
+  .profile-dropdown-card {
+    right: -8px !important;
+    width: 260px !important;
+  }
+}
+
+/* Public Reviews Summary Card Styles */
+.reviews-summary-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2.5rem;
+  padding: 2rem;
+  border-radius: 2rem;
+  border: 1px solid var(--color-card-border);
+  background: var(--color-glass);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 50px -15px rgba(0,0,0,0.5);
+}
+
+.reviews-summary-col1 {
+  text-align: center;
+  min-width: 140px;
+  flex: 1;
+}
+
+.reviews-summary-col2 {
+  flex: 2;
+  min-width: 220px;
+}
+
+/* Individual Review Card */
+.public-review-card {
+  padding: 1.75rem;
+  border-radius: 2rem;
+  border: 1px solid var(--color-card-border);
+  background: var(--color-glass);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .reviews-summary-card {
+    gap: 1.25rem !important;
+    padding: 1.25rem !important;
+    border-radius: 1.25rem !important;
+  }
+  .reviews-summary-col1 {
+    min-width: 100% !important;
+  }
+  .reviews-summary-col2 {
+    min-width: 100% !important;
+  }
+  
+  .public-review-card {
+    padding: 1.25rem !important;
+    border-radius: 1.25rem !important;
+    gap: 0.75rem !important;
+  }
+}
+
+/* Scrollable premium tab bar on mobile */
+.scrollable-tabs-container {
+  display: flex !important;
+  gap: 1.5rem !important;
+  overflow-x: auto !important;
+  white-space: nowrap !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none !important; /* Firefox */
+  padding-bottom: 4px;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+  width: 100% !important;
+}
+
+.scrollable-tabs-container::-webkit-scrollbar {
+  display: none !important; /* Safari and Chrome */
+}
+

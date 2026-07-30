@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
-import { Box, VStack, Heading, Text, HStack, Link } from "@chakra-ui/react";
+import { Box, VStack, Heading, Text, HStack, Link, Input, Button } from "@chakra-ui/react";
 import api from "../../api";
 import Step1Email from "./Step1Email";
 import Step2OTP from "./Step2OTP";
@@ -19,6 +19,11 @@ const RegisterWizard = () => {
   const [direction, setDirection] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPasswordSetup, setShowPasswordSetup] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [passwordSetupError, setPasswordSetupError] = useState("");
+  const [setupLoading, setSetupLoading] = useState(false);
+  const [pendingRedirection, setPendingRedirection] = useState("");
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -119,6 +124,24 @@ const RegisterWizard = () => {
     }
   };
 
+  const handleGooglePasswordSubmit = async () => {
+    if (!newPassword.trim() || newPassword.length < 6) {
+      setPasswordSetupError("Password must be at least 6 characters long.");
+      return;
+    }
+    setSetupLoading(true);
+    setPasswordSetupError("");
+    try {
+      await api.post("auth/set-password/", { password: newPassword });
+      setShowPasswordSetup(false);
+      navigate(pendingRedirection, { replace: true });
+    } catch (err) {
+      setPasswordSetupError("Failed to set password. Please try again.");
+    } finally {
+      setSetupLoading(false);
+    }
+  };
+
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       const response = await api.post("auth/google/", {
@@ -129,10 +152,13 @@ const RegisterWizard = () => {
 
       // Fetch user role for redirection
       const userRes = await api.get("me/");
-      if (userRes.data.is_staff) {
-        navigate("/admin");
+      const targetPath = userRes.data.is_staff ? "/admin" : "/dashboard";
+
+      if (response.data.needs_password) {
+        setPendingRedirection(targetPath);
+        setShowPasswordSetup(true);
       } else {
-        navigate("/dashboard");
+        navigate(targetPath, { replace: true });
       }
     } catch (err) {
       setError("Google Sign In failed.");
@@ -283,6 +309,94 @@ const RegisterWizard = () => {
           </Link>
         </Text>
       </Box>
+
+      <AnimatePresence>
+        {showPasswordSetup && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "rgba(10, 15, 30, 0.85)",
+              backdropFilter: "blur(20px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+              padding: "1.5rem",
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              style={{
+                width: "100%",
+                maxWidth: "400px",
+                background: "var(--color-dropdown-bg, #0d1326)",
+                border: "1px solid var(--color-card-border, rgba(255,255,255,0.1))",
+                borderRadius: "1.5rem",
+                padding: "2.25rem",
+                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "1.25rem",
+              }}
+            >
+              <VStack align="start" gap={2}>
+                <Heading size="md" fontWeight="black" color="white" letterSpacing="tight">
+                  Set Account Password
+                </Heading>
+                <Text fontSize="xs" color="var(--color-text-muted, #9ca3af)">
+                  Set a password for your account so you can also log in using your email and password later.
+                </Text>
+              </VStack>
+
+              {passwordSetupError && (
+                <Text color="red.400" fontSize="xs" fontWeight="medium">
+                  {passwordSetupError}
+                </Text>
+              )}
+
+              <Box w="100%">
+                <Text fontSize="2xs" fontWeight="bold" color="var(--color-text-muted, #9ca3af)" mb={1.5} letterSpacing="wider">
+                  NEW PASSWORD
+                </Text>
+                <Input
+                  type="password"
+                  placeholder="Enter secure password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  style={{
+                    background: "rgba(255,255,255,0.03)",
+                    borderColor: "var(--color-card-border, rgba(255,255,255,0.1))",
+                    color: "white",
+                  }}
+                />
+              </Box>
+
+              <Button
+                onClick={handleGooglePasswordSubmit}
+                loading={setupLoading}
+                style={{
+                  background: "linear-gradient(135deg, var(--color-accent) 0%, #60a5fa 100%)",
+                  color: "white",
+                  fontWeight: "bold",
+                  borderRadius: "0.75rem",
+                  width: "100%",
+                }}
+              >
+                SAVE PASSWORD
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Box>
   );
 };

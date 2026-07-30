@@ -21,6 +21,7 @@ import {
   FileText,
   Sun,
   Moon,
+  Menu,
 } from "lucide-react";
 
 import { useNavigate, useLocation } from "react-router-dom";
@@ -134,6 +135,48 @@ const NavItem = ({ icon: Icon, label, active, onClick, badgeCount }) => {
   );
 };
 
+const MobileNavItem = ({ icon: Icon, label, active, onClick, badgeCount }) => (
+  <motion.button
+    onClick={onClick}
+    whileTap={{ scale: 0.98 }}
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      width: "100%",
+      padding: "0.75rem 1rem",
+      borderRadius: "0.5rem",
+      border: "none",
+      background: active ? "var(--color-card-border)" : "transparent",
+      color: active ? "var(--color-text-primary)" : "var(--color-text-secondary)",
+      fontSize: "0.85rem",
+      fontWeight: active ? 700 : 500,
+      cursor: "pointer",
+      textAlign: "left",
+      transition: "all 0.2s",
+    }}
+  >
+    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+      <Icon size={16} />
+      <span>{label}</span>
+    </div>
+    {badgeCount > 0 && (
+      <span
+        style={{
+          background: "#ef4444",
+          color: "white",
+          borderRadius: "9999px",
+          fontSize: "8px",
+          fontWeight: "bold",
+          padding: "2px 6px",
+        }}
+      >
+        {badgeCount}
+      </span>
+    )}
+  </motion.button>
+);
+
 const MenuLink = ({ icon: Icon, label, onClick, danger = false }) => (
   <button
     onClick={onClick}
@@ -179,6 +222,7 @@ const Navbar = () => {
   const [user, setUser] = useState(null);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -406,7 +450,7 @@ const Navbar = () => {
         </motion.span>
 
         {/* ── Center Nav Items ── */}
-        <nav style={{ display: "flex", alignItems: "center", gap: "0.15rem" }}>
+        <nav className="display-desktop" style={{ alignItems: "center", gap: "0.15rem" }}>
           <NavItem
             icon={Home}
             label="Home"
@@ -800,6 +844,7 @@ const Navbar = () => {
             <AnimatePresence>
               {isProfileOpen && (
                 <motion.div
+                  className="profile-dropdown-card"
                   initial={{ opacity: 0, y: 12, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 8, scale: 0.95 }}
@@ -807,8 +852,6 @@ const Navbar = () => {
                   style={{
                     position: "absolute",
                     top: "calc(100% + 0.75rem)",
-                    right: 0,
-                    width: "290px",
                     zIndex: 2000,
                     borderRadius: "1rem",
                     overflow: "hidden",
@@ -980,8 +1023,68 @@ const Navbar = () => {
               )}
             </AnimatePresence>
           </div>
+
+          {/* Mobile Menu Toggle Button */}
+          <div className="display-mobile">
+            <motion.button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              style={{
+                width: "34px",
+                height: "34px",
+                borderRadius: "9999px",
+                border: "1px solid var(--color-card-border)",
+                background: "var(--color-glass)",
+                cursor: "pointer",
+                padding: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "var(--color-text-secondary)",
+                flexShrink: 0,
+              }}
+            >
+              {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+            </motion.button>
+          </div>
         </div>
       </div>
+
+      {/* ── Mobile Menu Dropdown list ── */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            style={{
+              position: "absolute",
+              top: "100%",
+              left: 0,
+              right: 0,
+              background: "var(--color-dropdown-bg)",
+              backdropFilter: "blur(24px)",
+              borderBottom: "1px solid var(--color-card-border)",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+              padding: "1rem",
+              display: "flex",
+              flexDirection: "column",
+              gap: "0.5rem",
+              zIndex: 999,
+            }}
+            className="display-mobile"
+          >
+            <MobileNavItem icon={Home} label="Home" active={location.pathname === "/dashboard"} onClick={() => { navigate("/dashboard"); setIsMobileMenuOpen(false); }} />
+            <MobileNavItem icon={Users} label="Network" active={location.pathname === "/network"} onClick={() => { navigate("/network"); setIsMobileMenuOpen(false); }} />
+            <MobileNavItem icon={Briefcase} label="Jobs" active={location.pathname === "/jobs"} onClick={() => { navigate("/jobs"); setIsMobileMenuOpen(false); }} />
+            <MobileNavItem icon={FileText} label="RFPs" active={location.pathname === "/rfps"} onClick={() => { navigate("/rfps"); setIsMobileMenuOpen(false); }} />
+            <MobileNavItem icon={ClipboardList} label="Applications" active={location.pathname === "/my-applications"} onClick={() => { navigate("/my-applications"); setIsMobileMenuOpen(false); }} />
+            <MobileNavItem icon={MessageSquare} label="Chats" active={location.pathname === "/messages"} onClick={() => { navigate("/messages"); setIsMobileMenuOpen(false); }} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.header>
   );
 };

@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.routers import DefaultRouter
 from .views import (
-    SendOTPView, VerifyOTPView, RegisterUserView, GoogleLoginView, 
+    SendOTPView, VerifyOTPView, RegisterUserView, GoogleLoginView, SetPasswordView,
     PrivacyPolicyView, UserProfileView, ExperienceViewSet, EducationViewSet, PortfolioProjectViewSet,
     CompanyViewSet, PublicProfileView, UserSearchView, JobOpeningViewSet, JobApplicationViewSet,
     RFPViewSet, RFPInterestViewSet, JobPostPlanViewSet, NotificationViewSet, MessageViewSet,
@@ -34,6 +34,7 @@ urlpatterns = [
     path('auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/google/', GoogleLoginView.as_view(), name='google_login'),
+    path('auth/set-password/', SetPasswordView.as_view(), name='set_password'),
     path('privacy-policy/', PrivacyPolicyView.as_view(), name='privacy-policy'),
     path('me/', UserProfileView.as_view(), name='user_profile'),
     path('public-profile/<uuid:public_id>/', PublicProfileView.as_view(), name='public_profile'),

@@ -44,9 +44,9 @@ const PublicReviews = ({ reviews = [], average_rating = 0, reviews_count = 0, on
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7 }}
-              style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "2.5rem", padding: "2rem", borderRadius: "2rem", border: "1px solid var(--color-card-border)", background: "var(--color-glass)", backdropFilter: "blur(20px)", boxShadow: "0 20px 50px -15px rgba(0,0,0,0.5)" }}
+              className="reviews-summary-card"
             >
-              <div style={{ textAlign: "center", minWidth: "140px" }}>
+              <div className="reviews-summary-col1">
                 <div style={{ fontSize: "3.5rem", fontWeight: 900, color: "white", lineHeight: 1, fontFamily: "'Outfit', sans-serif" }}>{average_rating}</div>
                 <div style={{ display: "flex", justifyContent: "center", gap: "0.2rem", margin: "0.75rem 0" }}>
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -63,7 +63,7 @@ const PublicReviews = ({ reviews = [], average_rating = 0, reviews_count = 0, on
                 <div style={{ fontSize: "0.65rem", color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 800 }}>Average Rating</div>
               </div>
 
-              <div style={{ flex: 1, minWidth: "220px" }}>
+              <div className="reviews-summary-col2">
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                   {[5, 4, 3, 2, 1].map((ratingVal) => {
                     const count = reviews.filter(r => r.rating === ratingVal).length;
@@ -91,12 +91,7 @@ const PublicReviews = ({ reviews = [], average_rating = 0, reviews_count = 0, on
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: idx * 0.05 }}
-                  style={{
-                    padding: "1.75rem", borderRadius: "2rem", border: "1px solid var(--color-card-border)",
-                    background: "var(--color-glass)", backdropFilter: "blur(20px)",
-                    boxShadow: "0 10px 30px -10px rgba(0,0,0,0.5)",
-                    display: "flex", flexDirection: "column", gap: "1rem"
-                  }}
+                  className="public-review-card"
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: "1rem" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.85rem" }}>

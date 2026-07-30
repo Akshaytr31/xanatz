@@ -743,168 +743,253 @@ const TimelineChart = ({ experiences, handleOpen }) => {
   ];
 
   return (
-    <Box position="relative" minW="800px" minH={`${220 + maxLevel * 70}px`} mt={4}>
-      {experiencesWithLevels.map((exp, index) => {
-        let widthPercent = ((exp.endFraction - exp.startFraction) / totalYears) * 100;
-        if (widthPercent < (1.5 / 12 / totalYears) * 100) {
-          widthPercent = (1.5 / 12 / totalYears) * 100;
-        }
-        const color = colors[index % colors.length];
-        const glow = glowColors[index % glowColors.length];
-        const { leftPercent, level } = exp;
+    <>
+      {/* ── Desktop View ── */}
+      <Box display={{ base: "none", md: "block" }}>
+        <Box position="relative" minW="800px" minH={`${220 + maxLevel * 70}px`} mt={4}>
+          {experiencesWithLevels.map((exp, index) => {
+            let widthPercent = ((exp.endFraction - exp.startFraction) / totalYears) * 100;
+            if (widthPercent < (1.5 / 12 / totalYears) * 100) {
+              widthPercent = (1.5 / 12 / totalYears) * 100;
+            }
+            const color = colors[index % colors.length];
+            const glow = glowColors[index % glowColors.length];
+            const { leftPercent, level } = exp;
 
-        return (
-          <Box
-            key={exp.id}
-            position="absolute"
-            left={`${leftPercent}%`}
-            bottom="50px"
-            width={`${widthPercent}%`}
-            h="100%"
-          >
-            {/* Label Card */}
-            <MotionBox
-              position="absolute"
-              bottom={`${80 + level * 70}px`}
-              left="0"
-              zIndex={10}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <VStack
-                align="start"
-                gap={1.5}
-                p={3}
-                borderRadius="lg"
-                border="1px solid"
-                borderColor="var(--color-card-border)"
-                backdropFilter="blur(12px)"
-                minW="145px"
-                style={{
-                  background: "var(--color-surface)",
-                  boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
-                }}
+            return (
+              <Box
+                key={exp.id}
+                position="absolute"
+                left={`${leftPercent}%`}
+                bottom="50px"
+                width={`${widthPercent}%`}
+                h="100%"
               >
-                <HStack w="full" justify="space-between" align="center">
-                  <Text fontWeight="black" color="var(--color-text-primary)" fontSize="10px" letterSpacing="tight">
-                    {exp.company.toUpperCase()}
-                  </Text>
-                  <IconButton
-                    aria-label="Edit milestone"
-                    variant="ghost"
-                    size="xs"
-                    color="var(--color-text-muted)"
-                    h="16px"
-                    w="16px"
-                    minW="16px"
-                    _hover={{ color: "var(--color-text-primary)", bg: "var(--color-card-hover-bg)" }}
-                    onClick={() => handleOpen(exp)}
+                {/* Label Card */}
+                <MotionBox
+                  position="absolute"
+                  bottom={`${80 + level * 70}px`}
+                  left="0"
+                  zIndex={10}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <VStack
+                    align="start"
+                    gap={1.5}
+                    p={3}
+                    borderRadius="lg"
+                    border="1px solid"
+                    borderColor="var(--color-card-border)"
+                    backdropFilter="blur(12px)"
+                    minW="145px"
+                    style={{
+                      background: "var(--color-surface)",
+                      boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
+                    }}
                   >
-                    <Edit2 size={10} />
-                  </IconButton>
-                </HStack>
-                <Text color="var(--color-accent)" fontSize="9px" fontWeight="bold" lineHeight="1.2">
-                  {exp.title}
-                </Text>
-              </VStack>
-            </MotionBox>
+                    <HStack w="full" justify="space-between" align="center">
+                      <Text fontWeight="black" color="var(--color-text-primary)" fontSize="10px" letterSpacing="tight">
+                        {exp.company.toUpperCase()}
+                      </Text>
+                      <IconButton
+                        aria-label="Edit milestone"
+                        variant="ghost"
+                        size="xs"
+                        color="var(--color-text-muted)"
+                        h="16px"
+                        w="16px"
+                        minW="16px"
+                        _hover={{ color: "var(--color-text-primary)", bg: "var(--color-card-hover-bg)" }}
+                        onClick={() => handleOpen(exp)}
+                      >
+                        <Edit2 size={10} />
+                      </IconButton>
+                    </HStack>
+                    <Text color="var(--color-accent)" fontSize="9px" fontWeight="bold" lineHeight="1.2">
+                      {exp.title}
+                    </Text>
+                  </VStack>
+                </MotionBox>
 
-            {/* Connector Line */}
-            <Box
-              position="absolute"
-              left="0"
-              bottom="20px"
-              height={`${65 + level * 70}px`}
-              borderLeft="2px solid"
-              style={{ borderLeftColor: "var(--color-accent)", opacity: 0.5 }}
-              _after={{
-                content: '""',
-                position: "absolute",
-                top: 0,
-                left: "-4px",
-                width: "6px",
-                height: "6px",
-                borderRadius: "full",
-                bg: "var(--color-accent)",
-              }}
-            />
-
-            {/* Timeline Bar */}
-            <MotionBox
-              position="absolute"
-              bottom="0"
-              left="0"
-              w="100%"
-              h="14px"
-              borderRadius="md"
-              zIndex={2}
-              initial={{ width: 0 }}
-              animate={{ width: "100%" }}
-              transition={{ duration: 1, delay: index * 0.1 }}
-              style={{ background: color, boxShadow: `0 0 18px ${glow}` }}
-            />
-          </Box>
-        );
-      })}
-
-      {/* Background Track */}
-      <Box
-        position="absolute"
-        bottom="50px"
-        left="0"
-        w="100%"
-        h="14px"
-        borderRadius="md"
-        zIndex={1}
-        style={{ background: "var(--color-card-bg)", border: "1px solid var(--color-card-border)" }}
-      />
-
-      {/* Axis Bar */}
-      <Flex
-        position="absolute"
-        bottom="0"
-        left="0"
-        w="100%"
-        h="34px"
-        align="stretch"
-        borderRadius="md"
-        border="1px solid"
-        borderColor="var(--color-card-border)"
-        overflow="hidden"
-        style={{ background: "var(--color-card-bg)" }}
-      >
-        {years.map((year, index) => (
-          <Box
-            key={year}
-            flex={1}
-            position="relative"
-            borderRight={index < years.length - 1 ? "1px solid" : "none"}
-            borderColor="var(--color-card-border)"
-          >
-            {/* Month sub-ticks */}
-            <Flex position="absolute" top="0" left="0" w="100%" h="100%">
-              {Array.from({ length: 12 }).map((_, mIndex) => (
+                {/* Connector Line */}
                 <Box
-                  key={mIndex}
-                  flex={1}
-                  borderRight={mIndex < 11 ? "1px solid" : "none"}
-                  borderColor="var(--color-card-border)"
-                  opacity={0.4}
+                  position="absolute"
+                  left="0"
+                  bottom="20px"
+                  height={`${65 + level * 70}px`}
+                  borderLeft="2px solid"
+                  style={{ borderLeftColor: "var(--color-accent)", opacity: 0.5 }}
+                  _after={{
+                    content: '""',
+                    position: "absolute",
+                    top: 0,
+                    left: "-4px",
+                    width: "6px",
+                    height: "6px",
+                    borderRadius: "full",
+                    bg: "var(--color-accent)",
+                  }}
                 />
-              ))}
-            </Flex>
 
-            {/* Year Label */}
-            <Flex position="absolute" top="0" left="0" w="100%" h="100%" align="center" justify="center">
-              <Text fontSize="xs" fontWeight="black" color="var(--color-text-muted)" letterSpacing="widest" zIndex={1}>
-                {year}
-              </Text>
-            </Flex>
-          </Box>
-        ))}
-      </Flex>
-    </Box>
+                {/* Timeline Bar */}
+                <MotionBox
+                  position="absolute"
+                  bottom="0"
+                  left="0"
+                  w="100%"
+                  h="14px"
+                  borderRadius="md"
+                  zIndex={2}
+                  initial={{ width: 0 }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: 1, delay: index * 0.1 }}
+                  style={{ background: color, boxShadow: `0 0 18px ${glow}` }}
+                />
+              </Box>
+            );
+          })}
+
+          {/* Background Track */}
+          <Box
+            position="absolute"
+            bottom="50px"
+            left="0"
+            w="100%"
+            h="14px"
+            borderRadius="md"
+            zIndex={1}
+            style={{ background: "var(--color-card-bg)", border: "1px solid var(--color-card-border)" }}
+          />
+
+          {/* Axis Bar */}
+          <Flex
+            position="absolute"
+            bottom="0"
+            left="0"
+            w="100%"
+            h="34px"
+            align="stretch"
+            borderRadius="md"
+            border="1px solid"
+            borderColor="var(--color-card-border)"
+            overflow="hidden"
+            style={{ background: "var(--color-card-bg)" }}
+          >
+            {years.map((year, index) => (
+              <Box
+                key={year}
+                flex={1}
+                position="relative"
+                borderRight={index < years.length - 1 ? "1px solid" : "none"}
+                borderColor="var(--color-card-border)"
+              >
+                {/* Month sub-ticks */}
+                <Flex position="absolute" top="0" left="0" w="100%" h="100%">
+                  {Array.from({ length: 12 }).map((_, mIndex) => (
+                    <Box
+                      key={mIndex}
+                      flex={1}
+                      borderRight={mIndex < 11 ? "1px solid" : "none"}
+                      borderColor="var(--color-card-border)"
+                      opacity={0.4}
+                    />
+                  ))}
+                </Flex>
+
+                {/* Year Label */}
+                <Flex position="absolute" top="0" left="0" w="100%" h="100%" align="center" justify="center">
+                  <Text fontSize="xs" fontWeight="black" color="var(--color-text-muted)" letterSpacing="widest" zIndex={1}>
+                    {year}
+                  </Text>
+                </Flex>
+              </Box>
+            ))}
+          </Flex>
+        </Box>
+      </Box>
+
+      {/* ── Mobile View ── */}
+      <Box display={{ base: "block", md: "none" }} mt={4} position="relative" pl={6}>
+        {/* Vertical line track */}
+        <Box
+          position="absolute"
+          left="3"
+          top="2"
+          bottom="2"
+          w="2px"
+          bg="var(--color-card-border)"
+          style={{ opacity: 0.5 }}
+        />
+
+        <VStack gap={5} align="stretch">
+          {experiencesWithLevels.map((exp, index) => {
+            const startDateStr = new Date(exp.start_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
+            const endDateStr = exp.current || !exp.end_date ? "Present" : new Date(exp.end_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
+
+            return (
+              <Box key={exp.id} position="relative">
+                {/* Node dot on vertical line */}
+                <Box
+                  position="absolute"
+                  left="-22px"
+                  top="16px"
+                  w="10px"
+                  h="10px"
+                  borderRadius="full"
+                  bg="var(--color-accent)"
+                  border="2px solid var(--color-primary)"
+                  boxShadow="0 0 8px var(--color-accent)"
+                  zIndex={3}
+                />
+
+                {/* Milestone Card */}
+                <Box
+                  p={4}
+                  borderRadius="xl"
+                  border="1px solid var(--color-card-border)"
+                  style={{
+                    background: "var(--color-glass)",
+                    backdropFilter: "blur(12px)",
+                  }}
+                  _hover={{ borderColor: "rgba(59,130,246,0.3)" }}
+                >
+                  <HStack w="full" justify="space-between" align="start" mb={1}>
+                    <VStack align="start" gap={0.5}>
+                      <Text fontWeight="black" color="var(--color-text-primary)" fontSize="xs" letterSpacing="tight">
+                        {exp.company.toUpperCase()}
+                      </Text>
+                      <Text color="var(--color-accent)" fontSize="xs" fontWeight="bold">
+                        {exp.title}
+                      </Text>
+                    </VStack>
+                    <IconButton
+                      aria-label="Edit milestone"
+                      variant="ghost"
+                      size="xs"
+                      color="var(--color-text-muted)"
+                      _hover={{ color: "var(--color-text-primary)", bg: "var(--color-card-hover-bg)" }}
+                      onClick={() => handleOpen(exp)}
+                    >
+                      <Edit2 size={12} />
+                    </IconButton>
+                  </HStack>
+                  <Text color="var(--color-text-muted)" fontSize="2xs" fontWeight="medium">
+                    {startDateStr} — {endDateStr}
+                  </Text>
+                  {exp.description && (
+                    <Text color="var(--color-text-secondary)" fontSize="2xs" mt={2} lineHeight="1.6">
+                      {exp.description}
+                    </Text>
+                  )}
+                </Box>
+              </Box>
+            );
+          })}
+        </VStack>
+      </Box>
+    </>
   );
 };
 

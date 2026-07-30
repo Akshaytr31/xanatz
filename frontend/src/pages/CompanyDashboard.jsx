@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Box, Flex, Text, Button, VStack, HStack, Container, Spinner, Badge, Grid, GridItem } from "@chakra-ui/react";
-import { Building2, ArrowLeft, Globe, MapPin, Users, Calendar, Link2, AtSign, Settings2, Briefcase, TrendingUp, Award, ExternalLink, Plus, FileText, CreditCard, Zap, Share2, Check, Star, Flag, ShieldAlert, CheckCircle2, HelpCircle, Edit, Trash2, ChevronDown } from "lucide-react";
+import { Building2, ArrowLeft, Globe, MapPin, Users, Calendar, Link2, AtSign, Settings2, Briefcase, TrendingUp, Award, ExternalLink, Plus, FileText, CreditCard, Zap, Share2, Check, Star, Flag, ShieldAlert, CheckCircle2, HelpCircle, Edit, Trash2, ChevronDown, MessageSquare } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import FlagConfirmationModal from "../components/FlagConfirmationModal";
@@ -99,6 +99,18 @@ const CompanyDashboard = () => {
   const [expandedFaqId, setExpandedFaqId] = useState(null);
   const [copied, setCopied] = useState(false);
   const [reviewTab, setReviewTab] = useState("employee");
+  const reviewsTabsRef = useRef(null);
+
+  useEffect(() => {
+    if (reviewsTabsRef.current) {
+      if (reviewTab === "employee") {
+        reviewsTabsRef.current.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        reviewsTabsRef.current.scrollTo({ left: reviewsTabsRef.current.scrollWidth, behavior: "smooth" });
+      }
+    }
+  }, [reviewTab]);
+
   const [flagModal, setFlagModal] = useState({
     isOpen: false,
     reviewId: null,
@@ -1030,19 +1042,33 @@ const CompanyDashboard = () => {
                 border="1px solid var(--color-card-border)"
                 style={{ background: "var(--color-surface)" }}
               >
-                <HStack justify="space-between" mb={6} borderBottom="1px solid var(--color-card-border)" pb={4}>
-                  <HStack gap={4}>
-                    <Button
-                      variant="link"
+                <Flex
+                  justify="space-between"
+                  align="center"
+                  mb={6}
+                  borderBottom="1px solid var(--color-card-border)"
+                  pb={2}
+                  w="full"
+                >
+                  <div ref={reviewsTabsRef} className="scrollable-tabs-container">
+                    <motion.button
                       onClick={() => setReviewTab("employee")}
-                      style={{
+                      animate={{
+                        scale: reviewTab === "employee" ? 1.05 : 0.96,
                         color: reviewTab === "employee" ? "white" : "var(--color-text-muted)",
+                      }}
+                      transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                      style={{
+                        background: "none",
+                        border: "none",
                         fontWeight: "black",
                         fontSize: "11px",
                         letterSpacing: "0.1em",
-                        textDecoration: "none",
                         position: "relative",
-                        paddingBottom: "4px"
+                        paddingBottom: "4px",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
                       }}
                     >
                       EMPLOYEE REVIEWS
@@ -1050,21 +1076,28 @@ const CompanyDashboard = () => {
                         <Text as="span" fontSize="10px" fontWeight="bold" style={{ color: reviewTab === "employee" ? accentColor : "var(--color-text-muted)" }}>{company.employee_reviews_count || 0}</Text>
                       </Box>
                       {reviewTab === "employee" && (
-                        <Box position="absolute" bottom="-5px" left="0" right="0" h="2px" bg={accentColor} />
+                        <motion.div layoutId="dashboardReviewsTabUnderline" style={{ position: "absolute", bottom: "-5px", left: 0, right: 0, height: "2px", backgroundColor: accentColor }} />
                       )}
-                    </Button>
+                    </motion.button>
 
-                    <Button
-                      variant="link"
+                    <motion.button
                       onClick={() => setReviewTab("partner")}
-                      style={{
+                      animate={{
+                        scale: reviewTab === "partner" ? 1.05 : 0.96,
                         color: reviewTab === "partner" ? "white" : "var(--color-text-muted)",
+                      }}
+                      transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                      style={{
+                        background: "none",
+                        border: "none",
                         fontWeight: "black",
                         fontSize: "11px",
                         letterSpacing: "0.1em",
-                        textDecoration: "none",
                         position: "relative",
-                        paddingBottom: "4px"
+                        paddingBottom: "4px",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
                       }}
                     >
                       CLIENT & PARTNER REVIEWS
@@ -1072,11 +1105,11 @@ const CompanyDashboard = () => {
                         <Text as="span" fontSize="10px" fontWeight="bold" style={{ color: reviewTab === "partner" ? accentColor : "var(--color-text-muted)" }}>{company.partner_reviews_count || 0}</Text>
                       </Box>
                       {reviewTab === "partner" && (
-                        <Box position="absolute" bottom="-5px" left="0" right="0" h="2px" bg={accentColor} />
+                        <motion.div layoutId="dashboardReviewsTabUnderline" style={{ position: "absolute", bottom: "-5px", left: 0, right: 0, height: "2px", backgroundColor: accentColor }} />
                       )}
-                    </Button>
-                  </HStack>
-                </HStack>
+                    </motion.button>
+                  </div>
+                </Flex>
 
                 {(() => {
                   const activeReviews = reviewTab === "employee" ? (company.employee_reviews || []) : (company.partner_reviews || []);
@@ -1089,9 +1122,9 @@ const CompanyDashboard = () => {
                   if (activeCount === 0) {
                     return (
                       <Flex direction="column" align="center" py={8} gap={3}>
-                        <Box w="60px" h="60px" borderRadius="xl" display="flex" alignItems="center" justify="center"
+                        <Box w="60px" h="60px" borderRadius="xl" display="flex" alignItems="center" justifyContent="center"
                           style={{ background: "var(--color-card-bg)", border: "1px solid var(--color-card-border)" }}>
-                          <Star size={22} color="var(--color-text-muted)" />
+                          <MessageSquare size={22} color="var(--color-text-muted)" style={{ display: "block", margin: "auto" }} />
                         </Box>
                         <Text color="var(--color-text-muted)" fontSize="sm" fontWeight="medium">{noReviewsMsg}</Text>
                       </Flex>

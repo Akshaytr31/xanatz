@@ -40,6 +40,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { INDUSTRY_LABELS } from "../components/company/JobOpeningModal";
 import AIEnhancedTextarea from "../components/AIEnhancedTextarea";
+import api, { backendUrl } from "../api";
 
 const MotionBox = motion.create(Box);
 const MotionFlex = motion.create(Flex);

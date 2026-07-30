@@ -108,8 +108,23 @@ class GoogleLoginView(APIView):
                 "email": user.email,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
-            }
+            },
+            "needs_password": not user.password or user.password == '' or user.password.startswith('!') or not user.has_usable_password()
         }, status=status.HTTP_200_OK)
+
+
+class SetPasswordView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        password = request.data.get('password')
+        if not password:
+            return Response({"error": "Password is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user = request.user
+        user.set_password(password)
+        user.save()
+        return Response({"success": "Password set successfully"}, status=status.HTTP_200_OK)
 
 
 class PrivacyPolicyView(APIView):
