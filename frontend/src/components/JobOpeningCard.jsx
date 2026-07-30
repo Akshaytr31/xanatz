@@ -40,8 +40,8 @@ const MetaBadges = ({ job }) => (
     )}
     {job.salary_range && (
       <HStack gap={1} fontSize="10px" color="var(--color-text-muted)">
-        <DollarSign size={10} />
-        <Text>{job.salary_range}</Text>
+        <Text fontSize="9px" fontWeight="black" color="var(--color-text-muted)" style={{ marginRight: '1px' }}>AED</Text>
+        <Text>{job.salary_range.replace(/[$₹]/g, '')}</Text>
       </HStack>
     )}
   </HStack>

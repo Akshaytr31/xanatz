@@ -374,7 +374,7 @@ const PricingPlansModal = ({
                                 style={{ color: colors.primary }}
                                 lineHeight="1"
                               >
-                                ₹{Math.floor(parseFloat(plan.price))}
+                                AED {Math.floor(parseFloat(plan.price))}
                               </Text>
                               <Text
                                 fontSize="xs"

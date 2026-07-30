@@ -1249,8 +1249,8 @@ const JobCard = ({
           )}
           {job.salary_range && (
             <HStack gap={1} fontSize="xs" color="var(--color-text-muted)">
-              <DollarSign size={12} color="var(--color-text-muted)" />
-              <Text>{job.salary_range}</Text>
+              <Text fontSize="10px" fontWeight="black" color="var(--color-text-muted)" style={{ marginRight: '1px' }}>AED</Text>
+              <Text>{job.salary_range.replace(/[$₹]/g, '')}</Text>
             </HStack>
           )}
         </HStack>

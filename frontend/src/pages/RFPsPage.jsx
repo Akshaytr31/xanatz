@@ -450,9 +450,9 @@ const RFPsPage = () => {
                             )}
                             {rfp.budget && (
                               <HStack gap={1.5} px={3} py={1.5} borderRadius="lg" bg="rgba(16, 185, 129, 0.08)" border="1px solid rgba(16, 185, 129, 0.15)">
-                                <DollarSign size={13} color="#10b981" />
+                                <Text color="#10b981" fontSize="9px" fontWeight="black" style={{ marginRight: '1px' }}>AED</Text>
                                 <Text color="#10b981" fontSize="3xs" fontWeight="black" letterSpacing="wider">
-                                  BUDGET: {rfp.budget.toUpperCase()}
+                                  BUDGET: {rfp.budget.replace(/[$₹]/g, '').toUpperCase()}
                                 </Text>
                               </HStack>
                             )}
@@ -713,9 +713,9 @@ const RFPsPage = () => {
                   <HStack gap={3} pt={1} wrap="wrap">
                     {selectedRfp.budget && (
                       <HStack gap={1}>
-                        <DollarSign size={12} color="#10b981" />
+                        <Text color="#10b981" fontSize="9px" fontWeight="black" style={{ marginRight: '1px' }}>AED</Text>
                         <Text color="#10b981" fontSize="3xs" fontWeight="black" letterSpacing="wider">
-                          BUDGET: {selectedRfp.budget.toUpperCase()}
+                          BUDGET: {selectedRfp.budget.replace(/[$₹]/g, '').toUpperCase()}
                         </Text>
                       </HStack>
                     )}

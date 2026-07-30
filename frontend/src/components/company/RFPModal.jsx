@@ -279,13 +279,13 @@ const RFPModal = ({ isOpen, onClose, companyId, rfp, onSaved }) => {
                       <Box position="relative">
                         <Input
                           {...fieldStyle}
-                          pl="10"
+                          pl="12"
                           value={form.budget}
                           onChange={setE("budget")}
-                          placeholder="Ex: $15,000 - $25,000"
+                          placeholder="Ex: AED 15,000 - 25,000"
                         />
                         <Box position="absolute" left="3" top="50%" transform="translateY(-50%)" pointerEvents="none">
-                          <DollarSign size={14} color="var(--color-text-muted)" />
+                          <Text fontSize="10px" fontWeight="black" color="var(--color-text-muted)">AED</Text>
                         </Box>
                       </Box>
                     </Box>

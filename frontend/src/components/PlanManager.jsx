@@ -235,7 +235,7 @@ const PlanManager = () => {
                           </Text>
                         </HStack>
                         <Text fontSize="xs" color="var(--color-text-muted)">
-                          Price: ₹{plan.price} • Max Jobs: {plan.max_jobs} • Duration: {plan.job_duration_days} days
+                          Price: AED {plan.price} • Max Jobs: {plan.max_jobs} • Duration: {plan.job_duration_days} days
                         </Text>
                         {plan.description && (
                           <Text fontSize="2xs" color="whiteAlpha.600">
@@ -370,7 +370,7 @@ const PlanManager = () => {
 
             <Grid templateColumns="1fr 1fr 1fr" gap={3}>
               <Box>
-                <Text {...labelStyle}>PRICE (INR) *</Text>
+                <Text {...labelStyle}>PRICE (AED) *</Text>
                 <Input
                   {...fieldStyle}
                   type="number"

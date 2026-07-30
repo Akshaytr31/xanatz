@@ -158,22 +158,24 @@ const ManageRFPsPage = () => {
   const getCurrencySymbol = (list) => {
     for (const r of list) {
       if (!r.budget) continue;
-      if (r.budget.includes("₹")) return "₹";
-      if (r.budget.includes("$")) return "$";
-      if (r.budget.includes("Rs")) return "Rs. ";
+      if (r.budget.includes("AED")) return "AED ";
+      if (r.budget.includes("₹")) return "AED ";
+      if (r.budget.includes("$")) return "AED ";
+      if (r.budget.includes("Rs")) return "AED ";
     }
-    return "$";
+    return "AED ";
   };
 
   const formatCurrency = (value, symbol) => {
-    if (!value) return `${symbol}0`;
+    const activeSymbol = "AED ";
+    if (!value) return `${activeSymbol}0`;
     if (value >= 1.0e6) {
-      return `${symbol}${(value / 1.0e6).toFixed(1)}M`;
+      return `${activeSymbol}${(value / 1.0e6).toFixed(1)}M`;
     }
     if (value >= 1.0e3) {
-      return `${symbol}${(value / 1.0e3).toFixed(1)}K`;
+      return `${activeSymbol}${(value / 1.0e3).toFixed(1)}K`;
     }
-    return `${symbol}${Math.round(value).toLocaleString()}`;
+    return `${activeSymbol}${Math.round(value).toLocaleString()}`;
   };
 
   const activeRfps = rfps.filter((r) => r.is_active);
@@ -262,9 +264,9 @@ const ManageRFPsPage = () => {
                   <HStack gap={4} wrap="wrap">
                     {rfp.budget && (
                       <HStack gap={1}>
-                        <DollarSign size={11} color="#10b981" />
+                        <Text color="#10b981" fontSize="9px" fontWeight="black" style={{ marginRight: '1px' }}>AED</Text>
                         <Text color="#10b981" fontSize="3xs" fontWeight="black" letterSpacing="wider">
-                          BUDGET: {rfp.budget}
+                          BUDGET: {rfp.budget.replace(/[$₹]/g, '')}
                         </Text>
                       </HStack>
                     )}

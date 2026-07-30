@@ -697,8 +697,8 @@ const ApplyJobPage = () => {
                             fontSize="sm"
                             color="var(--color-text-secondary)"
                           >
-                            <DollarSign size={16} color={accentColor} />
-                            <Text>{job.salary_range}</Text>
+                            <Text fontSize="xs" fontWeight="black" color={accentColor} style={{ marginRight: '1px' }}>AED</Text>
+                            <Text>{job.salary_range.replace(/[$₹]/g, '')}</Text>
                           </HStack>
                         )}
                       </HStack>
@@ -1111,8 +1111,8 @@ const ApplyJobPage = () => {
                         fontSize="xs"
                         color="var(--color-text-muted)"
                       >
-                        <DollarSign size={13} color={accentColor} />
-                        <Text>{job.salary_range}</Text>
+                        <Text fontSize="10px" fontWeight="black" color={accentColor} style={{ marginRight: '1px' }}>AED</Text>
+                        <Text>{job.salary_range.replace(/[$₹]/g, '')}</Text>
                       </HStack>
                     )}
                   </HStack>

@@ -51,7 +51,7 @@ const FreelancerDashboard = () => {
   // Settings Form State
   const [settingsForm, setSettingsForm] = useState({
     hourly_rate: "",
-    freelancer_currency: "USD",
+    freelancer_currency: "AED",
     freelancer_availability: "available",
     headline: "",
     about: "",
@@ -80,7 +80,7 @@ const FreelancerDashboard = () => {
       const profile = response.data.profile || {};
       setSettingsForm({
         hourly_rate: profile.hourly_rate || "",
-        freelancer_currency: profile.freelancer_currency || "USD",
+        freelancer_currency: profile.freelancer_currency || "AED",
         freelancer_availability: profile.freelancer_availability || "available",
         headline: profile.headline || "",
         about: profile.about || "",
@@ -430,12 +430,11 @@ const FreelancerDashboard = () => {
                         _focus={{ borderColor: "var(--color-accent-purple)", boxShadow: "0 0 0 1px var(--color-accent-purple)" }}
                         style={{ background: "var(--color-surface)" }}
                       >
+                        <option value="AED" style={{ background: "var(--color-surface)", color: "white" }}>AED (Dhs)</option>
                         <option value="USD" style={{ background: "var(--color-surface)", color: "white" }}>USD ($)</option>
                         <option value="INR" style={{ background: "var(--color-surface)", color: "white" }}>INR (₹)</option>
                         <option value="EUR" style={{ background: "var(--color-surface)", color: "white" }}>EUR (€)</option>
                         <option value="GBP" style={{ background: "var(--color-surface)", color: "white" }}>GBP (£)</option>
-                        <option value="CAD" style={{ background: "var(--color-surface)", color: "white" }}>CAD ($)</option>
-                        <option value="AUD" style={{ background: "var(--color-surface)", color: "white" }}>AUD ($)</option>
                       </Box>
                     </Box>
                   </Flex>

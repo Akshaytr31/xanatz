@@ -726,13 +726,13 @@ const JobOpeningModal = ({ isOpen, onClose, companyId, company, job, onSaved, on
                       <Box position="relative">
                         <Input
                           {...fieldStyle}
-                          pl="10"
+                          pl="12"
                           value={form.salary_range}
                           onChange={setE("salary_range")}
-                          placeholder="Ex: $120k - $150k"
+                          placeholder="Ex: AED 12k - 15k"
                         />
                         <Box position="absolute" left="3" top="50%" transform="translateY(-50%)" pointerEvents="none">
-                          <DollarSign size={14} color="var(--color-text-muted)" />
+                          <Text fontSize="10px" fontWeight="black" color="var(--color-text-muted)">AED</Text>
                         </Box>
                       </Box>
                     </Box>

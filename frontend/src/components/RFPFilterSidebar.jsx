@@ -221,10 +221,10 @@ const sortOptions = [
 ];
 
 const budgetOptions = [
-  { value: "under-10k", label: "Under $10,000" },
-  { value: "10k-50k", label: "$10,000 - $50,000" },
-  { value: "50k-100k", label: "$50,000 - $100,000" },
-  { value: "over-100k", label: "Over $100,000" },
+  { value: "under-10k", label: "Under AED 10,000" },
+  { value: "10k-50k", label: "AED 10,000 - 50,000" },
+  { value: "50k-100k", label: "AED 50,000 - 100,000" },
+  { value: "over-100k", label: "Over AED 100,000" },
 ];
 
 const dateOptions = [

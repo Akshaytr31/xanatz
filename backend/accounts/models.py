@@ -445,7 +445,7 @@ class JobPostPlan(models.Model):
         ordering = ['price']
 
     def __str__(self):
-        return f"{self.display_name} - ₹{self.price}"
+        return f"{self.display_name} - AED {self.price}"
 
 
 class CompanySubscription(models.Model):

@@ -616,13 +616,15 @@ const PublicHero = ({
                   }}
                 >
                   <Sparkles size={11} />
-                  {profile.freelancer_currency === "INR"
-                    ? "₹"
-                    : profile.freelancer_currency === "EUR"
-                      ? "€"
-                      : profile.freelancer_currency === "GBP"
-                        ? "£"
-                        : "$"}
+                  {profile.freelancer_currency === "AED"
+                    ? "AED "
+                    : profile.freelancer_currency === "INR"
+                      ? "₹"
+                      : profile.freelancer_currency === "EUR"
+                        ? "€"
+                        : profile.freelancer_currency === "GBP"
+                          ? "£"
+                          : "$"}
                   {parseFloat(profile.hourly_rate)} / hr
                 </motion.div>
               )}

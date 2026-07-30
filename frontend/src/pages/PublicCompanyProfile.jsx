@@ -824,7 +824,7 @@ const PublicCompanyProfile = () => {
                         )}
                         {job.salary_range && (
                           <div style={{ fontSize: "0.75rem", fontWeight: "bold", color: "#4ade80" }}>
-                            {job.salary_range}
+                            AED {job.salary_range.replace(/[$₹]/g, '')}
                           </div>
                         )}
                       </div>
