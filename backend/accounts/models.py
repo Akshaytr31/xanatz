@@ -247,6 +247,7 @@ class Company(models.Model):
     founded_year = models.PositiveIntegerField(blank=True, null=True)
     linkedin_url = models.URLField(blank=True, null=True)
     twitter_url = models.URLField(blank=True, null=True)
+    rfp_response_days = models.PositiveIntegerField(default=5)
     is_active = models.BooleanField(default=True)
     creator = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_companies')
     members = models.ManyToManyField(User, through='CompanyMember', related_name='companies', blank=True)

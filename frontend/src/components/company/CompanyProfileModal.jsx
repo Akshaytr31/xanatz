@@ -28,6 +28,7 @@ import {
   Upload,
   X,
   Save,
+  ChevronDown,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api, { backendUrl } from "../../api";
@@ -81,36 +82,107 @@ const labelStyle = {
   mb: "2",
 };
 
-const SelectField = ({ value, onChange, options, placeholder }) => (
-  <Box
-    as="select"
-    value={value || ""}
-    onChange={(e) => onChange(e.target.value)}
-    style={{
-      background: "var(--color-glass)",
-      color: value ? "white" : "var(--color-card-border)",
-      height: "44px",
-      borderRadius: "lg",
-      border: "1px solid var(--color-card-border)",
-      fontSize: "14px",
-      padding: "0 16px",
-      width: "100%",
-      outline: "none",
-      cursor: "pointer",
-      appearance: "none",
-      WebkitAppearance: "none",
-    }}
-  >
-    <option value="" disabled style={{ background: "#0f172a" }}>
-      {placeholder}
-    </option>
-    {options.map((opt) => (
-      <option key={opt.value} value={opt.value} style={{ background: "#0f172a", color: "white" }}>
-        {opt.label}
-      </option>
-    ))}
-  </Box>
-);
+const SelectField = ({ value, onChange, options, placeholder }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  const selectedOption = options.find((opt) => String(opt.value) === String(value));
+
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
+  return (
+    <Box ref={containerRef} position="relative" w="100%">
+      <Flex
+        onClick={() => setIsOpen(!isOpen)}
+        align="center"
+        justify="space-between"
+        px="4"
+        style={{
+          background: "var(--color-glass)",
+          color: selectedOption ? "white" : "var(--color-text-secondary)",
+          height: "44px",
+          borderRadius: "var(--chakra-radii-lg)",
+          border: "1px solid var(--color-card-border)",
+          fontSize: "14px",
+          cursor: "pointer",
+          userSelect: "none",
+          transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
+        _hover={{
+          borderColor: "rgba(255, 255, 255, 0.25)",
+          background: "rgba(255, 255, 255, 0.03)"
+        }}
+      >
+        <Text fontSize="sm" truncate>
+          {selectedOption ? selectedOption.label : placeholder}
+        </Text>
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.2, ease: "easeInOut" }}
+          style={{ display: "inline-flex" }}
+        >
+          <ChevronDown size={14} color="var(--color-text-muted)" />
+        </motion.div>
+      </Flex>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -8, scale: 0.95 }}
+            animate={{ opacity: 1, y: 4, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.95 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            style={{
+              position: "absolute",
+              top: "100%",
+              left: 0,
+              right: 0,
+              zIndex: 9999,
+              background: "#0f172a",
+              border: "1px solid var(--color-card-border)",
+              borderRadius: "8px",
+              boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5)",
+              overflow: "hidden",
+              padding: "4px"
+            }}
+          >
+            {options.map((opt) => (
+              <Box
+                key={opt.value}
+                onClick={() => {
+                  onChange(opt.value);
+                  setIsOpen(false);
+                }}
+                px="4"
+                py="2.5"
+                borderRadius="md"
+                cursor="pointer"
+                fontSize="sm"
+                color="white"
+                transition="all 0.15s ease"
+                _hover={{ background: "rgba(255, 255, 255, 0.08)" }}
+                style={{
+                  background: String(value) === String(opt.value) ? "rgba(255, 255, 255, 0.04)" : "transparent",
+                  fontWeight: String(value) === String(opt.value) ? "bold" : "normal"
+                }}
+              >
+                {opt.label}
+              </Box>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Box>
+  );
+};
 
 const CompanyProfileModal = ({ isOpen, onClose, company, onSaved }) => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -130,6 +202,7 @@ const CompanyProfileModal = ({ isOpen, onClose, company, onSaved }) => {
     website: "",
     linkedin_url: "",
     twitter_url: "",
+    rfp_response_days: 5,
   });
 
   // Populate form when company changes
@@ -146,6 +219,7 @@ const CompanyProfileModal = ({ isOpen, onClose, company, onSaved }) => {
         website: company.website || "",
         linkedin_url: company.linkedin_url || "",
         twitter_url: company.twitter_url || "",
+        rfp_response_days: company.rfp_response_days || 5,
       });
       setLogoPreview(company.logo_url || null);
       setLogoFile(null);
@@ -362,7 +436,7 @@ const CompanyProfileModal = ({ isOpen, onClose, company, onSaved }) => {
               </Box>
 
               {/* ─── Tab Body ─── */}
-              <Box px={8} py={7} maxH="60vh" overflowY="auto">
+              <Box px={8} pt={7} pb={28} maxH="60vh" overflowY="auto">
                 <AnimatePresence mode="wait">
                   {activeTab === "overview" && (
                     <MotionBox
@@ -464,22 +538,37 @@ const CompanyProfileModal = ({ isOpen, onClose, company, onSaved }) => {
                           </Box>
                         </Flex>
 
-                        {/* Website */}
-                        <Box>
-                          <Text {...labelStyle}>WEBSITE</Text>
-                          <Box position="relative">
-                            <Input
-                              {...fieldStyle}
-                              pl="10"
-                              value={form.website}
-                              onChange={setE("website")}
-                              placeholder="https://yourcompany.com"
-                            />
-                            <Box position="absolute" left="3" top="50%" transform="translateY(-50%)" pointerEvents="none">
-                              <Globe size={14} color="var(--color-text-muted)" />
+                        {/* Website & RFP Response Time suggestion */}
+                        <Flex gap={4} direction={{ base: "column", sm: "row" }}>
+                          <Box flex={1}>
+                            <Text {...labelStyle}>WEBSITE</Text>
+                            <Box position="relative">
+                              <Input
+                                {...fieldStyle}
+                                pl="10"
+                                value={form.website}
+                                onChange={setE("website")}
+                                placeholder="https://yourcompany.com"
+                              />
+                              <Box position="absolute" left="3" top="50%" transform="translateY(-50%)" pointerEvents="none">
+                                <Globe size={14} color="var(--color-text-muted)" />
+                              </Box>
                             </Box>
                           </Box>
-                        </Box>
+                          <Box flex={1}>
+                            <Text {...labelStyle}>RFP RESPONSE TIME SUGGESTION</Text>
+                            <SelectField
+                              value={form.rfp_response_days}
+                              onChange={set("rfp_response_days")}
+                              options={[
+                                { value: 5, label: "5 Days" },
+                                { value: 10, label: "10 Days" },
+                                { value: 30, label: "30 Days" }
+                              ]}
+                              placeholder="Select response time..."
+                            />
+                          </Box>
+                        </Flex>
                       </VStack>
                     </MotionBox>
                   )}

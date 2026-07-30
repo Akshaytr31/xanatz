@@ -304,7 +304,7 @@ class CompanySerializer(serializers.ModelSerializer):
         fields = [
             'id', 'company_id', 'public_id', 'name', 'tagline', 'description', 'logo', 'logo_url',
             'website', 'industry', 'company_size', 'location', 'founded_year',
-            'linkedin_url', 'twitter_url', 'is_active',
+            'linkedin_url', 'twitter_url', 'rfp_response_days', 'is_active',
             'creator', 'creator_name', 'members', 'members_details',
             'active_subscription', 'user_permissions', 'created_at', 'updated_at',
             'reviews', 'average_rating', 'reviews_count',

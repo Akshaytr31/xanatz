@@ -672,6 +672,15 @@ class RFPInterestViewSet(viewsets.ModelViewSet):
                     target_url=f"/company/{company.id}/rfp-interests"
                 )
 
+        # Notify the expressing freelancer with response time
+        response_days = company.rfp_response_days or 5
+        Notification.objects.create(
+            recipient=self.request.user,
+            sender=company.creator if company.creator else None,
+            message=f"Thank you for expressing interest in RFP '{rfp.title}'. Usually, the company responds in {response_days} days.",
+            target_url=f"/rfps/{rfp.id}"
+        )
+
     def perform_update(self, serializer):
         old_instance = self.get_object()
         new_instance = serializer.save()
