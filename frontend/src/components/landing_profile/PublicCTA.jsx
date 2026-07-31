@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Mail, ArrowUpRight, Sparkles } from "lucide-react";
+import { Mail, ArrowUpRight, Handshake } from "lucide-react";
 
 const PublicCTA = ({ email }) => {
   return (
@@ -33,7 +33,7 @@ const PublicCTA = ({ email }) => {
             {/* Badge */}
             <motion.div initial={{ opacity: 0, scale: 0.85 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: 0.1 }}
               style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.4rem 1rem", borderRadius: "9999px", marginBottom: "1.75rem", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", fontSize: "0.68rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", color: "#60a5fa" }}>
-              <Sparkles size={11} /> Let's Collaborate
+              <Handshake size={13} /> Let's Collaborate
             </motion.div>
 
             {/* Headline */}

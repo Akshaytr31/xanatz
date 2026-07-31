@@ -26,7 +26,6 @@ import Navbar from "../components/Navbar";
 import api, { backendUrl } from "../api";
 import { useNavigate } from "react-router-dom";
 import {
-  Sparkles,
   ExternalLink,
   Plus,
   Edit,

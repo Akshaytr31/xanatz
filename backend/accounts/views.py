@@ -127,6 +127,54 @@ class SetPasswordView(APIView):
         return Response({"success": "Password set successfully"}, status=status.HTTP_200_OK)
 
 
+class ForgotPasswordSendOTPView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email')
+        if not email:
+            return Response({"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Verify user exists
+        if not User.objects.filter(email=email).exists():
+            return Response({"error": "No account is registered with this email address."}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = SendOTPSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Password reset OTP sent successfully"}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ResetPasswordWithOTPView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email')
+        otp_code = request.data.get('otp')
+        password = request.data.get('password')
+
+        if not email or not otp_code or not password:
+            return Response({"error": "Email, OTP, and password are required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Verify user exists
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({"error": "No user found with this email"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Find the OTP - it's already been verified in step 2, so look for is_verified=True
+        otp_instance = OTP.objects.filter(email=email, otp=otp_code, is_verified=True).order_by('-created_at').first()
+        if not otp_instance or not otp_instance.is_valid():
+            return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Update user password
+        user.set_password(password)
+        user.save()
+
+        return Response({"message": "Password reset successfully"}, status=status.HTTP_200_OK)
+
+
 class PrivacyPolicyView(APIView):
     permission_classes = [permissions.AllowAny]
     def get(self, request):

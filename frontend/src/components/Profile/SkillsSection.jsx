@@ -10,7 +10,7 @@ import {
   Circle,
   Button,
 } from "@chakra-ui/react";
-import { Plus, X, Zap, Sparkles } from "lucide-react";
+import { Plus, X, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../api";
 
@@ -144,7 +144,7 @@ const SkillsSection = ({ user, onUpdate }) => {
                   _hover={{ borderColor: "yellow.400/50", bg: "var(--color-card-hover-bg)" }}
                   cursor="default"
                 >
-                  <Sparkles size={10} className="text-yellow-400" />
+                  <Zap size={10} className="text-yellow-400" />
                   <Text letterSpacing="wider">{skill.toUpperCase()}</Text>
                   <Box
                     as="span"

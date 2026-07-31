@@ -29,7 +29,7 @@ import {
   Building2,
   User,
   Mail,
-  Sparkles,
+  Tags,
   UploadCloud,
   Trash2,
   Flag,
@@ -1250,7 +1250,7 @@ const ApplyJobPage = () => {
                       {/* Section 2: Professional Profile */}
                       <VStack align="stretch" gap={4} pt={4} borderTop="1px solid var(--color-card-border)">
                         <HStack gap={2} mb={1}>
-                          <Sparkles size={16} color={accentColor} />
+                          <User size={16} color={accentColor} />
                           <Text fontSize="xs" fontWeight="black" color="var(--color-text-primary)" letterSpacing="wider" textTransform="uppercase">
                             Professional Profile
                           </Text>
@@ -1316,7 +1316,7 @@ const ApplyJobPage = () => {
                               }}
                               transition="all 0.2s"
                             >
-                              <Sparkles size={14} color="var(--color-text-muted)" />
+                              <Tags size={14} color="var(--color-text-muted)" />
                               <Input
                                 placeholder="e.g. React, Python, Django, SQL (comma separated)"
                                 variant="unstyled"

@@ -14,7 +14,6 @@ import {
   Zap,
   Crown,
   Rocket,
-  Sparkles,
   CreditCard,
   ArrowRight,
 } from "lucide-react";
@@ -314,7 +313,7 @@ const PricingPlansModal = ({
                             }}
                           >
                             <HStack gap={1}>
-                              <Sparkles size={10} color="white" />
+                              <Crown size={10} color="white" />
                               <Text
                                 fontSize="8px"
                                 fontWeight="black"

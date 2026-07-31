@@ -4,7 +4,7 @@ import {
 } from "@chakra-ui/react";
 import {
   ArrowLeft, FileText, Calendar, Clock, AlertCircle, Building2,
-  ChevronRight, Sparkles, CheckCircle2, Search, Link2, ExternalLink
+  ChevronRight, CheckCircle2, Search, Link2, ExternalLink
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";

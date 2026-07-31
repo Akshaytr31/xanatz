@@ -10,7 +10,7 @@ import CompanySection from "../components/company/CompanySection";
 import CreateCompanySection from "../components/company/CreateCompanySection";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
-import { Building2, ChevronDown, ArrowRightLeft, Sparkles, Briefcase } from "lucide-react";
+import { Building2, ChevronDown, ArrowRightLeft, LayoutDashboard, Briefcase } from "lucide-react";
 
 const MotionBox = motion.create(Box);
 const MotionVStack = motion.create(VStack);
@@ -243,7 +243,7 @@ const Profile = () => {
                         }}
                         transition="all 0.2s"
                       >
-                        <Sparkles size={14} style={{ marginRight: "8px" }} />
+                        <LayoutDashboard size={14} style={{ marginRight: "8px" }} />
                         FREELANCER DASHBOARD
                       </Button>
                     </>

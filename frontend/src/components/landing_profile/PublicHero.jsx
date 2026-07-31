@@ -4,10 +4,10 @@ import {
   Globe,
   ArrowUpRight,
   ChevronDown,
-  Sparkles,
   Briefcase,
   ShieldCheck,
   Award,
+  DollarSign,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { backendUrl } from "../../api";
@@ -144,7 +144,7 @@ const PublicHero = ({
                     color: "#c084fc",
                   }}
                 >
-                  <Sparkles size={10} color="#c084fc" strokeWidth={2.5} />
+                  <Briefcase size={10} color="#c084fc" strokeWidth={2.5} />
                   Freelancer
                 </span>
               )}
@@ -615,7 +615,7 @@ const PublicHero = ({
                     border: "1px solid rgba(255,255,255,0.15)",
                   }}
                 >
-                  <Sparkles size={11} />
+                  <DollarSign size={11} />
                   {profile.freelancer_currency === "AED"
                     ? "AED "
                     : profile.freelancer_currency === "INR"

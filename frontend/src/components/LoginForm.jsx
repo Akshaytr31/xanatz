@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Link as RouterLink, useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
@@ -19,13 +19,101 @@ import GoogleLoginButton from "./GoogleLoginButton";
 const LoginForm = () => {
   const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showSetupPassword, setShowSetupPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showForgotConfirmPassword, setShowForgotConfirmPassword] = useState(false);
   const [showPasswordSetup, setShowPasswordSetup] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [passwordSetupError, setPasswordSetupError] = useState("");
   const [setupLoading, setSetupLoading] = useState(false);
   const [pendingRedirection, setPendingRedirection] = useState("");
+
+  // Forgot Password States
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotStep, setForgotStep] = useState(1); // 1: Email, 2: OTP, 3: Password fields
+  const [forgotOtp, setForgotOtp] = useState("");
+  const [forgotPassword, setForgotPassword] = useState("");
+  const [forgotConfirmPassword, setForgotConfirmPassword] = useState("");
+  const [forgotError, setForgotError] = useState("");
+  const [forgotSuccess, setForgotSuccess] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleForgotSendOTP = async () => {
+    if (!forgotEmail.trim()) {
+      setForgotError("Email is required.");
+      return;
+    }
+    setForgotLoading(true);
+    setForgotError("");
+    try {
+      await api.post("auth/forgot-password/", { email: forgotEmail });
+      setForgotStep(2);
+    } catch (err) {
+      setForgotError(err.response?.data?.error || "Failed to send reset code. Please try again.");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleForgotVerifyOTP = async () => {
+    if (!forgotOtp.trim()) {
+      setForgotError("OTP code is required.");
+      return;
+    }
+    setForgotLoading(true);
+    setForgotError("");
+    try {
+      await api.post("auth/verify-otp/", { email: forgotEmail, otp: forgotOtp });
+      setForgotStep(3);
+    } catch (err) {
+      setForgotError(err.response?.data?.otp?.[0] || err.response?.data?.error || "Invalid or expired OTP code.");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleForgotResetPassword = async () => {
+    if (!forgotPassword || !forgotConfirmPassword) {
+      setForgotError("Password fields are required.");
+      return;
+    }
+    if (forgotPassword !== forgotConfirmPassword) {
+      setForgotError("Passwords do not match.");
+      return;
+    }
+    if (forgotPassword.length < 8) {
+      setForgotError("Password must be at least 8 characters long.");
+      return;
+    }
+    setForgotLoading(true);
+    setForgotError("");
+    try {
+      await api.post("auth/reset-password/", {
+        email: forgotEmail,
+        otp: forgotOtp,
+        password: forgotPassword,
+      });
+      setForgotSuccess("Password reset successfully! You can now log in.");
+      setTimeout(() => {
+        setShowForgotModal(false);
+        setForgotEmail("");
+        setForgotOtp("");
+        setForgotPassword("");
+        setForgotConfirmPassword("");
+        setForgotStep(1);
+        setForgotSuccess("");
+      }, 2500);
+    } catch (err) {
+      setForgotError(err.response?.data?.error || "Failed to reset password. Please try again.");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
 
   const handleChange = (e) =>
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -205,7 +293,7 @@ const LoginForm = () => {
               <Lock size={16} />
             </Box>
             <Input
-              type="password"
+              type={showLoginPassword ? "text" : "password"}
               name="password"
               placeholder="Password"
               required
@@ -215,7 +303,7 @@ const LoginForm = () => {
               borderRadius="lg"
               py="6"
               pl="11"
-              pr="4"
+              pr="11"
               color="white"
               fontSize="sm"
               _placeholder={{ color: "slate.600" }}
@@ -227,18 +315,44 @@ const LoginForm = () => {
               transition="all 0.5s"
               onChange={handleChange}
             />
+            <Box
+              as="button"
+              type="button"
+              onClick={() => setShowLoginPassword((v) => !v)}
+              position="absolute"
+              right="4"
+              top="50%"
+              transform="translateY(-50%)"
+              zIndex={1}
+              color="slate.500"
+              bg="none"
+              border="none"
+              cursor="pointer"
+              _hover={{ color: "white" }}
+            >
+              {showLoginPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </Box>
           </Box>
 
           <Flex w="full" justify="flex-end" px={1}>
             <Link
-              as={RouterLink}
-              to="#"
+              onClick={() => {
+                setForgotStep(1);
+                setForgotError("");
+                setForgotSuccess("");
+                setForgotEmail(credentials.email || "");
+                setForgotOtp("");
+                setForgotPassword("");
+                setForgotConfirmPassword("");
+                setShowForgotModal(true);
+              }}
               fontSize="0.7rem"
               fontWeight="bold"
               color="slate.500"
               _hover={{
                 color: "var(--color-accent)",
                 textDecoration: "none",
+                cursor: "pointer",
               }}
               transition="colors"
               letterSpacing="wide"
@@ -363,17 +477,37 @@ const LoginForm = () => {
                 <Text fontSize="2xs" fontWeight="bold" color="var(--color-text-muted, #9ca3af)" mb={1.5} letterSpacing="wider">
                   NEW PASSWORD
                 </Text>
-                <Input
-                  type="password"
-                  placeholder="Enter secure password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  style={{
-                    background: "rgba(255,255,255,0.03)",
-                    borderColor: "var(--color-card-border, rgba(255,255,255,0.1))",
-                    color: "white",
-                  }}
-                />
+                <Box position="relative">
+                  <Input
+                    type={showSetupPassword ? "text" : "password"}
+                    placeholder="Enter secure password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    style={{
+                      background: "rgba(255,255,255,0.03)",
+                      borderColor: "var(--color-card-border, rgba(255,255,255,0.1))",
+                      color: "white",
+                      paddingRight: "2.75rem",
+                    }}
+                  />
+                  <Box
+                    as="button"
+                    type="button"
+                    onClick={() => setShowSetupPassword((v) => !v)}
+                    position="absolute"
+                    right="12px"
+                    top="50%"
+                    transform="translateY(-50%)"
+                    zIndex={1}
+                    bg="none"
+                    border="none"
+                    cursor="pointer"
+                    color="#6b7280"
+                    _hover={{ color: "white" }}
+                  >
+                    {showSetupPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </Box>
+                </Box>
               </Box>
 
               <Button
@@ -389,6 +523,299 @@ const LoginForm = () => {
               >
                 SAVE PASSWORD
               </Button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showForgotModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "rgba(10, 15, 30, 0.85)",
+              backdropFilter: "blur(20px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+              padding: "1.5rem",
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              style={{
+                width: "100%",
+                maxWidth: "400px",
+                background: "var(--color-dropdown-bg, #0d1326)",
+                border: "1px solid var(--color-card-border, rgba(255,255,255,0.1))",
+                borderRadius: "1.5rem",
+                padding: "2.25rem",
+                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "1.25rem",
+                position: "relative",
+              }}
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setShowForgotModal(false)}
+                style={{
+                  position: "absolute",
+                  top: "1.25rem",
+                  right: "1.25rem",
+                  background: "none",
+                  border: "none",
+                  color: "#6b7280",
+                  fontSize: "1.25rem",
+                  cursor: "pointer",
+                }}
+              >
+                &times;
+              </button>
+
+              {forgotSuccess ? (
+                <VStack gap={4} py={4} textAlign="center">
+                  <Box style={{ background: "rgba(16, 185, 129, 0.1)", borderRadius: "50%", padding: "1rem" }}>
+                    <Text fontSize="2xl" color="green.400">✓</Text>
+                  </Box>
+                  <Heading size="sm" color="white" fontWeight="black">
+                    Success!
+                  </Heading>
+                  <Text fontSize="xs" color="var(--color-text-muted, #9ca3af)">
+                    {forgotSuccess}
+                  </Text>
+                </VStack>
+              ) : (
+                <>
+                  <VStack align="start" gap={1.5}>
+                    <Heading size="md" fontWeight="black" color="white" letterSpacing="tight">
+                      Reset Password
+                    </Heading>
+                    <Text fontSize="xs" color="var(--color-text-muted, #9ca3af)">
+                      {forgotStep === 1 && "Confirm your registered email to receive an OTP code to reset your password."}
+                      {forgotStep === 2 && "Enter the 6-digit verification code sent to your registered email."}
+                      {forgotStep === 3 && "Now choose a secure new password for your account."}
+                    </Text>
+                  </VStack>
+
+                  {forgotError && (
+                    <Text color="red.400" fontSize="xs" fontWeight="medium">
+                      {forgotError}
+                    </Text>
+                  )}
+
+                  {/* Step 1: Email Input */}
+                  {forgotStep === 1 && (
+                    <Box>
+                      <Text fontSize="2xs" fontWeight="bold" color="var(--color-text-muted, #9ca3af)" mb={1.5} letterSpacing="wider">
+                        EMAIL ADDRESS
+                      </Text>
+                      <Input
+                        type="email"
+                        placeholder="e.g. name@company.com"
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        style={{
+                          background: "rgba(255,255,255,0.03)",
+                          borderColor: "var(--color-card-border, rgba(255,255,255,0.1))",
+                          color: "white",
+                        }}
+                      />
+                    </Box>
+                  )}
+
+                  {/* Step 2: OTP Input */}
+                  {forgotStep === 2 && (
+                    <VStack gap={4} align="stretch" w="100%">
+                      <Box>
+                        <Text fontSize="2xs" fontWeight="bold" color="var(--color-text-muted, #9ca3af)" mb={1.5} letterSpacing="wider">
+                          EMAIL ADDRESS
+                        </Text>
+                        <Input
+                          type="email"
+                          value={forgotEmail}
+                          disabled
+                          style={{
+                            background: "rgba(255,255,255,0.02)",
+                            borderColor: "var(--color-card-border, rgba(255,255,255,0.05))",
+                            color: "#6b7280",
+                          }}
+                        />
+                      </Box>
+                      <Box>
+                        <Text fontSize="2xs" fontWeight="bold" color="var(--color-text-muted, #9ca3af)" mb={1.5} letterSpacing="wider">
+                          ENTER 6-DIGIT OTP CODE
+                        </Text>
+                        <Input
+                          type="text"
+                          placeholder="000000"
+                          maxLength={6}
+                          value={forgotOtp}
+                          onChange={(e) => setForgotOtp(e.target.value)}
+                          style={{
+                            background: "rgba(255,255,255,0.03)",
+                            borderColor: "var(--color-card-border, rgba(255,255,255,0.1))",
+                            color: "white",
+                            textAlign: "center",
+                            fontSize: "1.25rem",
+                            letterSpacing: "0.25em",
+                          }}
+                        />
+                      </Box>
+                    </VStack>
+                  )}
+
+                  {/* Step 3: Password Inputs */}
+                  {forgotStep === 3 && (
+                    <VStack gap={4} align="stretch" w="100%">
+                      <Box>
+                        <Text fontSize="2xs" fontWeight="bold" color="var(--color-text-muted, #9ca3af)" mb={1.5} letterSpacing="wider">
+                          NEW PASSWORD
+                        </Text>
+                        <Box position="relative">
+                          <Input
+                            type={showForgotPassword ? "text" : "password"}
+                            placeholder="Minimum 8 characters"
+                            value={forgotPassword}
+                            onChange={(e) => setForgotPassword(e.target.value)}
+                            style={{
+                              background: "rgba(255,255,255,0.03)",
+                              borderColor: "var(--color-card-border, rgba(255,255,255,0.1))",
+                              color: "white",
+                              paddingRight: "2.75rem",
+                            }}
+                          />
+                          <Box
+                            as="button"
+                            type="button"
+                            onClick={() => setShowForgotPassword((v) => !v)}
+                            position="absolute"
+                            right="12px"
+                            top="50%"
+                            transform="translateY(-50%)"
+                            zIndex={1}
+                            bg="none"
+                            border="none"
+                            cursor="pointer"
+                            color="#6b7280"
+                            _hover={{ color: "white" }}
+                          >
+                            {showForgotPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                          </Box>
+                        </Box>
+                      </Box>
+                      <Box>
+                        <Text fontSize="2xs" fontWeight="bold" color="var(--color-text-muted, #9ca3af)" mb={1.5} letterSpacing="wider">
+                          CONFIRM NEW PASSWORD
+                        </Text>
+                        <Box position="relative">
+                          <Input
+                            type={showForgotConfirmPassword ? "text" : "password"}
+                            placeholder="Re-enter password"
+                            value={forgotConfirmPassword}
+                            onChange={(e) => setForgotConfirmPassword(e.target.value)}
+                            style={{
+                              background: "rgba(255,255,255,0.03)",
+                              borderColor: "var(--color-card-border, rgba(255,255,255,0.1))",
+                              color: "white",
+                              paddingRight: "2.75rem",
+                            }}
+                          />
+                          <Box
+                            as="button"
+                            type="button"
+                            onClick={() => setShowForgotConfirmPassword((v) => !v)}
+                            position="absolute"
+                            right="12px"
+                            top="50%"
+                            transform="translateY(-50%)"
+                            zIndex={1}
+                            bg="none"
+                            border="none"
+                            cursor="pointer"
+                            color="#6b7280"
+                            _hover={{ color: "white" }}
+                          >
+                            {showForgotConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                          </Box>
+                        </Box>
+                      </Box>
+                    </VStack>
+                  )}
+
+                  {/* Action Buttons */}
+                  {forgotStep === 1 && (
+                    <Button
+                      onClick={handleForgotSendOTP}
+                      loading={forgotLoading}
+                      style={{
+                        background: "linear-gradient(135deg, var(--color-accent) 0%, #60a5fa 100%)",
+                        color: "white",
+                        fontWeight: "bold",
+                        borderRadius: "0.75rem",
+                        width: "100%",
+                      }}
+                    >
+                      SEND RESET CODE
+                    </Button>
+                  )}
+
+                  {forgotStep === 2 && (
+                    <VStack gap={2} w="100%">
+                      <Button
+                        onClick={handleForgotVerifyOTP}
+                        loading={forgotLoading}
+                        style={{
+                          background: "linear-gradient(135deg, var(--color-accent) 0%, #60a5fa 100%)",
+                          color: "white",
+                          fontWeight: "bold",
+                          borderRadius: "0.75rem",
+                          width: "100%",
+                        }}
+                      >
+                        VERIFY CODE
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => setForgotStep(1)}
+                        style={{
+                          color: "var(--color-text-muted)",
+                          fontSize: "0.75rem",
+                        }}
+                      >
+                        Change Email
+                      </Button>
+                    </VStack>
+                  )}
+
+                  {forgotStep === 3 && (
+                    <Button
+                      onClick={handleForgotResetPassword}
+                      loading={forgotLoading}
+                      style={{
+                        background: "linear-gradient(135deg, var(--color-accent) 0%, #60a5fa 100%)",
+                        color: "white",
+                        fontWeight: "bold",
+                        borderRadius: "0.75rem",
+                        width: "100%",
+                      }}
+                    >
+                      RESET PASSWORD
+                    </Button>
+                  )}
+                </>
+              )}
             </motion.div>
           </motion.div>
         )}

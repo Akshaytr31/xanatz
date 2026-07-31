@@ -1,5 +1,5 @@
 import React from "react";
-import { FolderGit2, ExternalLink, Sparkles } from "lucide-react";
+import { FolderGit2, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 import { backendUrl } from "../../api";
 

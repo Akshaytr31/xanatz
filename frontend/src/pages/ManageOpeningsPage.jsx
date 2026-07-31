@@ -34,7 +34,7 @@ import {
   ChevronDown,
   ChevronsLeft,
   ChevronsRight,
-  Sparkles,
+  BadgeCheck,
   Info,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -740,7 +740,7 @@ const ManageOpeningsPage = () => {
                               border: "1px solid rgba(59,130,246,0.2)",
                             }}
                           >
-                            <Sparkles size={16} color="#3b82f6" />
+                            <BadgeCheck size={16} color="#3b82f6" />
                           </Flex>
                           <VStack align="start" gap={0}>
                             <Text

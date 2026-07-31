@@ -1,5 +1,5 @@
 import React from "react";
-import { Sparkles, GraduationCap, BookOpen, Award } from "lucide-react";
+import { Code2, GraduationCap, BookOpen, Award } from "lucide-react";
 import { motion } from "framer-motion";
 
 const PublicExpertise = ({ skills, educations, experiencesCount }) => {
@@ -24,7 +24,7 @@ const PublicExpertise = ({ skills, educations, experiencesCount }) => {
           style={{ borderRadius: "1rem", padding: "1.5rem", marginBottom: "1rem", position: "relative", overflow: "hidden", background: "var(--color-glass)", border: "1px solid var(--color-card-border)", backdropFilter: "blur(20px)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1.25rem" }}>
             <div style={{ width: "36px", height: "36px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: "linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.2))", border: "1px solid rgba(59,130,246,0.25)" }}>
-              <Sparkles size={16} color="#60a5fa" />
+              <Code2 size={16} color="#60a5fa" />
             </div>
             <div>
               <p style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900, fontSize: "1rem", color: "white" }}>Technical Arsenal</p>
