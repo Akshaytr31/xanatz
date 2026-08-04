@@ -1172,6 +1172,24 @@ class AIEnhanceView(APIView):
         
         return Response({"enhanced_text": enhanced_text}, status=status.HTTP_200_OK)
 
+class AdminStatsView(APIView):
+    """Returns key platform statistics for the admin dashboard."""
+    permission_classes = [permissions.IsAdminUser]
 
-
+    def get(self, request):
+        total_users = User.objects.count()
+        total_companies = Company.objects.count()
+        active_jobs = JobOpening.objects.filter(is_active=True).count()
+        flagged_count = (
+            CompanyReview.objects.filter(is_flagged=True).count() +
+            FreelancerReview.objects.filter(is_flagged=True).count() +
+            JobOpening.objects.filter(is_flagged=True).count() +
+            RFP.objects.filter(is_flagged=True).count()
+        )
+        return Response({
+            "total_users": total_users,
+            "total_companies": total_companies,
+            "active_jobs": active_jobs,
+            "flagged_count": flagged_count,
+        }, status=status.HTTP_200_OK)
 
