@@ -1100,7 +1100,7 @@ const CompanyDashboard = () => {
                         alignItems: "center",
                       }}
                     >
-                      CLIENT & PARTNER REVIEWS
+                      CLIENT REVIEWS
                       <Box as="span" ml={2} px={2} py={0.5} borderRadius="full" style={{ background: reviewTab === "partner" ? `${accentColor}15` : "rgba(255,255,255,0.05)", border: reviewTab === "partner" ? `1px solid ${accentColor}30` : "1px solid transparent" }}>
                         <Text as="span" fontSize="10px" fontWeight="bold" style={{ color: reviewTab === "partner" ? accentColor : "var(--color-text-muted)" }}>{company.partner_reviews_count || 0}</Text>
                       </Box>

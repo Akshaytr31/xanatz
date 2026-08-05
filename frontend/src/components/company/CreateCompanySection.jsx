@@ -123,7 +123,7 @@ const EMPTY_FORM = {
   twitter_url: "",
 };
 
-const CreateCompanySection = ({ onCreated }) => {
+const CreateCompanySection = ({ onCreated, width, compact }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
@@ -184,30 +184,59 @@ const CreateCompanySection = ({ onCreated }) => {
   ];
 
   return (
-    <Box
-      className="glass-card"
-      p={5}
-      w="full"
-      border="1px solid"
-      borderColor="var(--color-accent)/30"
-    >
-      <Text color="whiteAlpha.500" fontSize="10px" fontWeight="black" letterSpacing="widest" mb={4}>
-        GOVERNANCE
-      </Text>
-      <Button
-        w="full"
-        bg="var(--color-accent)"
-        color="white"
-        h="10"
-        borderRadius="md"
-        fontWeight="black"
-        fontSize="xs"
-        letterSpacing="widest"
-        _hover={{ bg: "var(--color-accent)", transform: "translateY(-1px)", boxShadow: "0 4px 12px rgba(59, 130, 246, 0.4)" }}
+    <>
+      {/* ── Trigger Button ───────────────────────────────────── */}
+      <button
         onClick={handleOpen}
+        style={{
+          width: width || "100%",
+          padding: compact ? "7px 12px" : "9px 14px",
+          borderRadius: "10px",
+          background: "linear-gradient(135deg, rgba(59,130,246,0.14) 0%, rgba(139,92,246,0.12) 100%)",
+          border: "1px solid rgba(59,130,246,0.28)",
+          color: "#93c5fd",
+          cursor: "pointer",
+          fontSize: compact ? "11px" : "12px",
+          fontWeight: 700,
+          letterSpacing: "0.4px",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "8px",
+          boxShadow: "0 2px 10px rgba(59,130,246,0.12)",
+          transition: "all 0.22s cubic-bezier(0.22, 1, 0.36, 1)",
+          boxSizing: "border-box",
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = "linear-gradient(135deg, rgba(59,130,246,0.26) 0%, rgba(139,92,246,0.22) 100%)";
+          e.currentTarget.style.borderColor = "rgba(59,130,246,0.5)";
+          e.currentTarget.style.boxShadow = "0 4px 18px rgba(59,130,246,0.28)";
+          e.currentTarget.style.transform = "translateY(-1px)";
+          e.currentTarget.style.color = "#ffffff";
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = "linear-gradient(135deg, rgba(59,130,246,0.14) 0%, rgba(139,92,246,0.12) 100%)";
+          e.currentTarget.style.borderColor = "rgba(59,130,246,0.28)";
+          e.currentTarget.style.boxShadow = "0 2px 10px rgba(59,130,246,0.12)";
+          e.currentTarget.style.transform = "translateY(0)";
+          e.currentTarget.style.color = "#93c5fd";
+        }}
       >
-        <Plus size={14} style={{ marginRight: "6px" }} /> CREATE ORGANIZATION
-      </Button>
+        <div style={{
+          width: compact ? "18px" : "22px",
+          height: compact ? "18px" : "22px",
+          borderRadius: "6px",
+          background: "rgba(59,130,246,0.25)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          flexShrink: 0,
+        }}>
+          <Plus size={compact ? 12 : 14} color="#60a5fa" strokeWidth={2.5} />
+        </div>
+        <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          Create Organization
+        </span>
+      </button>
+
 
       {/* ─── Dialog ─── */}
       <Dialog open={isDialogOpen} onOpenChange={(e) => !e.open && handleClose()} size="xl">
@@ -620,8 +649,9 @@ const CreateCompanySection = ({ onCreated }) => {
           </DialogPositioner>
         </Portal>
       </Dialog>
-    </Box>
+    </>
   );
 };
+
 
 export default CreateCompanySection;

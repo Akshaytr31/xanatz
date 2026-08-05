@@ -1127,7 +1127,7 @@ const PublicCompanyProfile = () => {
                   position: "relative",
                 }}
               >
-                Client & Partner Reviews
+                Client Reviews
                 <span style={{ padding: "0.15rem 0.4rem", borderRadius: "0.25rem", fontSize: "0.6rem", fontWeight: 900, background: reviewTab === "partner" ? `${accentColor}20` : "rgba(255,255,255,0.05)", color: reviewTab === "partner" ? accentColor : "#6b7280", marginLeft: "0.5rem" }}>
                   {company.partner_reviews_count || 0}
                 </span>

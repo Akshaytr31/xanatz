@@ -21,13 +21,14 @@ import {
   Separator,
   Tooltip,
 } from "@chakra-ui/react";
-import { motion } from "framer-motion";
-import { Briefcase, Edit2, Plus, Trash2, Calendar, Target, Star } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Briefcase, Edit2, Plus, Trash2, Calendar, Target, Star, ChevronDown } from "lucide-react";
 import api from "../../api";
 
 const MotionBox = motion.create(Box);
 
 const CareerTimeline = ({ user, onUpdate }) => {
+  const [isExpanded, setIsExpanded] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -106,13 +107,13 @@ const CareerTimeline = ({ user, onUpdate }) => {
     if (item) {
       setEditingItem(item);
       setFormData({
-        company: item.company,
-        title: item.title,
+        company: item.company || "",
+        title: item.title || "",
         location: item.location || "",
         company_website: item.company_website || "",
-        start_date: item.start_date,
+        start_date: item.start_date || "",
         end_date: item.end_date || "",
-        current: item.current,
+        current: item.current || false,
         description: item.description || "",
       });
     } else {
@@ -131,12 +132,17 @@ const CareerTimeline = ({ user, onUpdate }) => {
     setIsDialogOpen(true);
   };
 
+  const handleClose = () => {
+    setIsDialogOpen(false);
+    setEditingItem(null);
+  };
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({ ...formData, [name]: type === "checkbox" ? checked : value });
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
     const today = new Date().toISOString().split("T")[0];
 
     if (!formData.title || !formData.company || !formData.start_date) {
@@ -247,8 +253,14 @@ const CareerTimeline = ({ user, onUpdate }) => {
   return (
     <Box className="glass-card" p={{ base: 5, md: 8 }} mt={6} position="relative">
       {/* ── Section Header ── */}
-      <Flex justify="space-between" align="center" mb={8}>
-        <HStack gap={3}>
+      <Flex justify="space-between" align="center" mb={isExpanded ? 8 : 0} transition="all 0.3s">
+        <HStack
+          gap={3}
+          cursor="pointer"
+          onClick={() => setIsExpanded(!isExpanded)}
+          _hover={{ opacity: 0.9 }}
+          transition="opacity 0.2s"
+        >
           <Box
             p={2}
             borderRadius="md"
@@ -259,61 +271,119 @@ const CareerTimeline = ({ user, onUpdate }) => {
             <Target size={20} />
           </Box>
           <VStack align="start" gap={0}>
-            <Text
-              fontSize="lg"
-              fontWeight="black"
-              color="var(--color-text-primary)"
-              letterSpacing="tight"
-              fontFamily="var(--font-heading)"
-            >
-              CAREER ARCHITECTURE
-            </Text>
+            <HStack gap={2}>
+              <Text
+                fontSize="lg"
+                fontWeight="black"
+                color="var(--color-text-primary)"
+                letterSpacing="tight"
+                fontFamily="var(--font-heading)"
+              >
+                CAREER ARCHITECTURE
+              </Text>
+              {!isExpanded && (
+                <Box
+                  px={2.5}
+                  py={0.5}
+                  borderRadius="full"
+                  fontSize="10px"
+                  fontWeight="800"
+                  color="#60a5fa"
+                  bg="rgba(59,130,246,0.12)"
+                  border="1px solid rgba(59,130,246,0.25)"
+                >
+                  {experiences.length} {experiences.length === 1 ? "Milestone" : "Milestones"}
+                </Box>
+              )}
+            </HStack>
             <Text fontSize="10px" color="var(--color-text-muted)" fontWeight="bold" letterSpacing="widest">
               PROFESSIONAL MILESTONES &amp; GROWTH
             </Text>
           </VStack>
         </HStack>
 
-        <Button
-          bg="var(--color-accent)"
-          color="white"
-          size="xs"
-          borderRadius="md"
-          px={4}
-          h="8"
-          onClick={() => handleOpen()}
-          _hover={{ opacity: 0.9, transform: "translateY(-1px)" }}
-          transition="all 0.2s"
-          fontSize="10px"
-          fontWeight="black"
-        >
-          <Plus size={14} style={{ marginRight: "6px" }} /> NEW MILESTONE
-        </Button>
+        <HStack gap={2}>
+          <Button
+            bg="var(--color-accent)"
+            color="white"
+            size="xs"
+            borderRadius="md"
+            px={4}
+            h="8"
+            onClick={() => handleOpen()}
+            _hover={{ opacity: 0.9, transform: "translateY(-1px)" }}
+            transition="all 0.2s"
+            fontSize="10px"
+            fontWeight="black"
+          >
+            <Plus size={14} style={{ marginRight: "6px" }} /> NEW MILESTONE
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="xs"
+            h="8"
+            px={2.5}
+            borderRadius="md"
+            onClick={() => setIsExpanded(!isExpanded)}
+            color="var(--color-text-muted)"
+            _hover={{ color: "white", bg: "rgba(255,255,255,0.06)" }}
+            transition="all 0.2s"
+            fontSize="10px"
+            fontWeight="bold"
+            display="flex"
+            alignItems="center"
+            gap={1}
+            title={isExpanded ? "Shrink section" : "Expand section"}
+          >
+            <motion.div
+              animate={{ rotate: isExpanded ? 0 : -180 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              style={{ display: "flex", alignItems: "center" }}
+            >
+              <ChevronDown size={15} />
+            </motion.div>
+            <span>{isExpanded ? "SHRINK" : "EXPAND"}</span>
+          </Button>
+        </HStack>
       </Flex>
 
-      {/* ── Timeline Area ── */}
-      <Box
-        overflowX="auto"
-        pb={4}
-        css={{
-          "&::-webkit-scrollbar": { height: "6px" },
-          "&::-webkit-scrollbar-thumb": {
-            background: "var(--color-card-border)",
-            borderRadius: "10px",
-          },
-        }}
-      >
-        {experiences.length === 0 ? (
-          <Flex h="200px" align="center" justify="center" direction="column" gap={4}>
-            <Calendar size={48} color="var(--color-text-muted)" style={{ opacity: 0.25 }} />
-            <Text color="var(--color-text-muted)" fontWeight="medium">
-              Start building your career timeline...
-            </Text>
-          </Flex>
-        ) : (
-          <TimelineChart experiences={experiences} handleOpen={handleOpen} />
+      {/* ── Timeline Area (Collapsible) ── */}
+      <AnimatePresence initial={false}>
+        {isExpanded && (
+          <MotionBox
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            style={{ overflow: "hidden" }}
+          >
+            <Box
+              overflowX="auto"
+              pb={4}
+              pt={4}
+              css={{
+                "&::-webkit-scrollbar": { height: "6px" },
+                "&::-webkit-scrollbar-thumb": {
+                  background: "var(--color-card-border)",
+                  borderRadius: "10px",
+                },
+              }}
+            >
+              {experiences.length === 0 ? (
+                <Flex h="200px" align="center" justify="center" direction="column" gap={4}>
+                  <Calendar size={48} color="var(--color-text-muted)" style={{ opacity: 0.25 }} />
+                  <Text color="var(--color-text-muted)" fontWeight="medium">
+                    Start building your career timeline...
+                  </Text>
+                </Flex>
+              ) : (
+                <TimelineChart experiences={experiences} handleOpen={handleOpen} />
+              )}
+            </Box>
+          </MotionBox>
         )}
-      </Box>
+      </AnimatePresence>
 
       {/* ── Edit Modal ── */}
       <Dialog open={isDialogOpen} onOpenChange={(e) => setIsDialogOpen(e.open)} size="md">
