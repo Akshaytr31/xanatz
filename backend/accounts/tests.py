@@ -557,6 +557,41 @@ class RegistrationDuplicateEmailTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('email', response.data)
 
+    def test_user_not_created_during_otp_steps_only_on_final_submit(self):
+        new_email = 'newuser@example.com'
+        # Step 1: Send OTP
+        res1 = self.client.post('/api/auth/send-otp/', {'email': new_email})
+        self.assertEqual(res1.status_code, status.HTTP_200_OK)
+        self.assertFalse(User.objects.filter(email=new_email).exists())
+
+        # Step 2: Verify OTP
+        from .models import OTP
+        otp_obj = OTP.objects.filter(email=new_email).order_by('-created_at').first()
+        res2 = self.client.post('/api/auth/verify-otp/', {
+            'email': new_email,
+            'otp': otp_obj.otp
+        })
+        self.assertEqual(res2.status_code, status.HTTP_200_OK)
+        # User MUST STILL NOT exist in User table
+        self.assertFalse(User.objects.filter(email=new_email).exists())
+
+        # Step 4: Final Submit
+        res3 = self.client.post('/api/auth/register/', {
+            'email': new_email,
+            'password': 'Password123!',
+            'confirm_password': 'Password123!',
+            'first_name': 'New',
+            'last_name': 'User',
+            'accepted_privacy_policy': True
+        })
+        self.assertEqual(res3.status_code, status.HTTP_201_CREATED)
+        self.assertIn('tokens', res3.data)
+        self.assertIn('access', res3.data['tokens'])
+
+        # NOW the User instance MUST exist in User table
+        self.assertTrue(User.objects.filter(email=new_email).exists())
+
+
 
 
 
