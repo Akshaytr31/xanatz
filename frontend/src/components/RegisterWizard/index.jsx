@@ -63,9 +63,13 @@ const RegisterWizard = () => {
       await api.post("auth/send-otp/", { email: formData.email });
       nextStep();
     } catch (err) {
-      setError(
-        err.response?.data?.message || "Failed to send OTP. Email may exist.",
-      );
+      const errData = err.response?.data;
+      const errMsg =
+        errData?.email?.[0] ||
+        errData?.error ||
+        errData?.message ||
+        "Failed to send OTP. Email may already exist.";
+      setError(errMsg);
     } finally {
       setLoading(false);
     }

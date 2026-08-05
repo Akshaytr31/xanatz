@@ -67,6 +67,12 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['email', 'password', 'confirm_password', 'first_name', 'last_name', 'phone_number', 'accepted_privacy_policy']
 
+    def validate_email(self, value):
+        email = value.lower().strip()
+        if User.objects.filter(email__iexact=email).exists():
+            raise serializers.ValidationError("An account with this email address already exists.")
+        return email
+
     def validate(self, data):
         if data['password'] != data['confirm_password']:
             raise serializers.ValidationError({"password": "Passwords do not match."})
@@ -75,6 +81,9 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         
         # Check if email is verified via OTP
         email = data.get('email')
+        if User.objects.filter(email__iexact=email).exists():
+            raise serializers.ValidationError({"email": "An account with this email address already exists."})
+
         otp_instance = OTP.objects.filter(email=email, is_verified=True).order_by('-created_at').first()
         if not otp_instance or not otp_instance.is_valid():
             raise serializers.ValidationError({"email": "Email verification expired or not found. Please verify your email first."})

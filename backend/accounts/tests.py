@@ -522,4 +522,41 @@ class JobAndRFPModerationTests(APITestCase):
             RFP.objects.get(id=self.rfp.id)
 
 
+class RegistrationDuplicateEmailTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email='existinguser@example.com',
+            password='Password123!',
+            first_name='Existing',
+            last_name='User'
+        )
+
+    def test_send_otp_existing_email_fails(self):
+        response = self.client.post('/api/auth/send-otp/', {
+            'email': 'existinguser@example.com'
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('email', response.data)
+
+    def test_send_otp_existing_email_case_insensitive_fails(self):
+        response = self.client.post('/api/auth/send-otp/', {
+            'email': 'EXISTINGUSER@EXAMPLE.COM'
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('email', response.data)
+
+    def test_register_existing_email_fails(self):
+        response = self.client.post('/api/auth/register/', {
+            'email': 'existinguser@example.com',
+            'password': 'Password123!',
+            'confirm_password': 'Password123!',
+            'first_name': 'New',
+            'last_name': 'User',
+            'accepted_privacy_policy': True
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('email', response.data)
+
+
+
 

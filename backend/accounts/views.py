@@ -24,6 +24,12 @@ from .utils import (
 class SendOTPView(APIView):
     permission_classes = [permissions.AllowAny]
     def post(self, request):
+        email = (request.data.get('email') or '').strip().lower()
+        if email and User.objects.filter(email__iexact=email).exists():
+            return Response(
+                {"email": ["An account with this email address already exists. Please login instead."]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         serializer = SendOTPSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
