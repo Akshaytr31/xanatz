@@ -177,14 +177,24 @@ const PlanManager = () => {
 
   const handleCancelEdit = () => { setEditingPlanId(null); clearForm(); };
   const clearForm = () => setForm({ name: "", display_name: "", price: "", max_jobs: "", job_duration_days: "", description: "", featuresText: "", is_active: true });
-  const handleChange = (e) => { const { name, value } = e.target; setForm(p => ({ ...p, [name]: value })); };
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm(p => {
+      const updated = { ...p, [name]: value };
+      if (name === "display_name" && !editingPlanId) {
+        updated.name = value.toLowerCase().trim().replace(/[^a-z0-9_-]/g, "-").replace(/-+/g, "-");
+      }
+      return updated;
+    });
+  };
 
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true); setError(""); setSuccess("");
+    const rawSlug = form.name || form.display_name;
     const features = form.featuresText.split("\n").map(l => l.trim()).filter(Boolean);
     const payload = {
-      name: form.name.toLowerCase().replace(/[^a-z0-9_-]/g, ""),
+      name: rawSlug.toLowerCase().trim().replace(/[^a-z0-9_-]/g, "-").replace(/-+/g, "-"),
       display_name: form.display_name,
       price: parseFloat(form.price) || 0,
       max_jobs: parseInt(form.max_jobs) || 1,
@@ -293,25 +303,14 @@ const PlanManager = () => {
           )}
 
           <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <Field label="PLAN SLUG (IDENTIFIER) *">
-                <input
-                  {...{ style: inputStyle }} name="name" value={form.name} onChange={handleChange}
-                  placeholder="e.g. enterprise" required disabled={!!editingPlanId}
-                  onFocus={e => e.target.style.borderColor = "rgba(99,102,241,0.6)"}
-                  onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.1)"}
-                  style={{ ...inputStyle, opacity: editingPlanId ? 0.5 : 1, cursor: editingPlanId ? "not-allowed" : "text" }}
-                />
-              </Field>
-              <Field label="DISPLAY NAME *">
-                <input
-                  style={inputStyle} name="display_name" value={form.display_name} onChange={handleChange}
-                  placeholder="e.g. Enterprise Plan" required
-                  onFocus={e => e.target.style.borderColor = "rgba(99,102,241,0.6)"}
-                  onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.1)"}
-                />
-              </Field>
-            </div>
+            <Field label="PLAN NAME *">
+              <input
+                style={inputStyle} name="display_name" value={form.display_name} onChange={handleChange}
+                placeholder="e.g. Enterprise Plan" required
+                onFocus={e => e.target.style.borderColor = "rgba(99,102,241,0.6)"}
+                onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.1)"}
+              />
+            </Field>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
               <Field label="PRICE (AED) *">
