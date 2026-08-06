@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import { ExternalLink, Briefcase, Calendar, Building2 } from "lucide-react";
 import { motion, useScroll, useSpring, useTransform } from "framer-motion";
+import CustomTooltip from "../CustomTooltip";
 
 /* ─── Animated vertical line that grows as the section scrolls into view ─── */
 const TimelineLine = ({ containerRef }) => {
@@ -140,7 +141,13 @@ const TimelineItem = ({ exp, index }) => {
               <div style={{ width: "26px", height: "26px", borderRadius: "7px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)" }}>
                 <Building2 size={12} color="#60a5fa" />
               </div>
-              <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#9ca3af" }}>{exp.company}</span>
+              <CustomTooltip content={exp.company && exp.company.length > 10 ? exp.company : undefined}>
+                <span
+                  style={{ fontSize: "0.8rem", fontWeight: 600, color: "#9ca3af", cursor: exp.company && exp.company.length > 10 ? "pointer" : "default" }}
+                >
+                  {exp.company && exp.company.length > 10 ? `${exp.company.slice(0, 10)}...` : exp.company}
+                </span>
+              </CustomTooltip>
               {exp.company_website && (
                 <a href={exp.company_website} target="_blank" rel="noopener noreferrer" style={{ color: "#4b5563", lineHeight: 1 }}>
                   <ExternalLink size={11} />

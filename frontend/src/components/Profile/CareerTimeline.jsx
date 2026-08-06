@@ -24,6 +24,8 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { Briefcase, Edit2, Plus, Trash2, Calendar, Target, Star, ChevronDown } from "lucide-react";
 import api from "../../api";
+import ConfirmDeleteModal from "../ConfirmDeleteModal";
+import CustomTooltip from "../CustomTooltip";
 
 const MotionBox = motion.create(Box);
 
@@ -32,6 +34,8 @@ const CareerTimeline = ({ user, onUpdate }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     company: "",
@@ -238,13 +242,23 @@ const CareerTimeline = ({ user, onUpdate }) => {
     setReviewText("");
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this experience?")) return;
+  const handleOpenDeleteConfirm = (id) => {
+    setDeleteConfirmId(id);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirmId) return;
+    setDeleteLoading(true);
     try {
-      await api.delete(`experience/${id}/`);
+      await api.delete(`experience/${deleteConfirmId}/`);
       onUpdate();
+      setDeleteConfirmId(null);
+      setIsDialogOpen(false);
+      setEditingItem(null);
     } catch (err) {
       console.error(err);
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -378,7 +392,11 @@ const CareerTimeline = ({ user, onUpdate }) => {
                   </Text>
                 </Flex>
               ) : (
-                <TimelineChart experiences={experiences} handleOpen={handleOpen} />
+                <TimelineChart
+                  experiences={experiences}
+                  handleOpen={handleOpen}
+                  handleOpenDeleteConfirm={handleOpenDeleteConfirm}
+                />
               )}
             </Box>
           </MotionBox>
@@ -609,19 +627,6 @@ const CareerTimeline = ({ user, onUpdate }) => {
                       _focus={{ borderColor: "var(--color-accent)", boxShadow: "0 0 0 1px var(--color-accent)" }}
                     />
                   </Box>
-
-                  {editingItem && (
-                    <Button
-                      mt={2}
-                      w="full"
-                      colorPalette="red"
-                      variant="ghost"
-                      onClick={() => handleDelete(editingItem.id)}
-                      _hover={{ bg: "rgba(239,68,68,0.1)" }}
-                    >
-                      Remove Milestone
-                    </Button>
-                  )}
                 </VStack>
               </DialogBody>
 
@@ -760,12 +765,47 @@ const CareerTimeline = ({ user, onUpdate }) => {
           </DialogPositioner>
         </Portal>
       </Dialog>
+
+      <ConfirmDeleteModal
+        isOpen={Boolean(deleteConfirmId)}
+        onClose={() => setDeleteConfirmId(null)}
+        onConfirm={handleConfirmDelete}
+        loading={deleteLoading}
+        title="Remove Experience?"
+        description="Are you sure you want to remove this experience? This action cannot be undone."
+      />
     </Box>
   );
 };
 
+/* ─── Company Name Helper with Truncation (>10 chars) & Custom Tooltip ──────── */
+const renderCompanyName = (company, extraProps = {}) => {
+  if (!company) return null;
+  const isTruncated = company.length > 10;
+  const displayName = isTruncated ? `${company.slice(0, 10)}...` : company;
+
+  const textElement = (
+    <Text
+      cursor={isTruncated ? "pointer" : "default"}
+      {...extraProps}
+    >
+      {displayName.toUpperCase()}
+    </Text>
+  );
+
+  if (isTruncated) {
+    return (
+      <CustomTooltip content={company.toUpperCase()}>
+        {textElement}
+      </CustomTooltip>
+    );
+  }
+
+  return textElement;
+};
+
 /* ─── Timeline Chart ─────────────────────────────────────────────────────── */
-const TimelineChart = ({ experiences, handleOpen }) => {
+const TimelineChart = ({ experiences, handleOpen, handleOpenDeleteConfirm }) => {
   const parsedExps = experiences
     .map((exp) => {
       const startDate = new Date(exp.start_date);
@@ -787,7 +827,7 @@ const TimelineChart = ({ experiences, handleOpen }) => {
   const years = Array.from({ length: totalYears }, (_, i) => startAxis + i);
 
   // Prevent label overlap
-  const labelWidthPercent = 18;
+  const labelWidthPercent = 22;
   const occupiedUntil = [];
   const experiencesWithLevels = parsedExps.map((exp) => {
     const leftPercent = ((exp.startFraction - startAxis) / totalYears) * 100;
@@ -816,7 +856,7 @@ const TimelineChart = ({ experiences, handleOpen }) => {
     <>
       {/* ── Desktop View ── */}
       <Box display={{ base: "none", md: "block" }}>
-        <Box position="relative" minW="800px" minH={`${220 + maxLevel * 70}px`} mt={4}>
+        <Box position="relative" minW="800px" minH={`${240 + maxLevel * 85}px`} mt={4}>
           {experiencesWithLevels.map((exp, index) => {
             let widthPercent = ((exp.endFraction - exp.startFraction) / totalYears) * 100;
             if (widthPercent < (1.5 / 12 / totalYears) * 100) {
@@ -838,7 +878,7 @@ const TimelineChart = ({ experiences, handleOpen }) => {
                 {/* Label Card */}
                 <MotionBox
                   position="absolute"
-                  bottom={`${80 + level * 70}px`}
+                  bottom={`${85 + level * 85}px`}
                   left="0"
                   zIndex={10}
                   initial={{ opacity: 0, y: 10 }}
@@ -860,22 +900,40 @@ const TimelineChart = ({ experiences, handleOpen }) => {
                     }}
                   >
                     <HStack w="full" justify="space-between" align="center">
-                      <Text fontWeight="black" color="var(--color-text-primary)" fontSize="10px" letterSpacing="tight">
-                        {exp.company.toUpperCase()}
-                      </Text>
-                      <IconButton
-                        aria-label="Edit milestone"
-                        variant="ghost"
-                        size="xs"
-                        color="var(--color-text-muted)"
-                        h="16px"
-                        w="16px"
-                        minW="16px"
-                        _hover={{ color: "var(--color-text-primary)", bg: "var(--color-card-hover-bg)" }}
-                        onClick={() => handleOpen(exp)}
-                      >
-                        <Edit2 size={10} />
-                      </IconButton>
+                      {renderCompanyName(exp.company, {
+                        fontWeight: "black",
+                        color: "var(--color-text-primary)",
+                        fontSize: "10px",
+                        letterSpacing: "tight",
+                      })}
+                      <HStack gap={0.5}>
+                        <IconButton
+                          aria-label="Edit milestone"
+                          variant="ghost"
+                          size="xs"
+                          color="var(--color-text-muted)"
+                          h="16px"
+                          w="16px"
+                          minW="16px"
+                          _hover={{ color: "var(--color-text-primary)", bg: "var(--color-card-hover-bg)" }}
+                          onClick={() => handleOpen(exp)}
+                        >
+                          <Edit2 size={10} />
+                        </IconButton>
+                        <IconButton
+                          aria-label="Delete milestone"
+                          variant="ghost"
+                          size="xs"
+                          color="var(--color-text-muted)"
+                          h="16px"
+                          w="16px"
+                          minW="16px"
+                          _hover={{ color: "#ef4444", bg: "rgba(239,68,68,0.1)" }}
+                          onClick={() => handleOpenDeleteConfirm(exp.id)}
+                        >
+                          <Trash2 size={10} />
+                        </IconButton>
+                      </HStack>
                     </HStack>
                     <Text color="var(--color-accent)" fontSize="9px" fontWeight="bold" lineHeight="1.2">
                       {exp.title}
@@ -888,7 +946,7 @@ const TimelineChart = ({ experiences, handleOpen }) => {
                   position="absolute"
                   left="0"
                   bottom="20px"
-                  height={`${65 + level * 70}px`}
+                  height={`${70 + level * 85}px`}
                   borderLeft="2px solid"
                   style={{ borderLeftColor: "var(--color-accent)", opacity: 0.5 }}
                   _after={{
@@ -993,7 +1051,7 @@ const TimelineChart = ({ experiences, handleOpen }) => {
           style={{ opacity: 0.5 }}
         />
 
-        <VStack gap={5} align="stretch">
+        <VStack gap={7} align="stretch">
           {experiencesWithLevels.map((exp, index) => {
             const startDateStr = new Date(exp.start_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
             const endDateStr = exp.current || !exp.end_date ? "Present" : new Date(exp.end_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
@@ -1027,23 +1085,38 @@ const TimelineChart = ({ experiences, handleOpen }) => {
                 >
                   <HStack w="full" justify="space-between" align="start" mb={1}>
                     <VStack align="start" gap={0.5}>
-                      <Text fontWeight="black" color="var(--color-text-primary)" fontSize="xs" letterSpacing="tight">
-                        {exp.company.toUpperCase()}
-                      </Text>
+                      {renderCompanyName(exp.company, {
+                        fontWeight: "black",
+                        color: "var(--color-text-primary)",
+                        fontSize: "xs",
+                        letterSpacing: "tight",
+                      })}
                       <Text color="var(--color-accent)" fontSize="xs" fontWeight="bold">
                         {exp.title}
                       </Text>
                     </VStack>
-                    <IconButton
-                      aria-label="Edit milestone"
-                      variant="ghost"
-                      size="xs"
-                      color="var(--color-text-muted)"
-                      _hover={{ color: "var(--color-text-primary)", bg: "var(--color-card-hover-bg)" }}
-                      onClick={() => handleOpen(exp)}
-                    >
-                      <Edit2 size={12} />
-                    </IconButton>
+                    <HStack gap={1}>
+                      <IconButton
+                        aria-label="Edit milestone"
+                        variant="ghost"
+                        size="xs"
+                        color="var(--color-text-muted)"
+                        _hover={{ color: "var(--color-text-primary)", bg: "var(--color-card-hover-bg)" }}
+                        onClick={() => handleOpen(exp)}
+                      >
+                        <Edit2 size={12} />
+                      </IconButton>
+                      <IconButton
+                        aria-label="Delete milestone"
+                        variant="ghost"
+                        size="xs"
+                        color="var(--color-text-muted)"
+                        _hover={{ color: "#ef4444", bg: "rgba(239,68,68,0.1)" }}
+                        onClick={() => handleOpenDeleteConfirm(exp.id)}
+                      >
+                        <Trash2 size={12} />
+                      </IconButton>
+                    </HStack>
                   </HStack>
                   <Text color="var(--color-text-muted)" fontSize="2xs" fontWeight="medium">
                     {startDateStr} — {endDateStr}

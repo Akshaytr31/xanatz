@@ -35,13 +35,42 @@ import {
 } from "lucide-react";
 import { Country, City } from "country-state-city";
 import api from "../../api";
+import ConfirmDeleteModal from "../ConfirmDeleteModal";
+import CustomTooltip from "../CustomTooltip";
 
 const MotionBox = motion.create(Box);
+
+const renderCompanyName = (company, extraProps = {}) => {
+  if (!company) return null;
+  const isTruncated = company.length > 10;
+  const displayName = isTruncated ? `${company.slice(0, 10)}...` : company;
+
+  const textElement = (
+    <Text
+      cursor={isTruncated ? "pointer" : "default"}
+      {...extraProps}
+    >
+      {displayName.toUpperCase()}
+    </Text>
+  );
+
+  if (isTruncated) {
+    return (
+      <CustomTooltip content={company.toUpperCase()}>
+        {textElement}
+      </CustomTooltip>
+    );
+  }
+
+  return textElement;
+};
 
 const ExperienceSection = ({ user, onUpdate }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     company: "",
@@ -160,14 +189,23 @@ const ExperienceSection = ({ user, onUpdate }) => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this experience?"))
-      return;
+  const handleOpenDeleteConfirm = (id) => {
+    setDeleteConfirmId(id);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirmId) return;
+    setDeleteLoading(true);
     try {
-      await api.delete(`experience/${id}/`);
+      await api.delete(`experience/${deleteConfirmId}/`);
       onUpdate();
+      setDeleteConfirmId(null);
+      setIsDialogOpen(false);
+      setEditingItem(null);
     } catch (err) {
       console.error(err);
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -221,14 +259,12 @@ const ExperienceSection = ({ user, onUpdate }) => {
                     >
                       {exp.title}
                     </Text>
-                    <Text
-                      color="var(--color-accent)"
-                      fontWeight="bold"
-                      fontSize="10px"
-                      letterSpacing="widest"
-                    >
-                      {exp.company.toUpperCase()}
-                    </Text>
+                    {renderCompanyName(exp.company, {
+                      color: "var(--color-accent)",
+                      fontWeight: "bold",
+                      fontSize: "10px",
+                      letterSpacing: "widest",
+                    })}
 
                     <Flex gap={3} wrap="wrap" mt={0.5}>
                       <HStack
@@ -302,7 +338,7 @@ const ExperienceSection = ({ user, onUpdate }) => {
                     variant="ghost"
                     color="whiteAlpha.300"
                     _hover={{ color: "var(--color-accent)", bg: "rgba(var(--color-accent-rgb), 0.1)" }}
-                    onClick={() => handleDelete(exp.id)}
+                    onClick={() => handleOpenDeleteConfirm(exp.id)}
                   >
                     <Trash2 size={16} />
                   </IconButton>
@@ -735,6 +771,15 @@ const ExperienceSection = ({ user, onUpdate }) => {
           </DialogPositioner>
         </Portal>
       </Dialog>
+
+      <ConfirmDeleteModal
+        isOpen={Boolean(deleteConfirmId)}
+        onClose={() => setDeleteConfirmId(null)}
+        onConfirm={handleConfirmDelete}
+        loading={deleteLoading}
+        title="Remove Experience?"
+        description="Are you sure you want to remove this experience? This action cannot be undone."
+      />
     </Box>
   );
 };
