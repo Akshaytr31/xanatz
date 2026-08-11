@@ -621,7 +621,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
 
 
 class RFPViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = RFPSerializer
 
     def get_queryset(self):

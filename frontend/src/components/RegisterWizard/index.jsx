@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate, Link as RouterLink } from "react-router-dom";
+import { useNavigate, useLocation, Link as RouterLink } from "react-router-dom";
 import { Box, VStack, Heading, Text, HStack, Link, Input, Button } from "@chakra-ui/react";
 import api from "../../api";
 import Step1Email from "./Step1Email";
@@ -25,6 +25,7 @@ const RegisterWizard = () => {
   const [setupLoading, setSetupLoading] = useState(false);
   const [pendingRedirection, setPendingRedirection] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -116,11 +117,10 @@ const RegisterWizard = () => {
 
       // Fetch user role for redirection
       const userRes = await api.get("me/");
-      if (userRes.data.is_staff) {
-        navigate("/admin");
-      } else {
-        navigate("/dashboard");
-      }
+      const from = location.state?.from
+        ? (location.state.from.pathname + (location.state.from.search || ""))
+        : (userRes.data.is_staff ? "/admin" : "/dashboard");
+      navigate(from, { replace: true });
     } catch (err) {
       setError("Registration failed. Please check details.");
     } finally {
@@ -156,7 +156,9 @@ const RegisterWizard = () => {
 
       // Fetch user role for redirection
       const userRes = await api.get("me/");
-      const targetPath = userRes.data.is_staff ? "/admin" : "/dashboard";
+      const targetPath = location.state?.from
+        ? (location.state.from.pathname + (location.state.from.search || ""))
+        : (userRes.data.is_staff ? "/admin" : "/dashboard");
 
       if (response.data.needs_password) {
         setPendingRedirection(targetPath);
@@ -303,6 +305,7 @@ const RegisterWizard = () => {
           <Link
             as={RouterLink}
             to="/login"
+            state={{ from: location.state?.from }}
             color="var(--color-accent)"
             _hover={{ color: "var(--color-accent)", borderBottom: "1px solid" }}
             fontWeight="bold"

@@ -4,21 +4,26 @@ import {
 } from "@chakra-ui/react";
 import {
   FileText, Search, Clock, DollarSign, Calendar, Building2, ChevronRight, AlertCircle, ArrowLeft,
-  TrendingUp, User as UserIcon, Briefcase, Award, Info, MapPin, Users, CheckCircle2, MessageSquare, ExternalLink, Flag
+  TrendingUp, User as UserIcon, Briefcase, Award, Info, MapPin, Users, CheckCircle2, MessageSquare, ExternalLink, Flag,
+  Share2, Check
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import RFPInterestModal from "../components/company/RFPInterestModal";
 import RFPFilterSidebar from "../components/RFPFilterSidebar";
 import FlagConfirmationModal from "../components/FlagConfirmationModal";
+import ShareModal from "../components/ShareModal";
 import { ALL_CATEGORY_LABELS, ALL_SUBCATEGORY_LABELS, CATEGORY_OPTIONS } from "../components/company/JobOpeningModal";
 import api, { backendUrl } from "../api";
 
 const MotionBox = motion.create(Box);
 
 const RFPsPage = () => {
+  const accentColor = "#8b5cf6"; // Purple accent for RFPs
   const navigate = useNavigate();
+  const location = useLocation();
+  const { id: paramRfpId } = useParams();
 
   const getImageUrl = (path) => {
     if (!path) return null;
@@ -36,6 +41,7 @@ const RFPsPage = () => {
   const [selectedDatePosted, setSelectedDatePosted] = useState("");
   const [selectedSort, setSelectedSort] = useState("newest");
   const [expandedRfps, setExpandedRfps] = useState({});
+  const [copiedId, setCopiedId] = useState(null);
 
   const handleResetFilters = () => {
     setSelectedCategory("");
@@ -51,7 +57,27 @@ const RFPsPage = () => {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isInterestOpen, setIsInterestOpen] = useState(false);
 
-  const accentColor = "#8b5cf6"; // Purple accent for RFPs
+  const [shareModalData, setShareModalData] = useState({
+    isOpen: false,
+    title: "",
+    company: "",
+    summary: "",
+    url: "",
+    type: "rfp",
+  });
+
+  const handleShareRfp = (e, rfp) => {
+    if (e) e.stopPropagation();
+    const url = `${window.location.origin}/rfps/${rfp.id}`;
+    setShareModalData({
+      isOpen: true,
+      title: rfp.title,
+      company: rfp.company_name,
+      summary: rfp.description ? rfp.description.substring(0, 140) : "Request for Proposal on Xanatz",
+      url: url,
+      type: "rfp",
+    });
+  };
 
   const handleLogout = () => {
     localStorage.clear();
@@ -102,12 +128,8 @@ const RFPsPage = () => {
 
   const fetchData = async () => {
     try {
-      const [rRes, uRes] = await Promise.all([
-        api.get("rfps/"),
-        api.get("me/"),
-      ]);
+      const rRes = await api.get("rfps/");
       setRfps(rRes.data);
-      setCurrentUser(uRes.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -115,16 +137,42 @@ const RFPsPage = () => {
     }
   };
 
+  const fetchUser = async () => {
+    const token = localStorage.getItem("access");
+    if (!token) return;
+    try {
+      const uRes = await api.get("me/");
+      setCurrentUser(uRes.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     fetchData();
+    fetchUser();
   }, []);
 
+  useEffect(() => {
+    if (!loading && rfps.length > 0) {
+      const queryParams = new URLSearchParams(location.search);
+      const targetId = paramRfpId || queryParams.get("rfp");
+      if (targetId) {
+        navigate(`/rfps/${targetId}`, { replace: true });
+      }
+    }
+  }, [loading, rfps, location.search, paramRfpId, navigate]);
+
   const handleViewDetails = (rfp) => {
-    setSelectedRfp(rfp);
-    setIsDetailsOpen(true);
+    navigate(`/rfps/${rfp.id}`);
   };
 
   const handleOpenInterest = () => {
+    const token = localStorage.getItem("access");
+    if (!token) {
+      navigate("/login", { state: { from: location } });
+      return;
+    }
     setIsDetailsOpen(false);
     setIsInterestOpen(true);
   };
@@ -375,8 +423,15 @@ const RFPsPage = () => {
 
                             {/* Options / Share / Flag button */}
                             <HStack gap={1}>
-                              <Button variant="ghost" size="xs" color="var(--color-text-muted)" _hover={{ color: accentColor, bg: "transparent" }}>
-                                <ExternalLink size={14} />
+                              <Button
+                                variant="ghost"
+                                size="xs"
+                                color="var(--color-text-muted)"
+                                _hover={{ color: accentColor, bg: "rgba(139,92,246,0.1)" }}
+                                onClick={(e) => handleShareRfp(e, rfp)}
+                                title="Share RFP"
+                              >
+                                <Share2 size={14} />
                               </Button>
                               {(!currentUser || rfp.company !== currentUser.company_id) && (
                                 <Button
@@ -512,6 +567,11 @@ const RFPsPage = () => {
                                 _hover={{ filter: "brightness(1.1)" }}
                                 onClick={() => {
                                   setSelectedRfp(rfp);
+                                  const token = localStorage.getItem("access");
+                                  if (!token) {
+                                    navigate("/login", { state: { from: location } });
+                                    return;
+                                  }
                                   setIsInterestOpen(true);
                                 }}
                               >
@@ -668,152 +728,6 @@ const RFPsPage = () => {
         </Container>
       </Box>
 
-      {/* RFP Detailed Modal */}
-      <AnimatePresence>
-        {isDetailsOpen && selectedRfp && (
-          <Box position="fixed" top="0" left="0" right="0" bottom="0" zIndex={999} display="flex" alignItems="center" justifyContent="center">
-            {/* Backdrop */}
-            <Box position="absolute" top="0" left="0" right="0" bottom="0" bg="rgba(0,0,0,0.8)" backdropFilter="blur(16px)" onClick={() => setIsDetailsOpen(false)} />
-            
-            <MotionBox initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              p={{ base: 6, md: 8 }} borderRadius="3xl" maxW="680px" w="full" mx={4} border="1px solid var(--color-card-border)"
-              style={{ background: "var(--color-dropdown-bg)", backdropFilter: "blur(24px)", boxShadow: "0 30px 90px rgba(0,0,0,0.4)" }}
-              position="relative" zIndex={1000}
-            >
-              {/* Header */}
-              <Flex gap={4.5} mb={6} align="start">
-                <Box w="14" h="14" borderRadius="2xl" overflow="hidden" border="1px solid var(--color-card-border)" bg="var(--color-surface)" flexShrink={0}>
-                  {selectedRfp.company_logo_url ? (
-                    <Box as="img" src={selectedRfp.company_logo_url} alt={selectedRfp.company_name} w="full" h="full" style={{ objectFit: "cover" }} />
-                  ) : (
-                    <Flex w="full" h="full" align="center" justify="center">
-                      <Building2 size={24} color={accentColor} />
-                    </Flex>
-                  )}
-                </Box>
-                <VStack align="start" gap={0.5} flex={1}>
-                  <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="black" letterSpacing="widest">
-                    {selectedRfp.company_name.toUpperCase()}
-                  </Text>
-                  <HStack gap={2} align="center" wrap="wrap">
-                    {selectedRfp.rfp_id && (
-                      <Badge variant="outline" colorScheme="gray" fontSize="2xs" px={1.5} py={0.2} borderRadius="sm" color="var(--color-text-muted)">
-                        {selectedRfp.rfp_id}
-                      </Badge>
-                    )}
-                    {selectedRfp.version && (
-                      <Badge variant="subtle" colorScheme="blue" fontSize="2xs" px={1.5} py={0.2} borderRadius="sm" color="rgba(147,197,253,0.9)" style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.25)" }}>
-                        V{selectedRfp.version}
-                      </Badge>
-                    )}
-                    <Heading size="md" color="var(--color-text-primary)" fontWeight="black" letterSpacing="tight">
-                      {selectedRfp.title}
-                    </Heading>
-                  </HStack>
-                  <HStack gap={3} pt={1} wrap="wrap">
-                    {selectedRfp.budget && (
-                      <HStack gap={1}>
-                        <Text color="#10b981" fontSize="9px" fontWeight="black" style={{ marginRight: '1px' }}>AED</Text>
-                        <Text color="#10b981" fontSize="3xs" fontWeight="black" letterSpacing="wider">
-                          BUDGET: {selectedRfp.budget.replace(/[$₹]/g, '').toUpperCase()}
-                        </Text>
-                      </HStack>
-                    )}
-                    {selectedRfp.deadline && (
-                      <HStack gap={1}>
-                        <Calendar size={12} color="var(--color-text-muted)" />
-                        <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="black" letterSpacing="wider">
-                          DUE: {new Date(selectedRfp.deadline).toLocaleDateString(undefined, { dateStyle: "medium" }).toUpperCase()}
-                        </Text>
-                      </HStack>
-                    )}
-                  </HStack>
-                </VStack>
-              </Flex>
-
-              {/* Scrollable details */}
-              <VStack align="stretch" gap={5} maxH="45vh" overflowY="auto" pr={2} mb={8}>
-                {/* Description */}
-                <Box>
-                  <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="black" letterSpacing="widest" mb={2}>
-                    PROJECT DESCRIPTION
-                  </Text>
-                  <Text color="var(--color-text-secondary)" fontSize="xs" lineHeight="1.6" whiteSpace="pre-wrap">
-                    {selectedRfp.description}
-                  </Text>
-                </Box>
-
-                {/* Requirements */}
-                {selectedRfp.requirements && (
-                  <Box p={4} borderRadius="xl" bg="var(--color-input-bg)" border="1px solid var(--color-card-border)">
-                    <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="black" letterSpacing="widest" mb={2}>
-                      PROPOSAL & VENDOR REQUIREMENTS
-                    </Text>
-                    <Text color="var(--color-text-secondary)" fontSize="xs" lineHeight="1.6" whiteSpace="pre-wrap">
-                      {selectedRfp.requirements}
-                    </Text>
-                  </Box>
-                )}
-              </VStack>
-
-              {/* Footer */}
-              <Flex justify="space-between" align="center" pt={4} borderTop="1px solid var(--color-card-border)">
-                <HStack gap={2}>
-                  <Button variant="ghost" color="var(--color-text-secondary)" fontWeight="black" fontSize="xs" letterSpacing="wider"
-                    _hover={{ color: "var(--color-text-primary)", bg: "var(--color-card-border)" }} onClick={() => setIsDetailsOpen(false)}
-                  >
-                    CLOSE
-                  </Button>
-                  {(!currentUser || selectedRfp.company !== currentUser.company_id) && (
-                    <Button
-                      variant="outline"
-                      color="var(--color-text-secondary)"
-                      borderColor="var(--color-card-border)"
-                      _hover={{ bg: "rgba(239, 68, 68, 0.1)", borderColor: "#EF4444", color: "#EF4444" }}
-                      size="sm"
-                      h="8"
-                      borderRadius="lg"
-                      onClick={() => {
-                        setIsDetailsOpen(false);
-                        handleOpenFlagModal(selectedRfp);
-                      }}
-                    >
-                      <Flag size={12} style={{ marginRight: "4px" }} />
-                      FLAG RFP
-                    </Button>
-                  )}
-                </HStack>
-
-                {/* If company creator, direct to manage, else show Express Interest */}
-                {currentUser && selectedRfp.company === currentUser.company_id ? (
-                  <Button h="10" px={6} borderRadius="xl" fontSize="xs" fontWeight="black" letterSpacing="wider" color="white"
-                    bg={accentColor} _hover={{ filter: "brightness(1.1)" }} onClick={() => navigate(`/company/${selectedRfp.company}/rfps`)}
-                  >
-                    MANAGE RFP
-                  </Button>
-                ) : (
-                  <Button h="10" px={6} borderRadius="xl" fontSize="xs" fontWeight="black" letterSpacing="wider" color="white"
-                    bg="linear-gradient(135deg, #10b981 0%, #059669 100%)" _hover={{ transform: "translateY(-1px)", boxShadow: "0 4px 15px rgba(16,185,129,0.3)" }}
-                    onClick={handleOpenInterest}
-                  >
-                    EXPRESS INTEREST
-                  </Button>
-                )}
-              </Flex>
-            </MotionBox>
-          </Box>
-        )}
-      </AnimatePresence>
-
-      {/* RFP Interest Modal */}
-      {selectedRfp && (
-        <RFPInterestModal
-          isOpen={isInterestOpen}
-          onClose={() => setIsInterestOpen(false)}
-          rfp={selectedRfp}
-        />
-      )}
-
       {/* RFP Flag Confirmation Modal */}
       <FlagConfirmationModal
         isOpen={flagModal.isOpen}
@@ -823,6 +737,17 @@ const RFPsPage = () => {
         status={flagModal.status}
         title="Flag this RFP?"
         description="Are you sure you want to flag this RFP as inappropriate? It will be removed from your view and sent to the administrator for moderation."
+      />
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={shareModalData.isOpen}
+        onClose={() => setShareModalData(prev => ({ ...prev, isOpen: false }))}
+        title={shareModalData.title}
+        company={shareModalData.company}
+        summary={shareModalData.summary}
+        url={shareModalData.url}
+        type={shareModalData.type || "rfp"}
       />
     </Box>
   );

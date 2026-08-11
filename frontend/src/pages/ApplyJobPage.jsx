@@ -33,10 +33,13 @@ import {
   UploadCloud,
   Trash2,
   Flag,
+  Share2,
+  Check,
 } from "lucide-react";
 import FlagConfirmationModal from "../components/FlagConfirmationModal";
+import ShareModal from "../components/ShareModal";
 import { motion, AnimatePresence } from "framer-motion";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { INDUSTRY_LABELS } from "../components/company/JobOpeningModal";
 import AIEnhancedTextarea from "../components/AIEnhancedTextarea";
@@ -56,10 +59,27 @@ const JOB_TYPE_LABELS = {
 const ApplyJobPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [job, setJob] = useState(null);
   const [similarJobs, setSimilarJobs] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
+  const [copied, setCopied] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+
+  const handleShare = () => {
+    setIsShareModalOpen(true);
+  };
+
+  const handleApplyClick = () => {
+    if (job?.is_expired) return;
+    const token = localStorage.getItem("access");
+    if (!token) {
+      navigate("/login", { state: { from: location } });
+      return;
+    }
+    setShowForm(true);
+  };
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -621,7 +641,7 @@ const ApplyJobPage = () => {
                         <HStack gap={3}>
                           <Button
                             disabled={job.is_expired}
-                            onClick={() => !job.is_expired && setShowForm(true)}
+                            onClick={handleApplyClick}
                             px={6}
                             h="40px"
                             borderRadius="xl"
@@ -651,6 +671,39 @@ const ApplyJobPage = () => {
                             }
                           >
                             {job.is_expired ? "EXPIRED" : "APPLY NOW"}
+                          </Button>
+                          <Button
+                            onClick={handleShare}
+                            px={4}
+                            h="40px"
+                            borderRadius="xl"
+                            fontWeight="black"
+                            fontSize="xs"
+                            letterSpacing="widest"
+                            variant="outline"
+                            color={copied ? "#48C774" : "var(--color-text-secondary)"}
+                            borderColor={copied ? "#48C774" : "var(--color-card-border)"}
+                            style={{
+                              background: copied ? "rgba(72, 199, 116, 0.1)" : "transparent",
+                              transition: "all 0.3s ease",
+                            }}
+                            _hover={{
+                              bg: copied ? "rgba(72, 199, 116, 0.2)" : "var(--color-card-border)",
+                              color: copied ? "#48C774" : "white",
+                              transform: "translateY(-2px)",
+                            }}
+                          >
+                            {copied ? (
+                              <HStack gap={1.5}>
+                                <Check size={14} color="#48C774" />
+                                <Text>COPIED!</Text>
+                              </HStack>
+                            ) : (
+                              <HStack gap={1.5}>
+                                <Share2 size={14} />
+                                <Text>SHARE</Text>
+                              </HStack>
+                            )}
                           </Button>
                           <Button
                             onClick={handleOpenFlagModal}
@@ -1527,6 +1580,17 @@ const ApplyJobPage = () => {
         status={flagModal.status}
         title="Flag this job opening?"
         description="Are you sure you want to flag this job opening as inappropriate? It will be removed from your view and sent to the administrator for moderation."
+      />
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        title={job?.title || "Job Opening"}
+        company={job?.company_name}
+        summary={job?.description ? job.description.substring(0, 140) : "Apply for this opportunity on Xanatz"}
+        url={window.location.href}
+        type="job"
       />
     </Box>
   );

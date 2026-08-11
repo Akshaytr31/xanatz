@@ -128,9 +128,9 @@ const LoginForm = () => {
 
       // Fetch user role for redirection
       const userRes = await api.get("me/");
-      const from =
-        location.state?.from?.pathname ||
-        (userRes.data.is_staff ? "/admin" : "/dashboard");
+      const from = location.state?.from
+        ? (location.state.from.pathname + (location.state.from.search || ""))
+        : (userRes.data.is_staff ? "/admin" : "/dashboard");
       navigate(from, { replace: true });
     } catch (err) {
       setError("Invalid credentials, please try again.");
@@ -165,9 +165,9 @@ const LoginForm = () => {
 
       // Fetch user role for redirection
       const userRes = await api.get("me/");
-      const from =
-        location.state?.from?.pathname ||
-        (userRes.data.is_staff ? "/admin" : "/dashboard");
+      const from = location.state?.from
+        ? (location.state.from.pathname + (location.state.from.search || ""))
+        : (userRes.data.is_staff ? "/admin" : "/dashboard");
 
       if (response.data.needs_password) {
         setPendingRedirection(from);
@@ -406,6 +406,7 @@ const LoginForm = () => {
           <Link
             as={RouterLink}
             to="/register"
+            state={{ from: location.state?.from }}
             color="var(--color-accent)"
             _hover={{
               color: "var(--color-accent)",

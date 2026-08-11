@@ -241,6 +241,8 @@ const Navbar = () => {
   /* fetch user */
   useEffect(() => {
     const fetchUser = async () => {
+      const token = localStorage.getItem("access");
+      if (!token) return;
       try {
         const res = await api.get("me/");
         setUser(res.data);
