@@ -14,6 +14,12 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
     """Custom serializer that uses 'email' instead of 'username'."""
     username_field = User.USERNAME_FIELD  # resolves to 'email'
 
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        from django.contrib.auth.models import update_last_login
+        update_last_login(None, self.user)
+        return data
+
 
 class SendOTPSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -313,7 +319,7 @@ class CompanySerializer(serializers.ModelSerializer):
         fields = [
             'id', 'company_id', 'public_id', 'name', 'tagline', 'description', 'logo', 'logo_url',
             'website', 'industry', 'company_size', 'location', 'founded_year',
-            'linkedin_url', 'twitter_url', 'rfp_response_days', 'is_active',
+            'linkedin_url', 'twitter_url', 'rfp_response_days', 'is_active', 'is_recently_active', 'last_activity_date',
             'creator', 'creator_name', 'members', 'members_details',
             'active_subscription', 'user_permissions', 'created_at', 'updated_at',
             'reviews', 'average_rating', 'reviews_count',
@@ -631,7 +637,7 @@ class PublicCompanySerializer(serializers.ModelSerializer):
         fields = [
             'public_id', 'name', 'tagline', 'description', 'logo_url',
             'website', 'industry', 'company_size', 'location', 'founded_year',
-            'linkedin_url', 'twitter_url', 'members_details', 'jobs', 'rfps',
+            'linkedin_url', 'twitter_url', 'is_recently_active', 'last_activity_date', 'members_details', 'jobs', 'rfps',
             'reviews', 'average_rating', 'reviews_count',
             'employee_reviews', 'employee_average_rating', 'employee_reviews_count',
             'partner_reviews', 'partner_average_rating', 'partner_reviews_count',

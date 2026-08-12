@@ -728,6 +728,15 @@ const RFPsPage = () => {
         </Container>
       </Box>
 
+      {/* RFP Interest Modal */}
+      {selectedRfp && (
+        <RFPInterestModal
+          isOpen={isInterestOpen}
+          onClose={() => setIsInterestOpen(false)}
+          rfp={selectedRfp}
+        />
+      )}
+
       {/* RFP Flag Confirmation Modal */}
       <FlagConfirmationModal
         isOpen={flagModal.isOpen}

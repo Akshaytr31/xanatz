@@ -2,12 +2,16 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Users, CreditCard, ShieldAlert, FileText,
-  ArrowUpRight, Briefcase, Search, Bell, Building2,
+  ArrowUpRight, Briefcase, Search, Bell, Building2, FolderKanban,
 } from "lucide-react";
 import AdminNavbar from "../components/admin/AdminNavbar";
 import PrivacyPolicyEditor from "../components/admin/PrivacyPolicyEditor";
 import PlanManager from "../components/admin/PlanManager";
 import FlaggedReviewModerator from "../components/admin/FlaggedReviewModerator";
+import AdminUsersList from "../components/admin/AdminUsersList";
+import AdminCompaniesList from "../components/admin/AdminCompaniesList";
+import AdminJobsList from "../components/admin/AdminJobsList";
+import AdminRFPsList from "../components/admin/AdminRFPsList";
 import api from "../api";
 
 /* ── Constants ──────────────────────────────────────────────── */
@@ -16,8 +20,9 @@ const SIDEBAR_MINI = 68;
 const MOBILE_BP    = 768;
 
 /* ── Stat Card ──────────────────────────────────────────────── */
-const StatCard = ({ icon: Icon, label, value, color, delay }) => (
+const StatCard = ({ icon: Icon, label, value, color, delay, onClick }) => (
   <div
+    onClick={onClick}
     style={{
       background: "linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))",
       border: "1px solid rgba(255,255,255,0.08)",
@@ -25,13 +30,13 @@ const StatCard = ({ icon: Icon, label, value, color, delay }) => (
       display: "flex", flexDirection: "column", gap: 14,
       backdropFilter: "blur(20px)",
       transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
-      cursor: "default",
+      cursor: onClick ? "pointer" : "default",
       animation: `fadeSlideUp 0.5s ease ${delay || 0}s both`,
     }}
     onMouseEnter={e => {
       e.currentTarget.style.transform = "translateY(-3px)";
-      e.currentTarget.style.borderColor = `${color}30`;
-      e.currentTarget.style.boxShadow = `0 12px 32px ${color}15`;
+      e.currentTarget.style.borderColor = `${color}40`;
+      e.currentTarget.style.boxShadow = `0 12px 32px ${color}20`;
     }}
     onMouseLeave={e => {
       e.currentTarget.style.transform = "translateY(0)";
@@ -47,6 +52,11 @@ const StatCard = ({ icon: Icon, label, value, color, delay }) => (
       }}>
         <Icon size={20} color={color} />
       </div>
+      {onClick && (
+        <span style={{ fontSize: 11, fontWeight: 600, color, display: "flex", alignItems: "center", gap: 3 }}>
+          View <ArrowUpRight size={12} />
+        </span>
+      )}
     </div>
     <div>
       <div style={{ fontSize: 26, fontWeight: 800, color: "white", lineHeight: 1, letterSpacing: "-0.5px" }}>
@@ -104,10 +114,11 @@ const OverviewPanel = ({ setActiveTab }) => {
         gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
         gap: 14,
       }}>
-        <StatCard icon={Users}      label="Total Users"   value={statsLoading ? "…" : fmt(stats?.total_users)}   color="#6366f1" delay={0.05} />
-        <StatCard icon={Building2}  label="Companies"     value={statsLoading ? "…" : fmt(stats?.total_companies)} color="#8b5cf6" delay={0.1}  />
-        <StatCard icon={Briefcase}  label="Active Jobs"   value={statsLoading ? "…" : fmt(stats?.active_jobs)}   color="#10b981" delay={0.15} />
-        <StatCard icon={ShieldAlert} label="Flagged Items" value={statsLoading ? "…" : fmt(stats?.flagged_count)} color="#ef4444" delay={0.2}  />
+        <StatCard icon={Users}        label="Total Users"   value={statsLoading ? "…" : fmt(stats?.total_users)}   color="#6366f1" delay={0.05} onClick={() => setActiveTab("users")} />
+        <StatCard icon={Building2}    label="Companies"     value={statsLoading ? "…" : fmt(stats?.total_companies)} color="#3b82f6" delay={0.1}  onClick={() => setActiveTab("companies")} />
+        <StatCard icon={Briefcase}    label="Active Jobs"   value={statsLoading ? "…" : fmt(stats?.active_jobs)}   color="#10b981" delay={0.15} onClick={() => setActiveTab("jobs")} />
+        <StatCard icon={FolderKanban} label="Total RFPs"    value={statsLoading ? "…" : fmt(stats?.total_rfps)}    color="#8b5cf6" delay={0.2}  onClick={() => setActiveTab("rfps")} />
+        <StatCard icon={ShieldAlert}  label="Flagged Items" value={statsLoading ? "…" : fmt(stats?.flagged_count)} color="#ef4444" delay={0.25} onClick={() => setActiveTab("flagged_reviews")} />
       </div>
 
       {/* Quick Actions */}
@@ -195,12 +206,16 @@ const AdminDashboard = () => {
 
   const TAB_META = {
     overview:        { icon: LayoutDashboard, label: "Overview",          desc: "System overview and quick access to all modules" },
+    users:           { icon: Users,           label: "Users List",        desc: "All registered users across the platform" },
+    companies:       { icon: Building2,       label: "Companies List",    desc: "All registered companies on the platform" },
+    jobs:            { icon: Briefcase,       label: "Jobs List",         desc: "All active and closed job openings" },
+    rfps:            { icon: FolderKanban,    label: "RFPs List",         desc: "All active and draft RFPs (Request for Proposals)" },
     plans:           { icon: CreditCard,      label: "Job Posting Plans", desc: "Create and manage subscription plans for companies" },
     policy:          { icon: FileText,        label: "Privacy Policy",    desc: "Edit the privacy policy shown to users during registration" },
     flagged_reviews: { icon: ShieldAlert,     label: "Flagged Content",   desc: "Moderate flagged content submitted by users" },
   };
 
-  const current = TAB_META[activeTab];
+  const current = TAB_META[activeTab] || TAB_META.overview;
 
   /* ── margin-left = sidebar width on desktop, 0 on mobile */
   const mainMargin = isMobile ? 0 : (collapsed ? SIDEBAR_MINI : SIDEBAR_FULL);
@@ -334,15 +349,24 @@ const AdminDashboard = () => {
               background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
               borderRadius: 11, padding: 5, width: "fit-content", maxWidth: "100%",
             }}>
-              <TabButton icon={CreditCard}  label="Job Plans"        isActive={activeTab === "plans"}           onClick={() => setActiveTab("plans")} />
-              <TabButton icon={FileText}    label="Privacy Policy"   isActive={activeTab === "policy"}          onClick={() => setActiveTab("policy")} />
-              <TabButton icon={ShieldAlert} label="Flagged Content"  isActive={activeTab === "flagged_reviews"} onClick={() => setActiveTab("flagged_reviews")} />
+              <TabButton icon={LayoutDashboard} label="Overview"     isActive={activeTab === "overview"}        onClick={() => setActiveTab("overview")} />
+              <TabButton icon={Users}           label="Users"        isActive={activeTab === "users"}           onClick={() => setActiveTab("users")} />
+              <TabButton icon={Building2}       label="Companies"    isActive={activeTab === "companies"}       onClick={() => setActiveTab("companies")} />
+              <TabButton icon={Briefcase}       label="Jobs"         isActive={activeTab === "jobs"}            onClick={() => setActiveTab("jobs")} />
+              <TabButton icon={FolderKanban}    label="RFPs"         isActive={activeTab === "rfps"}            onClick={() => setActiveTab("rfps")} />
+              <TabButton icon={CreditCard}      label="Job Plans"    isActive={activeTab === "plans"}           onClick={() => setActiveTab("plans")} />
+              <TabButton icon={FileText}        label="Policy"       isActive={activeTab === "policy"}          onClick={() => setActiveTab("policy")} />
+              <TabButton icon={ShieldAlert}     label="Flagged"      isActive={activeTab === "flagged_reviews"} onClick={() => setActiveTab("flagged_reviews")} />
             </div>
           )}
 
           {/* Content */}
           <div key={activeTab} style={{ animation: "fadeSlideUp 0.3s ease both" }}>
             {activeTab === "overview"        && <OverviewPanel setActiveTab={setActiveTab} />}
+            {activeTab === "users"           && <AdminUsersList />}
+            {activeTab === "companies"       && <AdminCompaniesList />}
+            {activeTab === "jobs"            && <AdminJobsList />}
+            {activeTab === "rfps"            && <AdminRFPsList />}
             {activeTab === "plans"           && <PlanManager />}
             {activeTab === "policy"          && <PrivacyPolicyEditor />}
             {activeTab === "flagged_reviews" && <FlaggedReviewModerator />}

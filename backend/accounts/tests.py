@@ -491,7 +491,7 @@ class JobAndRFPModerationTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.job.refresh_from_db()
         self.assertFalse(self.job.is_flagged)
-        self.assertIsNone(self.job.flag_reason)
+        self.assertEqual(self.job.flag_status, 'resolved')
 
         # Flag the RFP
         self.rfp.is_flagged = True
@@ -509,7 +509,7 @@ class JobAndRFPModerationTests(APITestCase):
         self.rfp.refresh_from_db()
         self.assertEqual(self.rfp.description, 'Moderated RFP Description')
         self.assertFalse(self.rfp.is_flagged)
-        self.assertIsNone(self.rfp.flag_reason)
+        self.assertEqual(self.rfp.flag_status, 'resolved')
 
         # 4. Delete action
         response = self.client.post('/api/admin/reviews/flagged/', {
@@ -520,6 +520,41 @@ class JobAndRFPModerationTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         with self.assertRaises(RFP.DoesNotExist):
             RFP.objects.get(id=self.rfp.id)
+
+    def test_flag_status_filter_resolved_unresolved(self):
+        self.client.force_authenticate(user=self.admin_user)
+
+        self.job.is_flagged = True
+        self.job.flag_status = 'unresolved'
+        self.job.save()
+
+        self.rfp.is_flagged = False
+        self.rfp.flag_status = 'resolved'
+        self.rfp.save()
+
+        # Unresolved status filter
+        resp_unresolved = self.client.get('/api/admin/reviews/flagged/?status=unresolved')
+        self.assertEqual(resp_unresolved.status_code, status.HTTP_200_OK)
+        unresolved_ids = [item['id'] for item in resp_unresolved.data if item['review_type'] == 'job']
+        self.assertIn(self.job.id, unresolved_ids)
+
+        # Resolved status filter
+        resp_resolved = self.client.get('/api/admin/reviews/flagged/?status=resolved')
+        self.assertEqual(resp_resolved.status_code, status.HTTP_200_OK)
+        resolved_ids = [item['id'] for item in resp_resolved.data if item['review_type'] == 'rfp']
+        self.assertIn(self.rfp.id, resolved_ids)
+
+        # Reopen action test
+        reopen_data = {
+            'review_id': self.rfp.id,
+            'review_type': 'rfp',
+            'action': 'reopen'
+        }
+        reopen_resp = self.client.post('/api/admin/reviews/flagged/', reopen_data)
+        self.assertEqual(reopen_resp.status_code, status.HTTP_200_OK)
+        self.rfp.refresh_from_db()
+        self.assertTrue(self.rfp.is_flagged)
+        self.assertEqual(self.rfp.flag_status, 'unresolved')
 
 
 class RegistrationDuplicateEmailTests(APITestCase):

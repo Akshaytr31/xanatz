@@ -163,4 +163,5 @@ REST_FRAMEWORK = {
 # Simple JWT — use email as the login field
 SIMPLE_JWT = {
     'TOKEN_OBTAIN_SERIALIZER': 'accounts.serializers.EmailTokenObtainPairSerializer',
+    'UPDATE_LAST_LOGIN': True,
 }

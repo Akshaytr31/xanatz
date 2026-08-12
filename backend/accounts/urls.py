@@ -8,7 +8,8 @@ from .views import (
     CompanyViewSet, PublicProfileView, UserSearchView, JobOpeningViewSet, JobApplicationViewSet,
     RFPViewSet, RFPInterestViewSet, JobPostPlanViewSet, NotificationViewSet, MessageViewSet,
     PublicCompanyProfileView, CompanyReviewViewSet, FreelancerReviewViewSet, AdminFlaggedReviewsView,
-    CompanyFAQViewSet, AIEnhanceView, AdminStatsView
+    CompanyFAQViewSet, AIEnhanceView, AdminStatsView,
+    AdminUsersListView, AdminCompaniesListView, AdminJobsListView, AdminRFPsListView
 )
 
 router = DefaultRouter()
@@ -45,6 +46,10 @@ urlpatterns = [
     path('users/search/', UserSearchView.as_view(), name='user_search'),
     path('admin/reviews/flagged/', AdminFlaggedReviewsView.as_view(), name='admin_reviews_flagged'),
     path('admin/stats/', AdminStatsView.as_view(), name='admin_stats'),
+    path('admin/users/', AdminUsersListView.as_view(), name='admin_users'),
+    path('admin/companies/', AdminCompaniesListView.as_view(), name='admin_companies'),
+    path('admin/jobs/', AdminJobsListView.as_view(), name='admin_jobs'),
+    path('admin/rfps/', AdminRFPsListView.as_view(), name='admin_rfps'),
     path('ai/enhance/', AIEnhanceView.as_view(), name='ai-enhance'),
     path('', include(router.urls)),
 ]

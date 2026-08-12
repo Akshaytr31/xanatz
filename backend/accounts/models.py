@@ -3,6 +3,13 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils import timezone
 
+FLAG_STATUS_CHOICES = [
+    ('none', 'None'),
+    ('unresolved', 'Unresolved'),
+    ('resolved', 'Resolved'),
+]
+
+
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -257,11 +264,30 @@ class Company(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def is_recently_active(self):
+        thirty_days_ago = timezone.now() - datetime.timedelta(days=30)
+        has_recent_job = self.job_openings.filter(created_at__gte=thirty_days_ago).exists()
+        has_recent_rfp = self.rfps.filter(created_at__gte=thirty_days_ago).exists()
+        return has_recent_job or has_recent_rfp
+
+    @property
+    def last_activity_date(self):
+        latest_job = self.job_openings.order_by('-created_at').first()
+        latest_rfp = self.rfps.order_by('-created_at').first()
+        dates = []
+        if latest_job and latest_job.created_at:
+            dates.append(latest_job.created_at)
+        if latest_rfp and latest_rfp.created_at:
+            dates.append(latest_rfp.created_at)
+        return max(dates) if dates else None
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if not self.company_id:
             self.company_id = generate_company_id(self.pk)
             super().save(update_fields=['company_id'])
+
 
 
 class JobOpening(models.Model):
@@ -285,6 +311,7 @@ class JobOpening(models.Model):
     expires_at = models.DateTimeField(blank=True, null=True)
     is_flagged = models.BooleanField(default=False)
     flag_reason = models.TextField(blank=True, null=True)
+    flag_status = models.CharField(max_length=20, choices=FLAG_STATUS_CHOICES, default='none', blank=True, null=True)
     job_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
     version = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -356,6 +383,7 @@ class RFP(models.Model):
     is_active = models.BooleanField(default=True)
     is_flagged = models.BooleanField(default=False)
     flag_reason = models.TextField(blank=True, null=True)
+    flag_status = models.CharField(max_length=20, choices=FLAG_STATUS_CHOICES, default='none', blank=True, null=True)
     rfp_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
     version = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -509,6 +537,7 @@ class CompanyReview(models.Model):
     review_text = models.TextField()
     is_flagged = models.BooleanField(default=False)
     flag_reason = models.TextField(blank=True, null=True)
+    flag_status = models.CharField(max_length=20, choices=FLAG_STATUS_CHOICES, default='none', blank=True, null=True)
     review_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -535,6 +564,7 @@ class FreelancerReview(models.Model):
     review_text = models.TextField()
     is_flagged = models.BooleanField(default=False)
     flag_reason = models.TextField(blank=True, null=True)
+    flag_status = models.CharField(max_length=20, choices=FLAG_STATUS_CHOICES, default='none', blank=True, null=True)
     review_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

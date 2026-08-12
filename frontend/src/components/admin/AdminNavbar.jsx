@@ -3,11 +3,15 @@ import { useNavigate, Link as RouterLink } from "react-router-dom";
 import api from "../../api";
 import {
   LayoutDashboard, Shield, FileText, LogOut, CreditCard,
-  ShieldAlert, ChevronRight, Menu, X,
+  ShieldAlert, ChevronRight, Menu, X, Users, Building2, Briefcase, FolderKanban,
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Overview",        tab: "overview" },
+  { icon: Users,           label: "Users List",      tab: "users" },
+  { icon: Building2,       label: "Companies List",  tab: "companies" },
+  { icon: Briefcase,       label: "Jobs List",       tab: "jobs" },
+  { icon: FolderKanban,    label: "RFPs List",       tab: "rfps" },
   { icon: CreditCard,      label: "Job Plans",       tab: "plans" },
   { icon: FileText,        label: "Privacy Policy",  tab: "policy" },
   { icon: ShieldAlert,     label: "Flagged Content", tab: "flagged_reviews" },

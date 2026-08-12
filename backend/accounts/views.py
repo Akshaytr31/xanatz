@@ -1,3 +1,5 @@
+import datetime
+from django.utils import timezone
 from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -219,7 +221,10 @@ class UserProfileView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        serializer = UserSerializer(request.user)
+        user = request.user
+        user.last_login = timezone.now()
+        user.save(update_fields=['last_login'])
+        serializer = UserSerializer(user)
         return Response(serializer.data)
 
     def patch(self, request):
@@ -516,6 +521,7 @@ class JobOpeningViewSet(viewsets.ModelViewSet):
     def flag(self, request, pk=None):
         job = self.get_object()
         job.is_flagged = True
+        job.flag_status = 'unresolved'
         job.flag_reason = request.data.get('reason', '')
         job.save()
         return Response({"message": "Job opening flagged successfully"}, status=status.HTTP_200_OK)
@@ -665,6 +671,7 @@ class RFPViewSet(viewsets.ModelViewSet):
     def flag(self, request, pk=None):
         rfp = self.get_object()
         rfp.is_flagged = True
+        rfp.flag_status = 'unresolved'
         rfp.flag_reason = request.data.get('reason', '')
         rfp.save()
         return Response({"message": "RFP flagged successfully"}, status=status.HTTP_200_OK)
@@ -948,6 +955,7 @@ class CompanyReviewViewSet(viewsets.ModelViewSet):
     def flag(self, request, pk=None):
         review = self.get_object()
         review.is_flagged = True
+        review.flag_status = 'unresolved'
         review.flag_reason = request.data.get('reason', '')
         review.save()
         return Response({"message": "Review flagged successfully"}, status=status.HTTP_200_OK)
@@ -978,6 +986,7 @@ class FreelancerReviewViewSet(viewsets.ModelViewSet):
     def flag(self, request, pk=None):
         review = self.get_object()
         review.is_flagged = True
+        review.flag_status = 'unresolved'
         review.flag_reason = request.data.get('reason', '')
         review.save()
         return Response({"message": "Review flagged successfully"}, status=status.HTTP_200_OK)
@@ -987,66 +996,94 @@ class AdminFlaggedReviewsView(APIView):
     permission_classes = [permissions.IsAdminUser]
 
     def get(self, request):
-        company_reviews = CompanyReview.objects.filter(is_flagged=True).order_by('created_at')
-        freelancer_reviews = FreelancerReview.objects.filter(is_flagged=True).order_by('created_at')
-        flagged_jobs = JobOpening.objects.filter(is_flagged=True).order_by('created_at')
-        flagged_rfps = RFP.objects.filter(is_flagged=True).order_by('created_at')
+        status_filter = request.query_params.get('status', 'all')
+        
+        def get_filtered_queryset(model):
+            if status_filter == 'unresolved':
+                return model.objects.filter(is_flagged=True).order_by('-created_at')
+            elif status_filter == 'resolved':
+                return model.objects.filter(is_flagged=False, flag_status='resolved').order_by('-created_at')
+            else:  # 'all'
+                return model.objects.filter(Q(is_flagged=True) | Q(flag_status='resolved')).order_by('-created_at')
+
+        company_reviews = get_filtered_queryset(CompanyReview)
+        freelancer_reviews = get_filtered_queryset(FreelancerReview)
+        flagged_jobs = get_filtered_queryset(JobOpening)
+        flagged_rfps = get_filtered_queryset(RFP)
 
         results = []
         for r in company_reviews:
+            reviewer_email = r.reviewer.email if r.reviewer else ""
+            reviewer_name = (f"{r.reviewer.first_name} {r.reviewer.last_name}".strip() or r.reviewer.email) if r.reviewer else "Anonymous"
+            subject_name = r.company.name if r.company else (r.company_name or "")
             results.append({
                 'id': r.id,
                 'custom_id': r.review_id,
                 'review_type': 'company',
-                'reviewer_email': r.reviewer.email,
-                'reviewer_name': f"{r.reviewer.first_name} {r.reviewer.last_name}".strip() or r.reviewer.email,
-                'subject_name': r.company.name if r.company else r.company_name,
+                'reviewer_email': reviewer_email,
+                'reviewer_name': reviewer_name,
+                'subject_name': subject_name,
                 'rating': r.rating,
                 'review_text': r.review_text,
                 'created_at': r.created_at,
-                'flag_reason': r.flag_reason or ''
+                'flag_reason': r.flag_reason or '',
+                'is_flagged': r.is_flagged,
+                'flag_status': 'resolved' if (r.flag_status == 'resolved' and not r.is_flagged) else 'unresolved'
             })
 
         for r in freelancer_reviews:
+            reviewer_email = r.reviewer.email if r.reviewer else ""
+            reviewer_name = (f"{r.reviewer.first_name} {r.reviewer.last_name}".strip() or r.reviewer.email) if r.reviewer else "Anonymous"
+            subject_name = (f"{r.freelancer.first_name} {r.freelancer.last_name}".strip() or r.freelancer.email) if r.freelancer else "Unknown Freelancer"
             results.append({
                 'id': r.id,
                 'custom_id': r.review_id,
                 'review_type': 'freelancer',
-                'reviewer_email': r.reviewer.email,
-                'reviewer_name': f"{r.reviewer.first_name} {r.reviewer.last_name}".strip() or r.reviewer.email,
-                'subject_name': f"{r.freelancer.first_name} {r.freelancer.last_name}".strip() or r.freelancer.email,
+                'reviewer_email': reviewer_email,
+                'reviewer_name': reviewer_name,
+                'subject_name': subject_name,
                 'rating': r.rating,
                 'review_text': r.review_text,
                 'created_at': r.created_at,
-                'flag_reason': r.flag_reason or ''
+                'flag_reason': r.flag_reason or '',
+                'is_flagged': r.is_flagged,
+                'flag_status': 'resolved' if (r.flag_status == 'resolved' and not r.is_flagged) else 'unresolved'
             })
 
         for j in flagged_jobs:
+            reviewer_email = j.company.creator.email if (j.company and j.company.creator) else ""
+            subject_name = f"{j.title} at {j.company.name}" if j.company else j.title
             results.append({
                 'id': j.id,
                 'custom_id': j.job_id,
                 'review_type': 'job',
-                'reviewer_email': j.company.creator.email,
+                'reviewer_email': reviewer_email,
                 'reviewer_name': "System Job",
-                'subject_name': f"{j.title} at {j.company.name}",
+                'subject_name': subject_name,
                 'rating': None,
                 'review_text': j.description,
                 'created_at': j.created_at,
-                'flag_reason': j.flag_reason or ''
+                'flag_reason': j.flag_reason or '',
+                'is_flagged': j.is_flagged,
+                'flag_status': 'resolved' if (j.flag_status == 'resolved' and not j.is_flagged) else 'unresolved'
             })
 
         for rfp in flagged_rfps:
+            reviewer_email = rfp.company.creator.email if (rfp.company and rfp.company.creator) else ""
+            subject_name = f"{rfp.title} by {rfp.company.name}" if rfp.company else rfp.title
             results.append({
                 'id': rfp.id,
                 'custom_id': rfp.rfp_id,
                 'review_type': 'rfp',
-                'reviewer_email': rfp.company.creator.email,
+                'reviewer_email': reviewer_email,
                 'reviewer_name': "System RFP",
-                'subject_name': f"{rfp.title} by {rfp.company.name}",
+                'subject_name': subject_name,
                 'rating': None,
                 'review_text': rfp.description,
                 'created_at': rfp.created_at,
-                'flag_reason': rfp.flag_reason or ''
+                'flag_reason': rfp.flag_reason or '',
+                'is_flagged': rfp.is_flagged,
+                'flag_status': 'resolved' if (rfp.flag_status == 'resolved' and not rfp.is_flagged) else 'unresolved'
             })
 
         results.sort(key=lambda x: x['created_at'], reverse=True)
@@ -1078,7 +1115,7 @@ class AdminFlaggedReviewsView(APIView):
 
         if action == 'dismiss':
             review.is_flagged = False
-            review.flag_reason = None
+            review.flag_status = 'resolved'
             review.save()
             return Response({"message": "Flag dismissed successfully"}, status=status.HTTP_200_OK)
 
@@ -1099,9 +1136,15 @@ class AdminFlaggedReviewsView(APIView):
                     review.description = description
             
             review.is_flagged = False
-            review.flag_reason = None
+            review.flag_status = 'resolved'
             review.save()
             return Response({"message": "Content edited and unflagged successfully"}, status=status.HTTP_200_OK)
+
+        elif action == 'reopen':
+            review.is_flagged = True
+            review.flag_status = 'unresolved'
+            review.save()
+            return Response({"message": "Flag reopened successfully"}, status=status.HTTP_200_OK)
 
         elif action == 'delete':
             review.delete()
@@ -1200,6 +1243,7 @@ class AdminStatsView(APIView):
         total_users = User.objects.count()
         total_companies = Company.objects.count()
         active_jobs = JobOpening.objects.filter(is_active=True).count()
+        total_rfps = RFP.objects.count()
         flagged_count = (
             CompanyReview.objects.filter(is_flagged=True).count() +
             FreelancerReview.objects.filter(is_flagged=True).count() +
@@ -1210,6 +1254,192 @@ class AdminStatsView(APIView):
             "total_users": total_users,
             "total_companies": total_companies,
             "active_jobs": active_jobs,
+            "total_rfps": total_rfps,
             "flagged_count": flagged_count,
         }, status=status.HTTP_200_OK)
+
+
+class AdminUsersListView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        query = request.query_params.get('q', '').strip()
+        status_filter = request.query_params.get('status', 'all').lower().strip()
+        
+        thirty_days_ago = timezone.now() - datetime.timedelta(days=30)
+        
+        users = User.objects.all().order_by('-date_joined')
+        
+        if status_filter == 'active':
+            users = users.filter(
+                is_active=True
+            ).filter(
+                Q(last_login__gte=thirty_days_ago) |
+                Q(last_login__isnull=True, date_joined__gte=thirty_days_ago)
+            )
+        elif status_filter == 'inactive':
+            users = users.filter(
+                Q(is_active=False) |
+                Q(last_login__lt=thirty_days_ago) |
+                Q(last_login__isnull=True, date_joined__lt=thirty_days_ago)
+            )
+
+        if query:
+            users = users.filter(
+                Q(email__icontains=query) |
+                Q(first_name__icontains=query) |
+                Q(last_name__icontains=query) |
+                Q(phone_number__icontains=query)
+            )
+        
+        data = []
+        for u in users[:100]:
+            user_type = 'Admin' if u.is_staff else 'User'
+            try:
+                if hasattr(u, 'profile') and u.profile and getattr(u.profile, 'is_freelancer', False):
+                    user_type = 'Freelancer'
+            except Exception:
+                pass
+
+            has_recent_activity = False
+            if u.last_login and u.last_login >= thirty_days_ago:
+                has_recent_activity = True
+            elif not u.last_login and u.date_joined and u.date_joined >= thirty_days_ago:
+                has_recent_activity = True
+
+            is_user_active = bool(u.is_active and has_recent_activity)
+
+            data.append({
+                'id': u.id,
+                'email': u.email,
+                'first_name': u.first_name,
+                'last_name': u.last_name,
+                'user_type': user_type,
+                'phone_number': u.phone_number,
+                'is_active': u.is_active,
+                'is_user_active': is_user_active,
+                'is_staff': u.is_staff,
+                'date_joined': u.date_joined,
+                'last_login': u.last_login,
+            })
+        return Response(data, status=status.HTTP_200_OK)
+
+
+class AdminCompaniesListView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        query = request.query_params.get('q', '').strip()
+        status_param = request.query_params.get('status', 'all').strip().lower()
+        companies = Company.objects.all().order_by('-created_at')
+        if query:
+            companies = companies.filter(
+                Q(name__icontains=query) |
+                Q(company_id__icontains=query) |
+                Q(industry__icontains=query) |
+                Q(location__icontains=query)
+            )
+
+        thirty_days_ago = timezone.now() - datetime.timedelta(days=30)
+        data = []
+        for c in companies:
+            recent_jobs = c.job_openings.filter(created_at__gte=thirty_days_ago).count()
+            recent_rfps = c.rfps.filter(created_at__gte=thirty_days_ago).count()
+            is_recently_active = (recent_jobs > 0 or recent_rfps > 0)
+
+            if status_param == 'active' and not is_recently_active:
+                continue
+            if status_param == 'inactive' and is_recently_active:
+                continue
+
+            data.append({
+                'id': c.id,
+                'name': c.name,
+                'company_id': c.company_id,
+                'public_id': str(c.public_id),
+                'tagline': c.tagline,
+                'industry': c.industry,
+                'location': c.location,
+                'creator_email': c.creator.email if c.creator else None,
+                'total_jobs': c.job_openings.count(),
+                'total_rfps': c.rfps.count(),
+                'members_count': c.members.count(),
+                'is_recently_active': is_recently_active,
+                'last_activity_date': c.last_activity_date,
+                'recent_jobs': recent_jobs,
+                'recent_rfps': recent_rfps,
+                'created_at': c.created_at,
+            })
+            if len(data) >= 100:
+                break
+        return Response(data, status=status.HTTP_200_OK)
+
+
+
+class AdminJobsListView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        query = request.query_params.get('q', '').strip()
+        jobs = JobOpening.objects.select_related('company').all().order_by('-created_at')
+        if query:
+            jobs = jobs.filter(
+                Q(title__icontains=query) |
+                Q(job_id__icontains=query) |
+                Q(company__name__icontains=query) |
+                Q(location__icontains=query)
+            )
+
+        data = []
+        for j in jobs[:100]:
+            data.append({
+                'id': j.id,
+                'job_id': getattr(j, 'job_id', None),
+                'title': j.title,
+                'company_name': j.company.name if j.company else '',
+                'company_public_id': str(j.company.public_id) if j.company else None,
+                'job_type': j.get_job_type_display() if hasattr(j, 'get_job_type_display') else j.job_type,
+                'location': j.location,
+                'salary_range': j.salary_range,
+                'is_active': j.is_active,
+                'is_frozen': getattr(j, 'is_frozen', False),
+                'is_flagged': j.is_flagged,
+                'applications_count': j.applications.count(),
+                'created_at': j.created_at,
+            })
+        return Response(data, status=status.HTTP_200_OK)
+
+
+class AdminRFPsListView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        query = request.query_params.get('q', '').strip()
+        rfps = RFP.objects.select_related('company').all().order_by('-created_at')
+        if query:
+            rfps = rfps.filter(
+                Q(title__icontains=query) |
+                Q(rfp_id__icontains=query) |
+                Q(company__name__icontains=query) |
+                Q(category__icontains=query)
+            )
+
+        data = []
+        for r in rfps[:100]:
+            data.append({
+                'id': r.id,
+                'rfp_id': r.rfp_id,
+                'title': r.title,
+                'company_name': r.company.name if r.company else '',
+                'company_public_id': str(r.company.public_id) if r.company else None,
+                'category': r.category,
+                'sub_category': r.sub_category,
+                'budget': r.budget,
+                'deadline': r.deadline,
+                'is_active': r.is_active,
+                'is_flagged': r.is_flagged,
+                'interests_count': r.interests.count(),
+                'created_at': r.created_at,
+            })
+        return Response(data, status=status.HTTP_200_OK)
 
