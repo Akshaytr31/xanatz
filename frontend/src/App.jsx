@@ -20,6 +20,7 @@ import RFPDetailPage from "./pages/RFPDetailPage";
 import ManageRFPsPage from "./pages/ManageRFPsPage";
 import ManageRFPInterestsPage from "./pages/ManageRFPInterestsPage";
 import MessagesPage from "./pages/MessagesPage";
+import FreelancersPage from "./pages/FreelancersPage";
 
 
 function App() {
@@ -60,6 +61,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/freelancers" element={<FreelancersPage />} />
         <Route path="/p/:publicId" element={<PublicProfile />} />
         <Route path="/c/:publicId" element={<PublicCompanyProfile />} />
         <Route

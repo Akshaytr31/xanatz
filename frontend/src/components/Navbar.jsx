@@ -461,9 +461,9 @@ const Navbar = () => {
           />
           <NavItem
             icon={Users}
-            label="Network"
-            active={location.pathname === "/network"}
-            onClick={() => navigate("/network")}
+            label="Freelancers"
+            active={location.pathname === "/freelancers"}
+            onClick={() => navigate("/freelancers")}
           />
           <NavItem
             icon={Briefcase}
@@ -1079,7 +1079,7 @@ const Navbar = () => {
             className="display-mobile"
           >
             <MobileNavItem icon={Home} label="Home" active={location.pathname === "/dashboard"} onClick={() => { navigate("/dashboard"); setIsMobileMenuOpen(false); }} />
-            <MobileNavItem icon={Users} label="Network" active={location.pathname === "/network"} onClick={() => { navigate("/network"); setIsMobileMenuOpen(false); }} />
+            <MobileNavItem icon={Users} label="Freelancers" active={location.pathname === "/freelancers"} onClick={() => { navigate("/freelancers"); setIsMobileMenuOpen(false); }} />
             <MobileNavItem icon={Briefcase} label="Jobs" active={location.pathname === "/jobs"} onClick={() => { navigate("/jobs"); setIsMobileMenuOpen(false); }} />
             <MobileNavItem icon={FileText} label="RFPs" active={location.pathname === "/rfps"} onClick={() => { navigate("/rfps"); setIsMobileMenuOpen(false); }} />
             <MobileNavItem icon={ClipboardList} label="Applications" active={location.pathname === "/my-applications"} onClick={() => { navigate("/my-applications"); setIsMobileMenuOpen(false); }} />

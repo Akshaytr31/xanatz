@@ -9,7 +9,8 @@ from .views import (
     RFPViewSet, RFPInterestViewSet, JobPostPlanViewSet, NotificationViewSet, MessageViewSet,
     PublicCompanyProfileView, CompanyReviewViewSet, FreelancerReviewViewSet, AdminFlaggedReviewsView,
     CompanyFAQViewSet, AIEnhanceView, AdminStatsView,
-    AdminUsersListView, AdminCompaniesListView, AdminJobsListView, AdminRFPsListView
+    AdminUsersListView, AdminCompaniesListView, AdminJobsListView, AdminRFPsListView,
+    FreelancersListView
 )
 
 router = DefaultRouter()
@@ -44,6 +45,7 @@ urlpatterns = [
     path('public-profile/<uuid:public_id>/', PublicProfileView.as_view(), name='public_profile'),
     path('public-company/<uuid:public_id>/', PublicCompanyProfileView.as_view(), name='public_company_profile'),
     path('users/search/', UserSearchView.as_view(), name='user_search'),
+    path('freelancers/', FreelancersListView.as_view(), name='freelancers_list'),
     path('admin/reviews/flagged/', AdminFlaggedReviewsView.as_view(), name='admin_reviews_flagged'),
     path('admin/stats/', AdminStatsView.as_view(), name='admin_stats'),
     path('admin/users/', AdminUsersListView.as_view(), name='admin_users'),

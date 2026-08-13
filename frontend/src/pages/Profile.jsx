@@ -122,8 +122,47 @@ const ProfileStrengthBar = ({ pct = 0 }) => {
   );
 };
 
+/* ─── Freelancer availability pills control ──────────────────── */
+const AvailabilityPills = ({ currentAvailability, onChange, disabled }) => {
+  const options = [
+    { key: "available", label: "Available", color: "#10b981", activeBg: "rgba(16,185,129,0.2)", activeBorder: "rgba(16,185,129,0.4)" },
+    { key: "busy", label: "Busy", color: "#f59e0b", activeBg: "rgba(245,158,11,0.2)", activeBorder: "rgba(245,158,11,0.4)" },
+    { key: "unavailable", label: "Unavailable", color: "#ef4444", activeBg: "rgba(239,68,68,0.2)", activeBorder: "rgba(239,68,68,0.4)" },
+  ];
+
+  const current = currentAvailability || "available";
+
+  return (
+    <div style={{ display: "flex", gap: 5, flexWrap: "wrap", margin: "4px 0 8px 0" }}>
+      {options.map((opt) => {
+        const isActive = current === opt.key;
+        return (
+          <button
+            key={opt.key}
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onChange(opt.key); }}
+            disabled={disabled}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 5,
+              padding: "4px 9px", borderRadius: 8, fontSize: 10, fontWeight: isActive ? 800 : 600,
+              cursor: disabled ? "wait" : "pointer",
+              border: isActive ? `1px solid ${opt.activeBorder}` : "1px solid rgba(255,255,255,0.08)",
+              background: isActive ? opt.activeBg : "rgba(255,255,255,0.02)",
+              color: isActive ? "white" : "rgba(255,255,255,0.4)",
+              transition: "all 0.2s",
+            }}
+          >
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: opt.color, boxShadow: isActive ? `0 0 6px ${opt.color}` : "none" }} />
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
 /* ─── Freelancer card content ─────────────────────────────── */
-const FreelancerCard = ({ user, becomingFreelancer, onBecomeFreelancer, navigate }) => {
+const FreelancerCard = ({ user, becomingFreelancer, onBecomeFreelancer, navigate, onAvailabilityChange, updatingAvailability }) => {
   const isFreelancer = user?.profile?.is_freelancer;
   return (
     <SideCard accent="#8b5cf6">
@@ -160,12 +199,20 @@ const FreelancerCard = ({ user, becomingFreelancer, onBecomeFreelancer, navigate
         </div>
 
         <p style={{
-          fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.65, marginBottom: 16,
+          fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.65, marginBottom: 12,
         }}>
           {isFreelancer
-            ? "Your freelancer landing page is live! Showcase your services, rates, and projects to clients."
+            ? "Your freelancer profile is live! Set your availability status below to reflect on the Freelancers list:"
             : "Set your rates, showcase your projects, and share your profile as a high-conversion landing page."}
         </p>
+
+        {isFreelancer && (
+          <AvailabilityPills
+            currentAvailability={user?.profile?.freelancer_availability}
+            onChange={onAvailabilityChange}
+            disabled={updatingAvailability}
+          />
+        )}
 
         <button
           onClick={isFreelancer ? () => navigate("/freelancer-dashboard") : onBecomeFreelancer}
@@ -320,6 +367,20 @@ const Profile = () => {
   const [companyRefreshTrigger, setCompanyRefreshTrigger] = useState(0);
   const [becomingFreelancer, setBecomingFreelancer]       = useState(false);
   const navigate = useNavigate();
+
+  const [updatingAvailability, setUpdatingAvailability] = useState(false);
+
+  const handleAvailabilityChange = async (newAvailability) => {
+    setUpdatingAvailability(true);
+    try {
+      const res = await api.patch("me/", { freelancer_availability: newAvailability });
+      setUser(res.data);
+    } catch (err) {
+      console.error("Failed to update availability status", err);
+    } finally {
+      setUpdatingAvailability(false);
+    }
+  };
 
   const handleBecomeFreelancer = async () => {
     setBecomingFreelancer(true);
@@ -628,14 +689,26 @@ const Profile = () => {
                   FREELANCER
                 </span>
                 {user?.profile?.is_freelancer ? (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                      <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#10b981", boxShadow: "0 0 8px #10b981", flexShrink: 0, animation: "pulse-dot 2s infinite" }} />
+                      <div style={{
+                        width: 7, height: 7, borderRadius: "50%",
+                        background: user?.profile?.freelancer_availability === "busy" ? "#f59e0b" : user?.profile?.freelancer_availability === "unavailable" ? "#ef4444" : "#10b981",
+                        boxShadow: user?.profile?.freelancer_availability === "busy" ? "0 0 8px #f59e0b" : user?.profile?.freelancer_availability === "unavailable" ? "0 0 8px #ef4444" : "0 0 8px #10b981",
+                        flexShrink: 0, animation: "pulse-dot 2s infinite"
+                      }} />
                       <span style={{ fontSize: 11, fontWeight: 700, color: "#a7f3d0" }}>Profile Active</span>
                     </div>
-                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", lineHeight: 1.5 }}>
-                      Your freelancer landing page is live and discoverable.
+
+                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>
+                      AVAILABILITY STATUS:
                     </span>
+                    <AvailabilityPills
+                      currentAvailability={user?.profile?.freelancer_availability}
+                      onChange={handleAvailabilityChange}
+                      disabled={updatingAvailability}
+                    />
+
                     <button
                       onClick={() => navigate("/freelancer-dashboard")}
                       style={{

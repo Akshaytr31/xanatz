@@ -13,38 +13,42 @@ const JOB_TYPE_LABELS = {
 
 /* ─── Shared meta badges/chips used in both views ───────────────────────── */
 const MetaBadges = ({ job }) => (
-  <HStack gap={2} wrap="wrap">
-    <Badge
-      px={2} py={0.5} fontSize="2xs" fontWeight="bold" borderRadius="md"
-      style={{ background: "var(--color-card-border)", color: "var(--color-text-secondary)" }}
-    >
-      {JOB_TYPE_LABELS[job.job_type] || job.job_type}
-    </Badge>
-    {job.category && (
-      <Badge px={2} py={0.5} fontSize="2xs" fontWeight="bold" borderRadius="md"
-        style={{ background: "rgba(59,130,246,0.15)", color: "rgba(147,197,253,0.9)", border: "1px solid rgba(59,130,246,0.25)" }}>
-        {ALL_CATEGORY_LABELS[job.category] || job.category}
+  <Flex align="center" justify="space-between" gap={2} wrap="wrap" w="full">
+    <HStack gap={2} wrap="wrap">
+      <Badge
+        px={2} py={0.5} fontSize="2xs" fontWeight="bold" borderRadius="md"
+        style={{ background: "var(--color-card-border)", color: "var(--color-text-secondary)" }}
+      >
+        {JOB_TYPE_LABELS[job.job_type] || job.job_type}
       </Badge>
-    )}
-    {job.sub_category && (
-      <Badge px={2} py={0.5} fontSize="2xs" fontWeight="bold" borderRadius="md"
-        style={{ background: "rgba(139,92,246,0.15)", color: "rgba(196,181,253,0.9)", border: "1px solid rgba(139,92,246,0.25)" }}>
-        {ALL_SUBCATEGORY_LABELS[job.sub_category] || job.sub_category}
-      </Badge>
-    )}
-    {job.location && (
-      <HStack gap={1} fontSize="10px" color="var(--color-text-muted)">
-        <MapPin size={10} />
-        <Text>{job.location}</Text>
-      </HStack>
-    )}
-    {job.salary_range && (
-      <HStack gap={1} fontSize="10px" color="var(--color-text-muted)">
-        <Text fontSize="9px" fontWeight="black" color="var(--color-text-muted)" style={{ marginRight: '1px' }}>AED</Text>
-        <Text>{job.salary_range.replace(/[$₹]/g, '')}</Text>
-      </HStack>
-    )}
-  </HStack>
+      {job.category && (
+        <Badge px={2} py={0.5} fontSize="2xs" fontWeight="bold" borderRadius="md"
+          style={{ background: "rgba(59,130,246,0.15)", color: "rgba(147,197,253,0.9)", border: "1px solid rgba(59,130,246,0.25)" }}>
+          {ALL_CATEGORY_LABELS[job.category] || job.category}
+        </Badge>
+      )}
+      {job.sub_category && (
+        <Badge px={2} py={0.5} fontSize="2xs" fontWeight="bold" borderRadius="md"
+          style={{ background: "rgba(139,92,246,0.15)", color: "rgba(196,181,253,0.9)", border: "1px solid rgba(139,92,246,0.25)" }}>
+          {ALL_SUBCATEGORY_LABELS[job.sub_category] || job.sub_category}
+        </Badge>
+      )}
+    </HStack>
+    <HStack gap={2.5} wrap="wrap" ml="auto">
+      {job.location && (
+        <HStack gap={1} fontSize="10px" color="var(--color-text-muted)">
+          <MapPin size={10} />
+          <Text>{job.location}</Text>
+        </HStack>
+      )}
+      {job.salary_range && (
+        <HStack gap={1} fontSize="10px" color="var(--color-text-muted)">
+          <Text fontSize="9px" fontWeight="black" color="var(--color-text-muted)" style={{ marginRight: '1px' }}>AED</Text>
+          <Text>{job.salary_range.replace(/[$₹]/g, '')}</Text>
+        </HStack>
+      )}
+    </HStack>
+  </Flex>
 );
 
 /* ─── Company logo box ───────────────────────────────────────────────────── */
@@ -166,6 +170,9 @@ const JobOpeningCard = ({ job, onClick, viewMode = "grid" }) => {
       transition="all 0.3s cubic-bezier(0.4,0,0.2,1)"
       cursor="pointer"
       onClick={onClick}
+      display="flex"
+      flexDirection="column"
+      height="100%"
     >
       <HStack
         position="absolute"
@@ -236,7 +243,7 @@ const JobOpeningCard = ({ job, onClick, viewMode = "grid" }) => {
         {job.description}
       </Text>
 
-      <Box pt={2} borderTop="1px solid var(--color-card-border)">
+      <Box pt={3} mt="auto" borderTop="1px solid var(--color-card-border)">
         <MetaBadges job={job} />
       </Box>
     </Box>

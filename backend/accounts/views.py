@@ -463,6 +463,80 @@ class UserSearchView(APIView):
         return Response(serializer.data)
 
 
+class FreelancersListView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        query = request.query_params.get('q', '').strip()
+        availability = request.query_params.get('availability', '').strip()
+
+        freelancers = User.objects.filter(
+            is_active=True,
+            profile__is_freelancer=True
+        ).select_related('profile').prefetch_related('freelancer_reviews').order_by('-date_joined')
+
+        if availability and availability in ['available', 'busy', 'unavailable']:
+            freelancers = freelancers.filter(profile__freelancer_availability=availability)
+
+        if query:
+            q_lower = query.lower()
+            matching_ids = []
+            for u in freelancers:
+                prof = getattr(u, 'profile', None)
+                skills_val = getattr(prof, 'skills', []) or []
+                skills_str = " ".join(skills_val) if isinstance(skills_val, list) else str(skills_val)
+                text_to_search = f"{u.first_name or ''} {u.last_name or ''} {u.email or ''} {getattr(prof, 'headline', '') or ''} {getattr(prof, 'about', '') or ''} {getattr(prof, 'location', '') or ''} {skills_str}".lower()
+                if q_lower in text_to_search:
+                    matching_ids.append(u.id)
+            freelancers = freelancers.filter(id__in=matching_ids)
+
+        data = []
+        for u in freelancers:
+            prof = getattr(u, 'profile', None)
+            reviews = u.freelancer_reviews.all()
+            avg_rating = 0
+            if reviews.exists():
+                ratings = [r.rating for r in reviews if r.rating is not None]
+                if ratings:
+                    avg_rating = round(sum(ratings) / len(ratings), 1)
+
+            skills_list = []
+            if prof and prof.skills:
+                if isinstance(prof.skills, list):
+                    skills_list = prof.skills
+                elif isinstance(prof.skills, str):
+                    skills_list = [s.strip() for s in prof.skills.split(',') if s.strip()]
+
+            profile_pic_url = None
+            if prof and prof.profile_picture:
+                try:
+                    profile_pic_url = request.build_absolute_uri(prof.profile_picture.url)
+                except Exception:
+                    profile_pic_url = None
+
+            data.append({
+                'id': u.id,
+                'email': u.email,
+                'first_name': u.first_name,
+                'last_name': u.last_name,
+                'public_id': prof.public_id if prof else None,
+                'headline': prof.headline if prof else '',
+                'about': prof.about if prof else '',
+                'location': prof.location if prof else '',
+                'profile_picture': profile_pic_url,
+                'is_freelancer': prof.is_freelancer if prof else True,
+                'hourly_rate': prof.hourly_rate if prof else None,
+                'freelancer_currency': prof.freelancer_currency if prof else 'AED',
+                'freelancer_availability': prof.freelancer_availability if prof else 'available',
+                'skills': skills_list,
+                'average_rating': avg_rating,
+                'reviews_count': len(reviews),
+                'date_joined': u.date_joined
+            })
+
+        return Response(data, status=status.HTTP_200_OK)
+
+
 class JobOpeningViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = JobOpeningSerializer

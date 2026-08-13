@@ -302,35 +302,43 @@ const FreelancerDashboard = () => {
                 FREELANCER PROFILE STATUS
               </Heading>
 
-              <Flex justify="space-between" align="center" mb={6}>
-                <VStack align="start" gap={0}>
-                  <Text color="var(--color-text-primary)" fontWeight="bold" fontSize="sm">
-                    {user?.profile?.is_freelancer ? "Active & Discoverable" : "Inactive / Hidden"}
-                  </Text>
-                  <Text color="var(--color-text-muted)" fontSize="xs">
-                    Show your landing page to clients
-                  </Text>
-                </VStack>
-
-                <Button
-                  onClick={handleToggleStatus}
-                  bg={user?.profile?.is_freelancer ? "rgba(34, 197, 94, 0.12)" : "rgba(255, 255, 255, 0.05)"}
-                  border="1px solid"
-                  borderColor={user?.profile?.is_freelancer ? "rgba(34, 197, 94, 0.3)" : "rgba(255, 255, 255, 0.1)"}
-                  color={user?.profile?.is_freelancer ? "#4ade80" : "var(--color-text-muted)"}
-                  size="sm"
-                  borderRadius="full"
-                  fontWeight="black"
-                  fontSize="10px"
-                  px={4}
-                  _hover={{
-                    bg: user?.profile?.is_freelancer ? "rgba(34, 197, 94, 0.2)" : "rgba(255, 255, 255, 0.1)"
-                  }}
-                  transition="all 0.2s"
-                >
-                  {user?.profile?.is_freelancer ? "● ACTIVE" : "○ INACTIVE"}
-                </Button>
-              </Flex>
+              <Box mb={4}>
+                <Text color="var(--color-text-secondary)" fontWeight="bold" fontSize="xs" letterSpacing="wide" mb={2}>
+                  AVAILABILITY STATUS ON DIRECTORY
+                </Text>
+                <HStack gap={2} flexWrap="wrap">
+                  {[
+                    { key: "available", label: "Available", color: "#10b981", bg: "rgba(16,185,129,0.15)", border: "rgba(16,185,129,0.3)" },
+                    { key: "busy", label: "Busy", color: "#f59e0b", bg: "rgba(245,158,11,0.15)", border: "rgba(245,158,11,0.3)" },
+                    { key: "unavailable", label: "Unavailable", color: "#ef4444", bg: "rgba(239,68,68,0.15)", border: "rgba(239,68,68,0.3)" },
+                  ].map((opt) => {
+                    const isSelected = (user?.profile?.freelancer_availability || "available") === opt.key;
+                    return (
+                      <Button
+                        key={opt.key}
+                        size="xs"
+                        borderRadius="lg"
+                        bg={isSelected ? opt.bg : "rgba(255,255,255,0.03)"}
+                        border="1px solid"
+                        borderColor={isSelected ? opt.border : "rgba(255,255,255,0.08)"}
+                        color={isSelected ? "white" : "whiteAlpha.600"}
+                        onClick={async () => {
+                          try {
+                            await api.patch("me/", { freelancer_availability: opt.key });
+                            fetchProfile();
+                          } catch (e) {
+                            console.error("Failed to update availability", e);
+                          }
+                        }}
+                        _hover={{ bg: opt.bg, borderColor: opt.border, color: "white" }}
+                      >
+                        <Box w={2} h={2} borderRadius="full" bg={opt.color} mr={1.5} boxShadow={isSelected ? `0 0 6px ${opt.color}` : "none"} />
+                        {opt.label}
+                      </Button>
+                    );
+                  })}
+                </HStack>
+              </Box>
 
               {user?.profile?.is_freelancer && (
                 <VStack align="stretch" gap={3} pt={4} borderTop="1px solid" borderColor="whiteAlpha.100">
