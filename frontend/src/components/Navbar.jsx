@@ -393,9 +393,9 @@ const Navbar = () => {
 
   return (
     <motion.header
-      initial={{ y: -20, opacity: 0 }}
+      initial={{ y: -6, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
       style={{
         position: "fixed",
         top: 0,
@@ -404,15 +404,16 @@ const Navbar = () => {
         zIndex: 1000,
         paddingLeft: "clamp(1.25rem, 5vw, 5rem)",
         paddingRight: "clamp(1.25rem, 5vw, 5rem)",
-        paddingTop: scrolled ? "0.6rem" : "1rem",
-        paddingBottom: scrolled ? "calc(0.6rem + 3px)" : "calc(1rem + 3px)",
-        backdropFilter: scrolled ? "blur(24px) saturate(180%)" : "none",
-        WebkitBackdropFilter: scrolled ? "blur(24px) saturate(180%)" : "none",
-        background: scrolled ? "var(--color-nav-bg)" : "transparent",
-        borderBottom: scrolled ? "1px solid var(--color-card-border)" : "none",
-        boxShadow: scrolled ? "0 4px 30px rgba(0,0,0,0.5)" : "none",
-        transition: "all 0.4s ease",
+        paddingTop: "0.55rem",
+        paddingBottom: "0.55rem",
+        backdropFilter: scrolled ? "blur(20px) saturate(180%)" : "blur(0px)",
+        WebkitBackdropFilter: scrolled ? "blur(20px) saturate(180%)" : "blur(0px)",
+        background: scrolled ? "var(--color-nav-bg)" : "rgba(10, 15, 30, 0)",
+        borderBottom: scrolled ? "1px solid var(--color-card-border)" : "1px solid transparent",
+        boxShadow: scrolled ? "0 8px 32px rgba(0, 0, 0, 0.4)" : "none",
+        transition: "background-color 0.35s cubic-bezier(0.16, 1, 0.3, 1), backdrop-filter 0.35s cubic-bezier(0.16, 1, 0.3, 1), -webkit-backdrop-filter 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1)",
         fontFamily: "'Outfit', sans-serif",
+        willChange: "background-color, backdrop-filter, border-color, box-shadow",
       }}
     >
       <div
@@ -421,7 +422,7 @@ const Navbar = () => {
           alignItems: "center",
           justifyContent: "space-between",
           maxWidth: "1400px",
-          margin: "-5px auto",
+          margin: "0 auto",
         }}
       >
         {/* ── Logo ── */}
