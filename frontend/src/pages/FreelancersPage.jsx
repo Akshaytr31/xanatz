@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Search, Users, Star, MapPin, DollarSign, ExternalLink,
-  MessageSquare, CheckCircle2, Clock, Filter, User, Sparkles
+  MessageSquare, CheckCircle2, Clock, Filter, User, UserCheck,
+  ChevronDown, Check, ArrowDownRight, ArrowUpRight
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import api from "../api";
@@ -22,6 +23,13 @@ const AVAILABILITY_OPTIONS = [
   { key: "unavailable", label: "Unavailable", color: "#ef4444" },
 ];
 
+const SORT_OPTIONS = [
+  { value: "newest", label: "Recently Joined", icon: Clock },
+  { value: "rating", label: "Highest Rated", icon: Star, iconColor: "#f59e0b" },
+  { value: "rate_low", label: "Rate: Low to High", icon: ArrowDownRight, iconColor: "#10b981" },
+  { value: "rate_high", label: "Rate: High to Low", icon: ArrowUpRight, iconColor: "#8b5cf6" },
+];
+
 const FreelancersPage = () => {
   const navigate = useNavigate();
   const [freelancers, setFreelancers] = useState([]);
@@ -30,6 +38,18 @@ const FreelancersPage = () => {
   const [search, setSearch] = useState("");
   const [availabilityFilter, setAvailabilityFilter] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const sortDropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(e.target)) {
+        setIsSortOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -118,7 +138,7 @@ const FreelancersPage = () => {
               background: "rgba(124, 58, 237, 0.2)", border: "1px solid rgba(124, 58, 237, 0.35)",
               color: "#c4b5fd", fontSize: 11, fontWeight: 700, letterSpacing: "0.5px",
             }}>
-              <Sparkles size={13} color="#a78bfa" />
+              <UserCheck size={13} color="#a78bfa" />
               <span>FREELANCERS DIRECTORY</span>
             </div>
 
@@ -157,23 +177,114 @@ const FreelancersPage = () => {
               />
             </div>
 
-            {/* Sort Selector */}
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>Sort by:</span>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                style={{
-                  padding: "10px 14px", background: "rgba(0,0,0,0.4)",
-                  border: "1px solid var(--color-card-border)", borderRadius: 10,
-                  color: "white", fontSize: 12, outline: "none", cursor: "pointer",
-                }}
-              >
-                <option value="newest">Recently Joined</option>
-                <option value="rating">Highest Rated</option>
-                <option value="rate_low">Rate: Low to High</option>
-                <option value="rate_high">Rate: High to Low</option>
-              </select>
+            {/* Redesigned Glassmorphism Sort Dropdown */}
+            <div ref={sortDropdownRef} style={{ position: "relative", zIndex: 30 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontWeight: 600, letterSpacing: "0.02em" }}>
+                  Sort by:
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsSortOpen(!isSortOpen)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 8,
+                    padding: "9px 14px",
+                    background: isSortOpen ? "rgba(124, 58, 237, 0.15)" : "rgba(15, 23, 42, 0.6)",
+                    border: isSortOpen ? "1px solid rgba(124, 58, 237, 0.6)" : "1px solid var(--color-card-border)",
+                    borderRadius: 12,
+                    color: "white", fontSize: 12, fontWeight: 600,
+                    cursor: "pointer", outline: "none",
+                    boxShadow: isSortOpen ? "0 0 16px rgba(124, 58, 237, 0.25)" : "0 2px 8px rgba(0,0,0,0.2)",
+                    backdropFilter: "blur(12px)",
+                    transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSortOpen) {
+                      e.currentTarget.style.borderColor = "rgba(124, 58, 237, 0.4)";
+                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.07)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSortOpen) {
+                      e.currentTarget.style.borderColor = "var(--color-card-border)";
+                      e.currentTarget.style.background = "rgba(15, 23, 42, 0.6)";
+                    }
+                  }}
+                >
+                  {(() => {
+                    const currentOpt = SORT_OPTIONS.find((o) => o.value === sortBy) || SORT_OPTIONS[0];
+                    const Icon = currentOpt.icon;
+                    return (
+                      <>
+                        <Icon size={14} color={currentOpt.iconColor || "rgba(255,255,255,0.7)"} />
+                        <span>{currentOpt.label}</span>
+                      </>
+                    );
+                  })()}
+                  <ChevronDown
+                    size={14}
+                    color="rgba(255,255,255,0.5)"
+                    style={{
+                      transform: isSortOpen ? "rotate(180deg)" : "rotate(0deg)",
+                      transition: "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                      marginLeft: 2,
+                    }}
+                  />
+                </button>
+              </div>
+
+              {isSortOpen && (
+                <div
+                  style={{
+                    position: "absolute", right: 0, top: "calc(100% + 8px)",
+                    width: 195,
+                    background: "rgba(10, 15, 30, 0.95)",
+                    border: "1px solid rgba(255, 255, 255, 0.12)",
+                    borderRadius: 14,
+                    padding: "6px",
+                    boxShadow: "0 20px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(124, 58, 237, 0.2)",
+                    backdropFilter: "blur(24px)",
+                    display: "flex", flexDirection: "column", gap: 3,
+                  }}
+                >
+                  {SORT_OPTIONS.map((opt) => {
+                    const isSelected = sortBy === opt.value;
+                    const Icon = opt.icon;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => {
+                          setSortBy(opt.value);
+                          setIsSortOpen(false);
+                        }}
+                        style={{
+                          display: "flex", alignItems: "center", justifyContent: "space-between",
+                          width: "100%", padding: "8px 12px",
+                          borderRadius: 9, border: "none",
+                          background: isSelected ? "rgba(124, 58, 237, 0.25)" : "transparent",
+                          color: isSelected ? "#c4b5fd" : "rgba(255,255,255,0.8)",
+                          fontSize: 12, fontWeight: isSelected ? 700 : 500,
+                          cursor: "pointer", textAlign: "left",
+                          transition: "all 0.15s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isSelected) e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isSelected) e.currentTarget.style.background = "transparent";
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <Icon size={14} color={opt.iconColor || (isSelected ? "#c4b5fd" : "rgba(255,255,255,0.5)")} />
+                          <span>{opt.label}</span>
+                        </div>
+                        {isSelected && <Check size={14} color="#c4b5fd" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
@@ -351,7 +462,7 @@ const FreelancersPage = () => {
                       <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                         <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>RATE:</span>
                         <span style={{ fontSize: 12, fontWeight: 800, color: "#6ee7b7" }}>
-                          {f.hourly_rate ? `${f.freelancer_currency || "AED"} ${f.hourly_rate}/hr` : "Negotiable"}
+                          {f.hourly_rate ? `AED ${f.hourly_rate}/hr` : "Negotiable"}
                         </span>
                       </div>
 
@@ -424,7 +535,20 @@ const FreelancersPage = () => {
                       </button>
                     )}
                     <button
-                      onClick={() => navigate(`/messages?user=${f.id}`)}
+                      onClick={() =>
+                        navigate("/messages", {
+                          state: {
+                            startChatWith: {
+                              id: f.id,
+                              email: f.email,
+                              name: `${f.first_name || ""} ${f.last_name || ""}`.trim() || f.email,
+                              first_name: f.first_name,
+                              last_name: f.last_name,
+                              profile_picture: f.profile_picture || f.profile?.profile_picture,
+                            },
+                          },
+                        })
+                      }
                       style={{
                         padding: "9px 14px", borderRadius: 8, cursor: "pointer",
                         background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",

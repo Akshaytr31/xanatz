@@ -42,6 +42,7 @@ const RFPsPage = () => {
   const [selectedSort, setSelectedSort] = useState("newest");
   const [expandedRfps, setExpandedRfps] = useState({});
   const [copiedId, setCopiedId] = useState(null);
+  const [myInterests, setMyInterests] = useState([]);
 
   const handleResetFilters = () => {
     setSelectedCategory("");
@@ -148,9 +149,21 @@ const RFPsPage = () => {
     }
   };
 
+  const fetchMyInterests = async () => {
+    const token = localStorage.getItem("access");
+    if (!token) return;
+    try {
+      const iRes = await api.get("rfp-interests/");
+      setMyInterests(iRes.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     fetchData();
     fetchUser();
+    fetchMyInterests();
   }, []);
 
   useEffect(() => {
@@ -538,7 +551,7 @@ const RFPsPage = () => {
                               VIEW DETAILS
                             </Button>
 
-                            {currentUser && rfp.company === currentUser.company_id ? (
+                             {currentUser && rfp.company === currentUser.company_id ? (
                               <Button
                                 h="8"
                                 px={4.5}
@@ -553,6 +566,23 @@ const RFPsPage = () => {
                                 onClick={() => navigate(`/company/${rfp.company}/rfps`)}
                               >
                                 MANAGE
+                              </Button>
+                            ) : myInterests.some((i) => String(i.rfp) === String(rfp.id)) ? (
+                              <Button
+                                h="8"
+                                px={3.5}
+                                borderRadius="lg"
+                                fontSize="3xs"
+                                fontWeight="black"
+                                letterSpacing="wider"
+                                bg="rgba(16, 185, 129, 0.15)"
+                                color="#34d399"
+                                border="1px solid rgba(16, 185, 129, 0.3)"
+                                cursor="default"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <CheckCircle2 size={12} style={{ marginRight: "4px" }} />
+                                INTEREST SUBMITTED
                               </Button>
                             ) : (
                               <Button
@@ -734,6 +764,7 @@ const RFPsPage = () => {
           isOpen={isInterestOpen}
           onClose={() => setIsInterestOpen(false)}
           rfp={selectedRfp}
+          onSubmitSuccess={fetchMyInterests}
         />
       )}
 

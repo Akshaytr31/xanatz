@@ -328,11 +328,15 @@ class CompanyViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def attach_user(self, request, pk=None):
         company = self.get_object()
-        if not can_manage_company_roles(request.user, company):
-            return Response({"error": "Only Super Admin and Admin can manage team roles."}, status=status.HTTP_403_FORBIDDEN)
         user_id = request.data.get('user_id')
         access_role = request.data.get('access_role', 'user')
         position = request.data.get('position', '')
+
+        is_self_join = user_id and str(user_id) == str(request.user.id)
+        if is_self_join:
+            access_role = 'user'  # Enforce employee role for self-joining
+        elif not can_manage_company_roles(request.user, company):
+            return Response({"error": "Only Super Admin and Admin can manage team roles."}, status=status.HTTP_403_FORBIDDEN)
 
         if access_role == 'super_admin' and not can_assign_super_admin(request.user, company):
             return Response({"error": "Only Super Admin can assign the Super Admin role."}, status=status.HTTP_403_FORBIDDEN)
@@ -345,24 +349,51 @@ class CompanyViewSet(viewsets.ModelViewSet):
                 company=company, user=user,
                 defaults={'access_role': access_role, 'position': position}
             )
+            company.members.add(user)
             return Response({"message": "User attached successfully"}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def join(self, request, pk=None):
+        """Allows an authenticated user to self-join a company."""
+        company = self.get_object()
+        CompanyMember.objects.update_or_create(
+            company=company, user=request.user,
+            defaults={'access_role': 'user'}
+        )
+        company.members.add(request.user)
+        return Response({"message": "Successfully joined company"}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def leave(self, request, pk=None):
+        """Allows an authenticated user to leave a company."""
+        company = self.get_object()
+        if request.user.id == company.creator_id:
+            return Response({"error": "Company creator cannot leave their own company."}, status=status.HTTP_400_BAD_REQUEST)
+        CompanyMember.objects.filter(company=company, user=request.user).delete()
+        company.members.remove(request.user)
+        return Response({"message": "Successfully left company"}, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=['post'])
     def detach_user(self, request, pk=None):
         company = self.get_object()
-        if not can_manage_company_roles(request.user, company):
-            return Response({"error": "Only Super Admin and Admin can remove team members."}, status=status.HTTP_403_FORBIDDEN)
         user_id = request.data.get('user_id')
+        is_self_leave = user_id and str(user_id) == str(request.user.id)
+
+        if not is_self_leave and not can_manage_company_roles(request.user, company):
+            return Response({"error": "Only Super Admin and Admin can remove team members."}, status=status.HTTP_403_FORBIDDEN)
         if not user_id:
             return Response({"error": "user_id is required"}, status=status.HTTP_400_BAD_REQUEST)
         try:
             user = User.objects.get(id=user_id)
+            if user.id == company.creator_id:
+                return Response({"error": "Company creator cannot leave or be removed from their company."}, status=status.HTTP_400_BAD_REQUEST)
             target_role = get_user_company_role(user, company)
-            if (target_role == 'super_admin' or user.id == company.creator_id) and not can_assign_super_admin(request.user, company):
+            if not is_self_leave and (target_role == 'super_admin' or user.id == company.creator_id) and not can_assign_super_admin(request.user, company):
                 return Response({"error": "Admins cannot remove a Super Admin or Company Owner."}, status=status.HTTP_403_FORBIDDEN)
             CompanyMember.objects.filter(company=company, user=user).delete()
+            company.members.remove(user)
             return Response({"message": "User detached successfully"}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -1008,10 +1039,17 @@ class CompanyReviewViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        company_name = self.request.data.get('company_name', '').strip()
+        company_id = self.request.data.get('company') or self.request.data.get('company_id')
         company = None
-        if company_name:
+        if company_id:
+            company = Company.objects.filter(id=company_id).first()
+
+        company_name = self.request.data.get('company_name', '').strip()
+        if not company_name and company:
+            company_name = company.name
+        elif company_name and not company:
             company = Company.objects.filter(name__iexact=company_name).first()
+
         rfp_interest_id = self.request.data.get('rfp_interest')
         rfp_interest = None
         if rfp_interest_id:

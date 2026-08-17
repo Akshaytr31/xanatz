@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import api from "../api";
+import api, { backendUrl } from "../api";
 import { MessageSquare, Send, Search, User, Loader2, MessageCircle } from "lucide-react";
 
 const MessagesPage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [conversations, setConversations] = useState([]);
-
 
   const [activePartner, setActivePartner] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -19,6 +19,13 @@ const MessagesPage = () => {
   const [loadingChat, setLoadingChat] = useState(false);
 
   const messagesEndRef = useRef(null);
+  const hasHandledInitialRef = useRef(false);
+
+  const getImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith("http")) return path;
+    return `${backendUrl}${path}`;
+  };
 
   // Fetch current user details on load
   useEffect(() => {
@@ -37,7 +44,13 @@ const MessagesPage = () => {
   const fetchConversations = async (silent = false) => {
     try {
       const res = await api.get("messages/conversations/");
-      setConversations(res.data);
+      setConversations((prev) => {
+        const backendIds = new Set(res.data.map((c) => String(c.id)));
+        const draftConvs = prev.filter(
+          (c) => !c.last_message && !backendIds.has(String(c.id))
+        );
+        return [...draftConvs, ...res.data];
+      });
     } catch (err) {
       console.error("Failed to fetch conversations", err);
     }
@@ -53,9 +66,6 @@ const MessagesPage = () => {
       
       // Mark these messages as read
       await api.post("messages/mark-read/", { sender_id: partnerId });
-      
-      // Refresh conversations to update read badges
-      fetchConversations(true);
     } catch (err) {
       console.error("Failed to fetch chat history", err);
     } finally {
@@ -70,15 +80,24 @@ const MessagesPage = () => {
     return () => clearInterval(intervalConv);
   }, []);
 
+  const activePartnerId = activePartner?.id;
+
   useEffect(() => {
-    if (activePartner) {
-      fetchChatHistory(activePartner.id, true);
-      const intervalChat = setInterval(() => fetchChatHistory(activePartner.id, true), 3000);
+    if (activePartnerId) {
+      fetchChatHistory(activePartnerId, false);
+      const intervalChat = setInterval(() => fetchChatHistory(activePartnerId, true), 3000);
       return () => clearInterval(intervalChat);
     } else {
       setMessages([]);
     }
-  }, [activePartner]);
+  }, [activePartnerId]);
+
+  // If no partner selected, auto-select first conversation once loaded
+  useEffect(() => {
+    if (!activePartner && conversations.length > 0 && !hasHandledInitialRef.current) {
+      setActivePartner(conversations[0]);
+    }
+  }, [conversations, activePartner]);
 
   // Scroll to bottom helper
   useEffect(() => {
@@ -120,30 +139,57 @@ const MessagesPage = () => {
       };
       const res = await api.post("messages/", payload);
       setMessages((prev) => [...prev, res.data]);
+      const sentText = newMessage.trim();
       setNewMessage("");
       
-      // Refresh conversations so the partner is ranked at the top
+      // Update local conversations order and text immediately without showing unread badge
+      setConversations((prev) => {
+        const updated = prev.map((c) => {
+          if (String(c.id) === String(activePartner.id)) {
+            return {
+              ...c,
+              last_message: sentText,
+              last_message_time: res.data.created_at || new Date().toISOString(),
+              unread_count: 0,
+            };
+          }
+          return c;
+        });
+        const activeConv = updated.find((c) => String(c.id) === String(activePartner.id));
+        const others = updated.filter((c) => String(c.id) !== String(activePartner.id));
+        return activeConv ? [activeConv, ...others] : updated;
+      });
+
       fetchConversations(true);
     } catch (err) {
       console.error("Failed to send message", err);
     }
   };
 
-  // Start chat with search result
+  // Start chat with search result or selected partner
   const handleSelectSearchResult = (partner) => {
-    setActivePartner(partner);
+    if (!partner || !partner.id) return;
+    const existing = conversations.find((c) => String(c.id) === String(partner.id));
+    const targetPartner = existing || {
+      id: partner.id,
+      email: partner.email,
+      name: partner.name || `${partner.first_name || ""} ${partner.last_name || ""}`.trim() || partner.email,
+      profile_picture: partner.profile_picture,
+    };
+
+    setActivePartner(targetPartner);
     setSearchQuery("");
     setSearchResults([]);
     
     // Add to conversations list immediately if not present
     setConversations((prev) => {
-      if (prev.some((c) => c.id === partner.id)) return prev;
+      if (prev.some((c) => String(c.id) === String(targetPartner.id))) return prev;
       return [
         {
-          id: partner.id,
-          email: partner.email,
-          name: `${partner.first_name || ""} ${partner.last_name || ""}`.trim() || partner.email,
-          profile_picture: partner.profile_picture,
+          id: targetPartner.id,
+          email: targetPartner.email,
+          name: targetPartner.name || `${targetPartner.first_name || ""} ${targetPartner.last_name || ""}`.trim() || targetPartner.email,
+          profile_picture: targetPartner.profile_picture,
           last_message: "",
           last_message_time: null,
           unread_count: 0,
@@ -154,12 +200,35 @@ const MessagesPage = () => {
   };
 
   useEffect(() => {
-    if (location.state && location.state.startChatWith) {
-      const partner = location.state.startChatWith;
-      handleSelectSearchResult(partner);
-      window.history.replaceState({}, document.title);
-    }
-  }, [location.state]);
+    const checkInitialChatSelection = async () => {
+      let partner = null;
+      if (location.state && location.state.startChatWith) {
+        partner = location.state.startChatWith;
+      } else if (location.search) {
+        const searchParams = new URLSearchParams(location.search);
+        const targetUserId = searchParams.get("user");
+        if (targetUserId) {
+          try {
+            const res = await api.get(`users/search/?q=${targetUserId}`);
+            if (res.data && res.data.length > 0) {
+              partner = res.data.find((u) => String(u.id) === String(targetUserId)) || res.data[0];
+            }
+          } catch (err) {
+            console.error("Failed to load user for chat", err);
+          }
+        }
+      }
+
+      if (partner && !hasHandledInitialRef.current) {
+        hasHandledInitialRef.current = true;
+        handleSelectSearchResult(partner);
+        // Reset React Router state and URL query parameters cleanly
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    };
+
+    checkInitialChatSelection();
+  }, [location.state, location.search, navigate]);
 
   const getInitials = (name) => {
     if (!name) return "?";
@@ -267,18 +336,19 @@ const MessagesPage = () => {
                 <>
                   {/* Display existing conversation matches */}
                   {displayLocals.map((conv) => {
-                    const isActive = activePartner && activePartner.id === conv.id;
+                    const isActive = activePartner && String(activePartner.id) === String(conv.id);
+                    const unreadCount = isActive ? 0 : (conv.unread_count || 0);
                     return (
                       <div
                         key={conv.id}
-                        onClick={() => setActivePartner({ id: conv.id, email: conv.email, name: conv.name, profile_picture: conv.profile_picture })}
+                        onClick={() => handleSelectSearchResult(conv)}
                         style={{
                           display: "flex",
                           gap: "12px",
                           padding: "12px",
                           borderRadius: "0.75rem",
                           cursor: "pointer",
-                          background: isActive ? "rgba(59, 130, 246, 0.12)" : conv.unread_count > 0 ? "rgba(255, 255, 255, 0.02)" : "transparent",
+                          background: isActive ? "rgba(59, 130, 246, 0.12)" : unreadCount > 0 ? "rgba(255, 255, 255, 0.02)" : "transparent",
                           border: isActive ? "1px solid rgba(59, 130, 246, 0.25)" : "1px solid transparent",
                           marginBottom: "4px",
                           transition: "all 0.2s",
@@ -287,12 +357,12 @@ const MessagesPage = () => {
                           if (!isActive) e.currentTarget.style.background = "rgba(255, 255, 255, 0.04)";
                         }}
                         onMouseLeave={(e) => {
-                          if (!isActive) e.currentTarget.style.background = conv.unread_count > 0 ? "rgba(255, 255, 255, 0.02)" : "transparent";
+                          if (!isActive) e.currentTarget.style.background = unreadCount > 0 ? "rgba(255, 255, 255, 0.02)" : "transparent";
                         }}
                       >
-                        {conv.profile_picture ? (
+                        {getImageUrl(conv.profile_picture) ? (
                           <img
-                            src={conv.profile_picture}
+                            src={getImageUrl(conv.profile_picture)}
                             alt=""
                             style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }}
                           />
@@ -318,7 +388,7 @@ const MessagesPage = () => {
 
                         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "2px" }}>
-                            <span style={{ fontSize: "0.85rem", fontWeight: conv.unread_count > 0 ? 700 : 600, color: conv.unread_count > 0 ? "white" : "var(--color-text-primary)" }}>
+                            <span style={{ fontSize: "0.85rem", fontWeight: unreadCount > 0 ? 700 : 600, color: unreadCount > 0 ? "white" : "var(--color-text-primary)" }}>
                               {conv.name}
                             </span>
                             {conv.last_message_time && (
@@ -331,16 +401,16 @@ const MessagesPage = () => {
                             <span
                               style={{
                                 fontSize: "0.75rem",
-                                color: conv.unread_count > 0 ? "white" : "var(--color-text-secondary, #94a3b8)",
+                                color: unreadCount > 0 ? "white" : "var(--color-text-secondary, #94a3b8)",
                                 whiteSpace: "nowrap",
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
-                                fontWeight: conv.unread_count > 0 ? 600 : 400,
+                                fontWeight: unreadCount > 0 ? 600 : 400,
                               }}
                             >
                               {conv.last_message || "No messages yet"}
                             </span>
-                            {conv.unread_count > 0 && (
+                            {unreadCount > 0 && (
                               <span
                                 style={{
                                   background: "#ef4444",
@@ -354,7 +424,7 @@ const MessagesPage = () => {
                                   display: "inline-block",
                                 }}
                               >
-                                {conv.unread_count}
+                                {unreadCount}
                               </span>
                             )}
                           </div>
@@ -386,9 +456,9 @@ const MessagesPage = () => {
                           onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255, 255, 255, 0.04)"}
                           onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                         >
-                          {user.profile_picture ? (
+                          {getImageUrl(user.profile_picture) ? (
                             <img
-                              src={user.profile_picture}
+                              src={getImageUrl(user.profile_picture)}
                               alt=""
                               style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }}
                             />
@@ -444,9 +514,9 @@ const MessagesPage = () => {
                     background: "rgba(10, 15, 30, 0.2)",
                   }}
                 >
-                  {activePartner.profile_picture ? (
+                  {getImageUrl(activePartner.profile_picture) ? (
                     <img
-                      src={activePartner.profile_picture}
+                      src={getImageUrl(activePartner.profile_picture)}
                       alt=""
                       style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover" }}
                     />
@@ -487,7 +557,11 @@ const MessagesPage = () => {
                     </div>
                   ) : (
                     messages.map((msg, index) => {
-                      const isMe = currentUser && msg.sender === currentUser.id;
+                      const senderId = typeof msg.sender === "object" ? msg.sender?.id : msg.sender;
+                      const isMe = currentUser && (Number(senderId) === Number(currentUser.id) || String(senderId) === String(currentUser.id));
+                      const timeStr = msg.created_at
+                        ? new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                        : "";
                       return (
                         <div
                           key={msg.id || index}
@@ -516,17 +590,19 @@ const MessagesPage = () => {
                             <p style={{ margin: 0, fontSize: "0.85rem", lineHeight: "1.4", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
                               {msg.content}
                             </p>
-                            <span
-                              style={{
-                                display: "block",
-                                fontSize: "0.6rem",
-                                color: isMe ? "rgba(255,255,255,0.6)" : "#64748b",
-                                textAlign: "right",
-                                marginTop: "4px",
-                              }}
-                            >
-                              {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                            </span>
+                            {timeStr && (
+                              <span
+                                style={{
+                                  display: "block",
+                                  fontSize: "0.6rem",
+                                  color: isMe ? "rgba(255,255,255,0.6)" : "#64748b",
+                                  textAlign: "right",
+                                  marginTop: "4px",
+                                }}
+                              >
+                                {timeStr}
+                              </span>
+                            )}
                           </div>
                         </div>
                       );

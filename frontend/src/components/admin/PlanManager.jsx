@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Edit2, Check, X, AlertCircle, Sparkles, ToggleLeft, ToggleRight, Loader } from "lucide-react";
+import { Plus, Edit2, Check, X, AlertCircle, Building2, ToggleLeft, ToggleRight, Loader } from "lucide-react";
 import api from "../../api";
 
 /* ─── Shared Styles ──────────────────────────────────────────── */
@@ -249,7 +249,7 @@ const PlanManager = () => {
             ...card, padding: 40, textAlign: "center",
             display: "flex", flexDirection: "column", alignItems: "center", gap: 10,
           }}>
-            <Sparkles size={28} color="rgba(255,255,255,0.2)" />
+            <Building2 size={28} color="rgba(255,255,255,0.2)" />
             <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 13, margin: 0 }}>No plans configured yet.</p>
             <p style={{ color: "rgba(255,255,255,0.2)", fontSize: 11, margin: 0 }}>Use the form to create your first plan.</p>
           </div>

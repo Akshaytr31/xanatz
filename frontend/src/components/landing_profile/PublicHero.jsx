@@ -616,16 +616,7 @@ const PublicHero = ({
                   }}
                 >
                   <DollarSign size={11} />
-                  {profile.freelancer_currency === "AED"
-                    ? "AED "
-                    : profile.freelancer_currency === "INR"
-                      ? "₹"
-                      : profile.freelancer_currency === "EUR"
-                        ? "€"
-                        : profile.freelancer_currency === "GBP"
-                          ? "£"
-                          : "$"}
-                  {parseFloat(profile.hourly_rate)} / hr
+                  AED {parseFloat(profile.hourly_rate)} / hr
                 </motion.div>
               )}
             </div>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Box, Flex, Text, Button } from "@chakra-ui/react";
-import { Sparkles } from "lucide-react";
+import { Wand2 } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../api";
 
@@ -67,7 +67,7 @@ export const AIEnhancedTextarea = ({
             transition={{ repeat: isEnhancing ? Infinity : 0, duration: 1, ease: "linear" }}
             style={{ display: "inline-flex", marginRight: "4px" }}
           >
-            <Sparkles size={12} />
+            <Wand2 size={12} />
           </motion.span>
           Enhance with AI
         </Button>

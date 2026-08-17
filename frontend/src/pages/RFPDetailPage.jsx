@@ -58,6 +58,7 @@ const RFPDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [isInterestOpen, setIsInterestOpen] = useState(false);
+  const [myInterests, setMyInterests] = useState([]);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const accentColor = "#8b5cf6"; // Purple accent for RFPs
@@ -146,8 +147,20 @@ const RFPDetailPage = () => {
       }
     };
 
+    const fetchMyInterests = async () => {
+      const token = localStorage.getItem("access");
+      if (!token) return;
+      try {
+        const iRes = await api.get("rfp-interests/");
+        setMyInterests(iRes.data || []);
+      } catch (err) {
+        console.error("Failed to fetch my interests:", err);
+      }
+    };
+
     fetchData();
     fetchUser();
+    fetchMyInterests();
   }, [id]);
 
   if (loading) {
@@ -409,6 +422,22 @@ const RFPDetailPage = () => {
                           }}
                         >
                           MANAGE RFP
+                        </Button>
+                      ) : myInterests.some((i) => String(i.rfp) === String(id)) ? (
+                        <Button
+                          px={6}
+                          h="40px"
+                          borderRadius="xl"
+                          fontWeight="black"
+                          fontSize="xs"
+                          letterSpacing="widest"
+                          bg="rgba(16, 185, 129, 0.15)"
+                          color="#34d399"
+                          border="1px solid rgba(16, 185, 129, 0.3)"
+                          cursor="default"
+                        >
+                          <CheckCircle2 size={15} style={{ marginRight: "6px" }} />
+                          INTEREST SUBMITTED
                         </Button>
                       ) : (
                         <Button
@@ -700,26 +729,44 @@ const RFPDetailPage = () => {
                     </Flex>
 
                     {!isOwner && (
-                      <Button
-                        onClick={handleExpressInterestClick}
-                        w="full"
-                        h="42px"
-                        borderRadius="xl"
-                        fontWeight="black"
-                        fontSize="xs"
-                        letterSpacing="widest"
-                        color="white"
-                        style={{
-                          background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                          boxShadow: "0 4px 15px rgba(16, 185, 129, 0.25)",
-                        }}
-                        _hover={{
-                          transform: "translateY(-1px)",
-                          filter: "brightness(1.1)",
-                        }}
-                      >
-                        EXPRESS INTEREST NOW
-                      </Button>
+                      myInterests.some((i) => String(i.rfp) === String(id)) ? (
+                        <Button
+                          w="full"
+                          h="42px"
+                          borderRadius="xl"
+                          fontWeight="black"
+                          fontSize="xs"
+                          letterSpacing="widest"
+                          bg="rgba(16, 185, 129, 0.15)"
+                          color="#34d399"
+                          border="1px solid rgba(16, 185, 129, 0.3)"
+                          cursor="default"
+                        >
+                          <CheckCircle2 size={15} style={{ marginRight: "6px" }} />
+                          INTEREST SUBMITTED
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={handleExpressInterestClick}
+                          w="full"
+                          h="42px"
+                          borderRadius="xl"
+                          fontWeight="black"
+                          fontSize="xs"
+                          letterSpacing="widest"
+                          color="white"
+                          style={{
+                            background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                            boxShadow: "0 4px 15px rgba(16, 185, 129, 0.25)",
+                          }}
+                          _hover={{
+                            transform: "translateY(-1px)",
+                            filter: "brightness(1.1)",
+                          }}
+                        >
+                          EXPRESS INTEREST NOW
+                        </Button>
+                      )
                     )}
                   </Box>
 
@@ -806,6 +853,17 @@ const RFPDetailPage = () => {
           isOpen={isInterestOpen}
           onClose={() => setIsInterestOpen(false)}
           rfp={rfp}
+          onSubmitSuccess={() => {
+            const fetchMyInterests = async () => {
+              try {
+                const iRes = await api.get("rfp-interests/");
+                setMyInterests(iRes.data || []);
+              } catch (err) {
+                console.error(err);
+              }
+            };
+            fetchMyInterests();
+          }}
         />
       )}
 

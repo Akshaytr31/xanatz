@@ -15,8 +15,9 @@ import api from "../api";
 import { useNavigate } from "react-router-dom";
 import {
   Building2, ChevronDown, LayoutDashboard, Briefcase,
-  Zap, TrendingUp, CheckCircle2, User, Star,
+  Zap, TrendingUp, CheckCircle2, User, Star, AlertCircle, UserCheck
 } from "lucide-react";
+import CompleteProfileModal, { getProfileCompletionDetails } from "../components/Profile/CompleteProfileModal";
 
 const MotionBox   = motion.create(Box);
 const MotionFlex  = motion.create(Flex);
@@ -365,6 +366,7 @@ const Profile = () => {
   const [user, setUser]                       = useState(null);
   const [loading, setLoading]                 = useState(true);
   const [companyRefreshTrigger, setCompanyRefreshTrigger] = useState(0);
+  const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
   const [becomingFreelancer, setBecomingFreelancer]       = useState(false);
   const navigate = useNavigate();
 
@@ -475,7 +477,7 @@ const Profile = () => {
   const experiences = user?.profile?.experiences || [];
   const education   = user?.profile?.education   || [];
   const skills      = user?.profile?.skills      || [];
-  const pct         = user?.profile_completion_percentage || 0;
+  const pct         = getProfileCompletionDetails(user).pct;
 
   const totalYearsExp = (() => {
     if (!experiences || experiences.length === 0) return "0 Yrs";
@@ -669,9 +671,29 @@ const Profile = () => {
                       </div>
                     </div>
 
-                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 500, textAlign: "center", marginTop: 2 }}>
-                      {100 - pct > 0 ? `${100 - pct}% left to complete` : "Profile fully complete! "}
+                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 500, textAlign: "center", marginTop: 2 }}>
+                      {100 - pct > 0 ? `${100 - pct}% left to complete` : "Profile 100% Complete! 🎉"}
                     </span>
+
+                    <Button
+                      size="xs"
+                      mt={1}
+                      px={3}
+                      py={1.5}
+                      borderRadius="full"
+                      style={{
+                        background: "linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%)",
+                        color: "white",
+                        boxShadow: "0 4px 15px rgba(124, 58, 237, 0.4)",
+                      }}
+                      fontWeight="bold"
+                      fontSize="10px"
+                      onClick={() => setIsCompletionModalOpen(true)}
+                      _hover={{ transform: "scale(1.05)", boxShadow: "0 6px 20px rgba(124, 58, 237, 0.6)" }}
+                    >
+                      <CheckCircle2 size={11} style={{ marginRight: 4 }} />
+                      {pct < 100 ? "Complete Profile" : "Edit Profile Details"}
+                    </Button>
                   </div>
                 );
               })()}
@@ -898,6 +920,12 @@ const Profile = () => {
 
       </Container>
 
+      <CompleteProfileModal
+        isOpen={isCompletionModalOpen}
+        onClose={() => setIsCompletionModalOpen(false)}
+        user={user}
+        onProfileUpdated={fetchProfile}
+      />
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');

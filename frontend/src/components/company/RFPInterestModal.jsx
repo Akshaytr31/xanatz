@@ -174,6 +174,7 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
         setSubmittedQuotationId(res.data.quotation_id);
       }
       setSuccess(true);
+      if (onSubmitSuccess) onSubmitSuccess(res.data);
       setTimeout(() => {
         onClose();
       }, 4000);
