@@ -579,29 +579,124 @@ const CompleteProfileModal = ({ isOpen, onClose, user, onProfileUpdated }) => {
 
                             {item.key === "profile_picture" && (
                               <VStack align="stretch" gap={3}>
-                                {hasPic && (
-                                  <HStack gap={3}>
-                                    <Image src={getImageUrl(profilePicPath)} w="50px" h="50px" borderRadius="full" objectFit="cover" border="1px solid rgba(255,255,255,0.2)" />
-                                    <Text fontSize="xs" color="rgba(255,255,255,0.7)">Current profile photo</Text>
-                                  </HStack>
-                                )}
-                                <Input
-                                  type="file"
-                                  accept="image/*"
-                                  size="sm"
-                                  onChange={(e) => setSelectedFile(e.target.files[0])}
-                                  color="white"
-                                />
-                                <Button
-                                  size="xs"
-                                  bg="var(--color-accent, #7c3aed)"
-                                  color="white"
-                                  isLoading={loading}
-                                  onClick={() => handleSaveField("profile_picture")}
-                                  alignSelf="flex-end"
+                                {/* Sleek Avatar Dropzone Card */}
+                                <Box
+                                  as="label"
+                                  htmlFor="modal-photo-upload-input"
+                                  p={5}
+                                  borderRadius="xl"
+                                  border="2px dashed rgba(124, 58, 237, 0.4)"
+                                  bg="rgba(124, 58, 237, 0.05)"
+                                  display="flex"
+                                  flexDirection="column"
+                                  alignItems="center"
+                                  justifyContent="center"
+                                  cursor="pointer"
+                                  transition="all 0.2s"
+                                  _hover={{
+                                    borderColor: "rgba(124, 58, 237, 0.7)",
+                                    bg: "rgba(124, 58, 237, 0.1)",
+                                    boxShadow: "0 0 20px rgba(124, 58, 237, 0.2)"
+                                  }}
                                 >
-                                  Upload Photo
-                                </Button>
+                                  <input
+                                    id="modal-photo-upload-input"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => setSelectedFile(e.target.files[0] || null)}
+                                    style={{ display: "none" }}
+                                  />
+
+                                  <Flex direction="column" align="center" gap={3}>
+                                    {/* Avatar Ring Preview */}
+                                    <Box position="relative">
+                                      <Box
+                                        w="76px"
+                                        h="76px"
+                                        borderRadius="full"
+                                        overflow="hidden"
+                                        border="2px solid rgba(124, 58, 237, 0.5)"
+                                        boxShadow="0 0 16px rgba(124, 58, 237, 0.3)"
+                                        bg="rgba(0,0,0,0.4)"
+                                        display="flex"
+                                        alignItems="center"
+                                        justifyContent="center"
+                                      >
+                                        {selectedFile ? (
+                                          <Image src={URL.createObjectURL(selectedFile)} w="full" h="full" objectFit="cover" />
+                                        ) : hasPic ? (
+                                          <Image src={getImageUrl(profilePicPath)} w="full" h="full" objectFit="cover" />
+                                        ) : (
+                                          <Text fontSize="2xl" fontWeight="black" color="rgba(255,255,255,0.4)">
+                                            {user.first_name?.[0] || "?"}
+                                          </Text>
+                                        )}
+                                      </Box>
+                                      <Box
+                                        position="absolute"
+                                        bottom="-2px"
+                                        right="-2px"
+                                        p={1.5}
+                                        borderRadius="full"
+                                        bg="var(--color-accent, #7c3aed)"
+                                        color="white"
+                                        boxShadow="0 2px 8px rgba(0,0,0,0.4)"
+                                      >
+                                        <Camera size={13} />
+                                      </Box>
+                                    </Box>
+
+                                    <VStack gap={0.5} textAlign="center">
+                                      <Text fontSize="xs" fontWeight="bold" color="white">
+                                        {selectedFile ? selectedFile.name : "Click or Drag photo here to choose"}
+                                      </Text>
+                                      <Text fontSize="10px" color="rgba(255,255,255,0.4)">
+                                        {selectedFile
+                                          ? `${(selectedFile.size / 1024).toFixed(1)} KB • Ready to upload`
+                                          : "PNG, JPG, WEBP up to 5MB"}
+                                      </Text>
+                                    </VStack>
+                                  </Flex>
+                                </Box>
+
+                                {/* Action bar */}
+                                <Flex justify="space-between" align="center">
+                                  {selectedFile ? (
+                                    <Button
+                                      size="xs"
+                                      variant="ghost"
+                                      color="rgba(255,255,255,0.5)"
+                                      onClick={() => setSelectedFile(null)}
+                                      _hover={{ color: "#ef4444", bg: "rgba(239,68,68,0.1)" }}
+                                    >
+                                      <X size={12} style={{ marginRight: 4 }} /> Remove Selection
+                                    </Button>
+                                  ) : (
+                                    <Text fontSize="10px" color="rgba(255,255,255,0.4)">
+                                      {hasPic ? "Current profile photo active" : "No photo selected"}
+                                    </Text>
+                                  )}
+
+                                  <Button
+                                    size="xs"
+                                    px={4}
+                                    py={1.5}
+                                    borderRadius="lg"
+                                    style={{
+                                      background: selectedFile ? "linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%)" : "rgba(255,255,255,0.1)",
+                                      color: selectedFile ? "white" : "rgba(255,255,255,0.4)",
+                                      boxShadow: selectedFile ? "0 2px 12px rgba(124, 58, 237, 0.4)" : "none",
+                                    }}
+                                    isLoading={loading}
+                                    disabled={!selectedFile || loading}
+                                    onClick={() => handleSaveField("profile_picture")}
+                                    cursor={selectedFile ? "pointer" : "not-allowed"}
+                                    _disabled={{ opacity: 0.5, cursor: "not-allowed" }}
+                                    fontWeight="bold"
+                                  >
+                                    <Camera size={12} style={{ marginRight: 5 }} /> Save Profile Photo
+                                  </Button>
+                                </Flex>
                               </VStack>
                             )}
 

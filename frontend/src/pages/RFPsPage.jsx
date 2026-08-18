@@ -353,28 +353,6 @@ const RFPsPage = () => {
                 </Text>
               </Box>
 
-              {/* Feed Search / Post Bar */}
-              <HStack
-                bg="var(--color-glass)"
-                border="1px solid var(--color-card-border)"
-                px={4.5}
-                py={1.5}
-                borderRadius="2xl"
-                _focusWithin={{ borderColor: accentColor, boxShadow: `0 0 0 1px ${accentColor}` }}
-                transition="all 0.2s"
-              >
-                <Search size={16} color="var(--color-text-muted)" />
-                <Input
-                  placeholder="Search by RFP title, keyword, or company..."
-                  variant="unstyled"
-                  color="var(--color-text-primary)"
-                  fontSize="xs"
-                  h="10"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </HStack>
-
               {/* Main vertical stream of RFP posts */}
               <VStack align="stretch" gap={5}>
                 {sortedRfps.length === 0 ? (
@@ -617,16 +595,142 @@ const RFPsPage = () => {
               </VStack>
             </VStack>
 
-            {/* ─── RIGHT SIDEBAR: MARKET TRENDS & TIPS (STICKY) ─── */}
+            {/* ─── RIGHT SIDEBAR: MARKET TRENDS & TIPS (STICKY WITH SCROLL) ─── */}
             <Box
               display={{ base: "none", xl: "block" }}
               position="sticky"
               top="88px"
               alignSelf="start"
               w="310px"
+              maxH="calc(100vh - 100px)"
+              overflowY="auto"
+              pr={1}
               zIndex={10}
+              css={{
+                "&::-webkit-scrollbar": { width: "4px" },
+                "&::-webkit-scrollbar-track": { background: "transparent" },
+                "&::-webkit-scrollbar-thumb": { background: "rgba(139, 92, 246, 0.3)", borderRadius: "4px" },
+                "&::-webkit-scrollbar-thumb:hover": { background: "#8b5cf6" }
+              }}
             >
               <VStack align="stretch" gap={5}>
+                {/* ─── MY SUBMITTED RFP INTERESTS CARD (RIGHT SIDEBAR - MAX 2 ITEMS) ─── */}
+                {currentUser && myInterests.length > 0 && (
+                  <Box
+                    p={4}
+                    borderRadius="2xl"
+                    border="1px solid rgba(139, 92, 246, 0.3)"
+                    bg="rgba(139, 92, 246, 0.04)"
+                    backdropFilter="blur(20px)"
+                    boxShadow="0 8px 32px rgba(0,0,0,0.3)"
+                  >
+                    <Flex justify="space-between" align="center" mb={3} flexWrap="wrap" gap={1.5}>
+                      <HStack gap={2} cursor="pointer" onClick={() => navigate("/my-rfp-interests")}>
+                        <Circle size="28px" bg="rgba(139, 92, 246, 0.15)" border="1px solid rgba(139, 92, 246, 0.3)">
+                          <CheckCircle2 size={14} color="#c4b5fd" />
+                        </Circle>
+                        <VStack align="start" gap={0}>
+                          <Text color="white" fontWeight="900" fontSize="xs" letterSpacing="wide">
+                            MY SUBMITTED INTERESTS
+                          </Text>
+                          <Text fontSize="10px" color="rgba(255,255,255,0.5)">
+                            {myInterests.length} Proposal{myInterests.length > 1 ? "s" : ""} Submitted
+                          </Text>
+                        </VStack>
+                      </HStack>
+                    </Flex>
+
+                    <VStack align="stretch" gap={2.5}>
+                      {myInterests.slice(0, 2).map((item) => {
+                        const isAccepted = item.status === "accepted";
+                        const isRejected = item.status === "rejected";
+                        const targetRfpId = typeof item.rfp === "object" ? item.rfp?.id : item.rfp;
+
+                        return (
+                          <Box
+                            key={item.id}
+                            p={3}
+                            borderRadius="xl"
+                            bg="rgba(15, 23, 42, 0.7)"
+                            border={
+                              isAccepted
+                                ? "1px solid rgba(16, 185, 129, 0.3)"
+                                : isRejected
+                                ? "1px solid rgba(239, 68, 68, 0.3)"
+                                : "1px solid rgba(255, 255, 255, 0.08)"
+                            }
+                            cursor="pointer"
+                            onClick={() => targetRfpId && navigate(`/rfps/${targetRfpId}`)}
+                            _hover={{ bg: "rgba(15, 23, 42, 0.95)", transform: "translateY(-1px)", borderColor: "#8b5cf6" }}
+                            transition="all 0.2s"
+                          >
+                            <VStack align="stretch" gap={1.5}>
+                              <Flex justify="space-between" align="start" gap={2}>
+                                <Text color="white" fontSize="xs" fontWeight="bold" noOfLines={1} flex={1}>
+                                  {item.rfp_title || `RFP Proposal #${item.id}`}
+                                </Text>
+                                <Badge
+                                  px={2}
+                                  py={0.5}
+                                  borderRadius="full"
+                                  fontSize="9px"
+                                  fontWeight="800"
+                                  bg={
+                                    isAccepted
+                                      ? "rgba(16, 185, 129, 0.15)"
+                                      : isRejected
+                                      ? "rgba(239, 68, 68, 0.15)"
+                                      : "rgba(245, 158, 11, 0.15)"
+                                  }
+                                  color={isAccepted ? "#34d399" : isRejected ? "#f87171" : "#fbbf24"}
+                                  border={
+                                    isAccepted
+                                      ? "1px solid rgba(16, 185, 129, 0.3)"
+                                      : isRejected
+                                      ? "1px solid rgba(239, 68, 68, 0.3)"
+                                      : "1px solid rgba(245, 158, 11, 0.3)"
+                                  }
+                                >
+                                  {isAccepted ? "ACCEPTED" : isRejected ? "REJECTED" : "PENDING"}
+                                </Badge>
+                              </Flex>
+
+                              <HStack gap={1.5} color="rgba(255,255,255,0.6)" fontSize="10px">
+                                <Building2 size={11} color="#a78bfa" />
+                                <Text fontWeight="600" noOfLines={1}>{item.rfp_company_name || "Company Client"}</Text>
+                              </HStack>
+
+                              {item.quotation_id && (
+                                <Text fontSize="9px" color="rgba(255,255,255,0.4)" fontWeight="500">
+                                  ID: {item.quotation_id} • {new Date(item.created_at).toLocaleDateString()}
+                                </Text>
+                              )}
+                            </VStack>
+                          </Box>
+                        );
+                      })}
+                    </VStack>
+
+                    <Button
+                      w="full"
+                      size="xs"
+                      mt={3}
+                      py={2}
+                      borderRadius="xl"
+                      bg="rgba(139, 92, 246, 0.15)"
+                      border="1px solid rgba(139, 92, 246, 0.3)"
+                      color="#c4b5fd"
+                      fontWeight="bold"
+                      fontSize="10px"
+                      letterSpacing="wider"
+                      onClick={() => navigate("/my-rfp-interests")}
+                      _hover={{ bg: "#8b5cf6", color: "white", borderColor: "#8b5cf6" }}
+                      transition="all 0.2s"
+                    >
+                      VIEW ALL ({myInterests.length})
+                    </Button>
+                  </Box>
+                )}
                 {/* 1. Marketplace Stats & Analytics Card */}
                 <Box
                   p={5}

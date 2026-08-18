@@ -763,10 +763,10 @@ class RFPViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(is_active=True, is_flagged=False)
         else:
             if self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
-                # Allow access if it's active & non-flagged, OR if the RFP belongs to a managed company
+                # Allow access if it's active & non-flagged, OR if the RFP belongs to a managed company, OR if user submitted an interest
                 queryset = queryset.filter(
-                    Q(is_active=True, is_flagged=False) | Q(company_id__in=managed_company_ids)
-                )
+                    Q(is_active=True, is_flagged=False) | Q(company_id__in=managed_company_ids) | Q(interests__user=user)
+                ).distinct()
             else:
                 queryset = queryset.filter(is_active=True, is_flagged=False)
             
@@ -1018,12 +1018,29 @@ class PublicCompanyProfileView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, public_id):
-        try:
-            company = Company.objects.get(public_id=public_id, is_active=True)
+        company = None
+        
+        # 1. Try matching public_id (UUID or string)
+        company = Company.objects.filter(public_id=public_id).first()
+        
+        # 2. If not found and public_id is numeric, try matching primary key id
+        if not company and str(public_id).isdigit():
+            company = Company.objects.filter(id=int(public_id)).first()
+
+        # 3. If not found, try matching company_id (e.g. CMP-00001)
+        if not company:
+            company = Company.objects.filter(company_id=public_id).first()
+
+        if company:
+            if not company.public_id:
+                import uuid
+                company.public_id = uuid.uuid4()
+                company.save(update_fields=['public_id'])
+
             serializer = PublicCompanySerializer(company, context={'request': request})
             return Response(serializer.data)
-        except (Company.DoesNotExist, ValueError):
-            return Response({"error": "Company not found"}, status=status.HTTP_404_NOT_FOUND)
+            
+        return Response({"error": "Company not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
 class CompanyReviewViewSet(viewsets.ModelViewSet):

@@ -120,7 +120,8 @@ const CompanyDashboard = () => {
 
   const handleShare = () => {
     if (!company) return;
-    const shareUrl = `${window.location.origin}/c/${company.public_id}`;
+    const publicId = company.public_id || company.id;
+    const shareUrl = `${window.location.origin}/c/${publicId}`;
     navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

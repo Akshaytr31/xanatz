@@ -19,6 +19,7 @@ import RFPsPage from "./pages/RFPsPage";
 import RFPDetailPage from "./pages/RFPDetailPage";
 import ManageRFPsPage from "./pages/ManageRFPsPage";
 import ManageRFPInterestsPage from "./pages/ManageRFPInterestsPage";
+import MySubmittedRFPInterestsPage from "./pages/MySubmittedRFPInterestsPage";
 import MessagesPage from "./pages/MessagesPage";
 import FreelancersPage from "./pages/FreelancersPage";
 
@@ -121,6 +122,14 @@ function App() {
           element={
             <ProtectedRoute>
               <ManageRFPInterestsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-rfp-interests"
+          element={
+            <ProtectedRoute>
+              <MySubmittedRFPInterestsPage />
             </ProtectedRoute>
           }
         />

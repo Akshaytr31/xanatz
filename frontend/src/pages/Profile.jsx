@@ -604,30 +604,30 @@ const Profile = () => {
                 const color = pct >= 80 ? "#10b981" : pct >= 50 ? "#f59e0b" : "#3b82f6";
                 const trackColor = pct >= 80 ? "rgba(16,185,129,0.12)" : pct >= 50 ? "rgba(245,158,11,0.12)" : "rgba(59,130,246,0.12)";
                 const label = pct >= 80 ? "Excellent" : pct >= 50 ? "Good" : "Getting started";
-                // SVG ring math for 130x130 viewBox
-                const r = 52, cx = 65, cy = 65;
-                const circumference = 2 * Math.PI * r;          // ~326.72
+                // Compact SVG ring math for 90x90 viewBox
+                const r = 36, cx = 45, cy = 45;
+                const circumference = 2 * Math.PI * r;          // ~226.19
                 const dashOffset = circumference * (1 - pct / 100);
                 const ringId = `ring-grad-${pct}`;
                 return (
                   <div style={{
-                    padding: "20px",
+                    padding: "16px 14px",
                     borderRight: "1px solid rgba(255,255,255,0.06)",
-                    display: "flex", flexDirection: "column", gap: 12,
+                    display: "flex", flexDirection: "column", gap: 6,
                     position: "relative", overflow: "hidden",
                     alignItems: "center",
-                    justifyContent: "center",
+                    justifyContent: "space-between",
                     height: "100%",
                   }}>
                     <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at 50% 50%, ${color}12 0%, transparent 70%)`, pointerEvents: "none" }} />
                     
-                    <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: "2px", color: "rgba(255,255,255,0.25)", alignSelf: "center", marginBottom: 2 }}>
+                    <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: "2px", color: "rgba(255,255,255,0.25)", alignSelf: "center" }}>
                       PROFILE STRENGTH
                     </span>
 
-                    {/* SVG Ring - enlarged & centered */}
-                    <div style={{ position: "relative", width: 130, height: 130, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <svg width="130" height="130" viewBox="0 0 130 130" style={{ transform: "rotate(-90deg)" }}>
+                    {/* SVG Ring - compact 90x90 */}
+                    <div style={{ position: "relative", width: 90, height: 90, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <svg width="90" height="90" viewBox="0 0 90 90" style={{ transform: "rotate(-90deg)" }}>
                         <defs>
                           <linearGradient id={ringId} x1="0%" y1="0%" x2="100%" y2="0%">
                             <stop offset="0%" stopColor={color} />
@@ -639,19 +639,19 @@ const Profile = () => {
                           cx={cx} cy={cy} r={r}
                           fill="none"
                           stroke={trackColor}
-                          strokeWidth="9"
+                          strokeWidth="7"
                         />
                         {/* Progress arc */}
                         <circle
                           cx={cx} cy={cy} r={r}
                           fill="none"
                           stroke={`url(#${ringId})`}
-                          strokeWidth="9"
+                          strokeWidth="7"
                           strokeLinecap="round"
                           strokeDasharray={circumference}
                           strokeDashoffset={dashOffset}
                           style={{
-                            filter: `drop-shadow(0 0 8px ${color}88)`,
+                            filter: `drop-shadow(0 0 6px ${color}88)`,
                             transition: "stroke-dashoffset 1.8s cubic-bezier(0.22,1,0.36,1) 0.3s",
                           }}
                         />
@@ -660,38 +660,34 @@ const Profile = () => {
                       <div style={{
                         position: "absolute", inset: 0,
                         display: "flex", flexDirection: "column",
-                        alignItems: "center", justifyContent: "center", gap: 2,
+                        alignItems: "center", justifyContent: "center", gap: 1,
                       }}>
-                        <span style={{ fontSize: 26, fontWeight: 900, color, lineHeight: 1, letterSpacing: "-1px" }}>
-                          {pct}<span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.4)" }}>%</span>
+                        <span style={{ fontSize: 20, fontWeight: 900, color, lineHeight: 1, letterSpacing: "-0.5px" }}>
+                          {pct}<span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.4)" }}>%</span>
                         </span>
-                        <span style={{ fontSize: 7, fontWeight: 800, color: "rgba(255,255,255,0.35)", letterSpacing: "0.8px" }}>
+                        <span style={{ fontSize: 7, fontWeight: 800, color: "rgba(255,255,255,0.35)", letterSpacing: "0.6px" }}>
                           {label.toUpperCase()}
                         </span>
                       </div>
                     </div>
 
-                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 500, textAlign: "center", marginTop: 2 }}>
-                      {100 - pct > 0 ? `${100 - pct}% left to complete` : "Profile 100% Complete! 🎉"}
-                    </span>
-
                     <Button
                       size="xs"
-                      mt={1}
                       px={3}
-                      py={1.5}
+                      py={1}
+                      h="24px"
                       borderRadius="full"
                       style={{
                         background: "linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%)",
                         color: "white",
-                        boxShadow: "0 4px 15px rgba(124, 58, 237, 0.4)",
+                        boxShadow: "0 2px 10px rgba(124, 58, 237, 0.35)",
                       }}
                       fontWeight="bold"
                       fontSize="10px"
                       onClick={() => setIsCompletionModalOpen(true)}
-                      _hover={{ transform: "scale(1.05)", boxShadow: "0 6px 20px rgba(124, 58, 237, 0.6)" }}
+                      _hover={{ transform: "scale(1.04)", boxShadow: "0 4px 15px rgba(124, 58, 237, 0.55)" }}
                     >
-                      <CheckCircle2 size={11} style={{ marginRight: 4 }} />
+                      <CheckCircle2 size={10} style={{ marginRight: 4 }} />
                       {pct < 100 ? "Complete Profile" : "Edit Profile Details"}
                     </Button>
                   </div>
