@@ -38,6 +38,7 @@ import FlagConfirmationModal from "../components/FlagConfirmationModal";
 import ShareModal from "../components/ShareModal";
 import { ALL_CATEGORY_LABELS, ALL_SUBCATEGORY_LABELS } from "../components/company/JobOpeningModal";
 import api, { backendUrl } from "../api";
+import { formatDate } from "../utils/dateUtils";
 
 const MotionBox = motion.create(Box);
 
@@ -199,7 +200,15 @@ const RFPDetailPage = () => {
     );
   }
 
-  const isOwner = currentUser && rfp.company === currentUser.company_id;
+  const userComp = currentUser?.companies?.find((c) => c.id === rfp.company);
+  const isCompanyMember = Boolean(userComp || (currentUser && rfp.company === currentUser.company_id));
+  const canManageRfp = Boolean(
+    currentUser && (
+      rfp.company === currentUser.company_id ||
+      userComp?.is_owner ||
+      ['super_admin', 'admin'].includes(userComp?.access_role)
+    )
+  );
 
   return (
     <Box
@@ -399,30 +408,48 @@ const RFPDetailPage = () => {
                     </HStack>
 
                     <HStack gap={3}>
-                      {isOwner ? (
-                        <Button
-                          onClick={() => navigate(`/company/${rfp.company}/rfps`)}
-                          px={6}
-                          h="40px"
-                          borderRadius="xl"
-                          fontWeight="black"
-                          fontSize="xs"
-                          letterSpacing="widest"
-                          color="white"
-                          style={{
-                            background: accentColor,
-                            boxShadow: `0 8px 20px rgba(139, 92, 246, 0.3)`,
-                            border: "1px solid var(--color-card-border)",
-                            transition: "all 0.3s ease",
-                            cursor: "pointer"
-                          }}
-                          _hover={{
-                            transform: "translateY(-2px)",
-                            filter: "brightness(1.1)",
-                          }}
-                        >
-                          MANAGE RFP
-                        </Button>
+                      {isCompanyMember ? (
+                        canManageRfp ? (
+                          <Button
+                            onClick={() => navigate(`/company/${rfp.company}/rfps`)}
+                            px={6}
+                            h="40px"
+                            borderRadius="xl"
+                            fontWeight="black"
+                            fontSize="xs"
+                            letterSpacing="widest"
+                            color="white"
+                            style={{
+                              background: accentColor,
+                              boxShadow: `0 8px 20px rgba(139, 92, 246, 0.3)`,
+                              border: "1px solid var(--color-card-border)",
+                              transition: "all 0.3s ease",
+                              cursor: "pointer"
+                            }}
+                            _hover={{
+                              transform: "translateY(-2px)",
+                              filter: "brightness(1.1)",
+                            }}
+                          >
+                            MANAGE RFP
+                          </Button>
+                        ) : (
+                          <Button
+                            disabled
+                            px={6}
+                            h="40px"
+                            borderRadius="xl"
+                            fontWeight="black"
+                            fontSize="xs"
+                            letterSpacing="widest"
+                            bg="var(--color-card-border)"
+                            color="var(--color-text-muted)"
+                            border="1px solid var(--color-card-border)"
+                            cursor="not-allowed"
+                          >
+                            YOUR COMPANY'S RFP
+                          </Button>
+                        )
                       ) : myInterests.some((i) => String(i.rfp) === String(id)) ? (
                         <Button
                           px={6}
@@ -500,7 +527,7 @@ const RFPDetailPage = () => {
                         )}
                       </Button>
 
-                      {!isOwner && (
+                      {!isCompanyMember && (
                         <Button
                           onClick={handleOpenFlagModal}
                           px={4}
@@ -550,7 +577,7 @@ const RFPDetailPage = () => {
                         <VStack align="start" gap={0}>
                           <Text fontSize="4xs" fontWeight="black" color="var(--color-text-muted)" letterSpacing="wider">SUBMISSION DEADLINE</Text>
                           <Text color="var(--color-text-primary)" fontSize="xs" fontWeight="black">
-                            {new Date(rfp.deadline).toLocaleDateString(undefined, { dateStyle: "long" })}
+                            {formatDate(rfp.deadline)}
                           </Text>
                         </VStack>
                       </HStack>
@@ -561,7 +588,7 @@ const RFPDetailPage = () => {
                       <VStack align="start" gap={0}>
                         <Text fontSize="4xs" fontWeight="black" color="var(--color-text-muted)" letterSpacing="wider">POSTED DATE</Text>
                         <Text color="var(--color-text-primary)" fontSize="xs" fontWeight="black">
-                          {new Date(rfp.created_at).toLocaleDateString(undefined, { dateStyle: "medium" })}
+                          {formatDate(rfp.created_at)}
                         </Text>
                       </VStack>
                     </HStack>
@@ -728,26 +755,10 @@ const RFPDetailPage = () => {
                       </VStack>
                     </Flex>
 
-                    {!isOwner && (
-                      myInterests.some((i) => String(i.rfp) === String(id)) ? (
+                    {isCompanyMember ? (
+                      canManageRfp ? (
                         <Button
-                          w="full"
-                          h="42px"
-                          borderRadius="xl"
-                          fontWeight="black"
-                          fontSize="xs"
-                          letterSpacing="widest"
-                          bg="rgba(16, 185, 129, 0.15)"
-                          color="#34d399"
-                          border="1px solid rgba(16, 185, 129, 0.3)"
-                          cursor="default"
-                        >
-                          <CheckCircle2 size={15} style={{ marginRight: "6px" }} />
-                          INTEREST SUBMITTED
-                        </Button>
-                      ) : (
-                        <Button
-                          onClick={handleExpressInterestClick}
+                          onClick={() => navigate(`/company/${rfp.company}/rfps`)}
                           w="full"
                           h="42px"
                           borderRadius="xl"
@@ -756,17 +767,70 @@ const RFPDetailPage = () => {
                           letterSpacing="widest"
                           color="white"
                           style={{
-                            background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                            boxShadow: "0 4px 15px rgba(16, 185, 129, 0.25)",
+                            background: accentColor,
+                            boxShadow: `0 4px 15px rgba(139, 92, 246, 0.25)`,
                           }}
                           _hover={{
                             transform: "translateY(-1px)",
                             filter: "brightness(1.1)",
                           }}
                         >
-                          EXPRESS INTEREST NOW
+                          MANAGE RFP
+                        </Button>
+                      ) : (
+                        <Button
+                          disabled
+                          w="full"
+                          h="42px"
+                          borderRadius="xl"
+                          fontWeight="black"
+                          fontSize="xs"
+                          letterSpacing="widest"
+                          bg="var(--color-card-border)"
+                          color="var(--color-text-muted)"
+                          border="1px solid var(--color-card-border)"
+                          cursor="not-allowed"
+                        >
+                          YOUR COMPANY'S RFP
                         </Button>
                       )
+                    ) : myInterests.some((i) => String(i.rfp) === String(id)) ? (
+                      <Button
+                        w="full"
+                        h="42px"
+                        borderRadius="xl"
+                        fontWeight="black"
+                        fontSize="xs"
+                        letterSpacing="widest"
+                        bg="rgba(16, 185, 129, 0.15)"
+                        color="#34d399"
+                        border="1px solid rgba(16, 185, 129, 0.3)"
+                        cursor="default"
+                      >
+                        <CheckCircle2 size={15} style={{ marginRight: "6px" }} />
+                        INTEREST SUBMITTED
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={handleExpressInterestClick}
+                        w="full"
+                        h="42px"
+                        borderRadius="xl"
+                        fontWeight="black"
+                        fontSize="xs"
+                        letterSpacing="widest"
+                        color="white"
+                        style={{
+                          background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                          boxShadow: "0 4px 15px rgba(16, 185, 129, 0.25)",
+                        }}
+                        _hover={{
+                          transform: "translateY(-1px)",
+                          filter: "brightness(1.1)",
+                        }}
+                      >
+                        EXPRESS INTEREST NOW
+                      </Button>
                     )}
                   </Box>
 

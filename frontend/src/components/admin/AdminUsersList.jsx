@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Search, Users, Shield, Calendar, Mail, Phone, CheckCircle2, XCircle, Clock } from "lucide-react";
 import api from "../../api";
+import { formatDate } from "../../utils/dateUtils";
 
 const AdminUsersList = () => {
   const [users, setUsers] = useState([]);
@@ -100,9 +101,9 @@ const AdminUsersList = () => {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
           {users.map(u => {
             const fullName = `${u.first_name || ""} ${u.last_name || ""}`.trim() || "No Name";
-            const joinedDate = u.date_joined ? new Date(u.date_joined).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "N/A";
+            const joinedDate = u.date_joined ? formatDate(u.date_joined, "N/A") : "N/A";
             const lastActiveText = u.last_login 
-              ? new Date(u.last_login).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) 
+              ? formatDate(u.last_login, "Never") 
               : "Never";
 
             const isUserActive = u.is_user_active;

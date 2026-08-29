@@ -716,6 +716,21 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         if job_opening and job_opening.is_expired:
             from rest_framework.exceptions import ValidationError
             raise ValidationError({"error": "Cannot apply to an expired job opening."})
+
+        user = self.request.user
+        if job_opening:
+            if JobApplication.objects.filter(job_opening=job_opening, applicant=user).exists():
+                from rest_framework.exceptions import ValidationError
+                raise ValidationError({"detail": "You have already submitted an application for this job opening."})
+
+            if job_opening.company:
+                company = job_opening.company
+                is_owner = company.creator_id == user.id
+                is_member = CompanyMember.objects.filter(company=company, user=user).exists()
+                if is_owner or is_member:
+                    from rest_framework.exceptions import ValidationError
+                    raise ValidationError({"detail": "You cannot apply to a job opening posted by your own company."})
+
         serializer.save(applicant=self.request.user, status='applied')
 
     def perform_update(self, serializer):
@@ -843,11 +858,20 @@ class RFPInterestViewSet(viewsets.ModelViewSet):
         return queryset.order_by('-created_at')
 
     def perform_create(self, serializer):
+        rfp = serializer.validated_data.get('rfp')
+        user = self.request.user
+        if rfp and rfp.company:
+            company = rfp.company
+            is_owner = company.creator_id == user.id
+            is_member = CompanyMember.objects.filter(company=company, user=user).exists()
+            if is_owner or is_member:
+                from rest_framework.exceptions import ValidationError
+                raise ValidationError({"detail": "You cannot express interest in an RFP created by your own company."})
+
         rfp_interest = serializer.save(user=self.request.user)
         
         # Notify the company admins/owner
-        rfp = rfp_interest.rfp
-        company = rfp.company
+        company = rfp_interest.rfp.company
         
         recipients = set()
         if company.creator:

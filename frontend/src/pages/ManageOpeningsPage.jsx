@@ -46,6 +46,7 @@ import JobOpeningModal, {
 import PricingPlansModal from "../components/company/PricingPlansModal";
 import api from "../api";
 import { getMemberPermissions } from "../utils/companyPermissions";
+import { formatDate } from "../utils/dateUtils";
 
 const MotionBox = motion.create(Box);
 const MotionFlex = motion.create(Flex);
@@ -1203,7 +1204,7 @@ const JobCard = ({
                   color="var(--color-text-muted)"
                   fontWeight="bold"
                 >
-                  Expires {new Date(job.expires_at).toLocaleDateString()}
+                  Expires {formatDate(job.expires_at)}
                 </Text>
               </HStack>
             )}

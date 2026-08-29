@@ -13,6 +13,7 @@ import PricingPlansModal from "../components/company/PricingPlansModal";
 import CompanyFAQModal from "../components/company/CompanyFAQModal";
 import api from "../api";
 import { getMemberPermissions } from "../utils/companyPermissions";
+import { formatDate } from "../utils/dateUtils";
 
 
 const MotionBox = motion.create(Box);
@@ -1220,7 +1221,7 @@ const CompanyDashboard = () => {
                                     )}
                                   </HStack>
                                   <Text fontSize="3xs" color="var(--color-text-muted)">
-                                    {new Date(review.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                                    {formatDate(review.created_at)}
                                   </Text>
                                 </VStack>
                               </HStack>

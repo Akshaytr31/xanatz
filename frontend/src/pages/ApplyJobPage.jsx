@@ -95,6 +95,7 @@ const ApplyJobPage = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [visibleSimilarCount, setVisibleSimilarCount] = useState(3);
+  const [myApplications, setMyApplications] = useState([]);
 
   // Drag and Drop Resume Uploader States
   const [dragActive, setDragActive] = useState(false);
@@ -250,13 +251,16 @@ const ApplyJobPage = () => {
       }
     };
 
-    // Fetch user separately so it doesn't block job loading
-    const fetchUser = async () => {
+    const fetchUserAndApps = async () => {
       const token = localStorage.getItem("access");
       if (!token) return; // not logged in — skip the call entirely
       try {
-        const userRes = await api.get("me/");
+        const [userRes, appsRes] = await Promise.all([
+          api.get("me/"),
+          api.get("applications/").catch(() => ({ data: [] })),
+        ]);
         setCurrentUser(userRes.data);
+        setMyApplications(appsRes.data || []);
         if (userRes.data) {
           const name =
             `${userRes.data.first_name || ""} ${userRes.data.last_name || ""}`.trim();
@@ -272,11 +276,27 @@ const ApplyJobPage = () => {
     };
 
     fetchData();
-    fetchUser();
+    fetchUserAndApps();
   }, [id]);
+
+  const isOwnCompanyJob = Boolean(
+    job && currentUser && currentUser.companies?.some((c) => c.id === job.company)
+  );
+
+  const hasAlreadyApplied = Boolean(
+    myApplications.some((app) => String(app.job_opening) === String(id))
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isOwnCompanyJob) {
+      setErrorMsg("You cannot apply to a job opening posted by your own company.");
+      return;
+    }
+    if (hasAlreadyApplied) {
+      setErrorMsg("You have already submitted an application for this job opening.");
+      return;
+    }
     if (!fullName || !email) {
       setErrorMsg("Full name and email are required.");
       return;
@@ -856,111 +876,113 @@ const ApplyJobPage = () => {
                           </Text>
                         </VStack>
                       ) : (
-                        <VStack
-                          gap={4}
-                          align="stretch"
-                          maxH="420px"
-                          overflowY="auto"
-                          pr={1}
-                          css={{
-                            "&::-webkit-scrollbar": { width: "4px" },
-                            "&::-webkit-scrollbar-track": {
-                              background: "transparent",
-                            },
-                            "&::-webkit-scrollbar-thumb": {
-                              background: "var(--color-card-border)",
-                              borderRadius: "4px",
-                            },
-                          }}
-                        >
-                          <AnimatePresence mode="popLayout">
-                            {similarJobs
-                              .slice(0, visibleSimilarCount)
-                              .map((simJob) => (
-                                <MotionBox
-                                  layout
-                                  initial={{ opacity: 0, y: 10 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  exit={{ opacity: 0, y: -10 }}
-                                  transition={{ duration: 0.25 }}
-                                  key={simJob.id}
-                                  onClick={() =>
-                                    navigate(`/jobs/${simJob.id}/apply`)
-                                  }
-                                  cursor="pointer"
-                                  p={4.5}
-                                  borderRadius="xl"
-                                  border="1px solid var(--color-card-border)"
-                                  bg="var(--color-input-bg)"
-                                  style={{ transition: "all 0.3s" }}
-                                  _hover={{
-                                    bg: "var(--color-glass)",
-                                    borderColor: accentColor,
-                                    transform: "translateY(-2px)",
-                                    boxShadow: `0 4px 20px rgba(59, 130, 246, 0.1)`,
-                                  }}
-                                >
-                                  <VStack align="stretch" gap={2}>
-                                    <Text
-                                      color="var(--color-text-primary)"
-                                      fontSize="xs"
-                                      fontWeight="black"
-                                      noOfLines={1}
-                                      letterSpacing="tight"
-                                    >
-                                      {simJob.title}
-                                    </Text>
-                                    <Text
-                                      color="var(--color-secondary)"
-                                      fontSize="2xs"
-                                      fontWeight="bold"
-                                    >
-                                      {simJob.company_name}
-                                    </Text>
-                                    <HStack
-                                      justify="space-between"
-                                      flexWrap="wrap"
-                                      gap={2}
-                                      mt={1}
-                                    >
-                                      <Badge
-                                        px={2}
-                                        py={0.5}
-                                        fontSize="3xs"
-                                        fontWeight="bold"
-                                        borderRadius="md"
-                                        style={{
-                                          background: "var(--color-glass)",
-                                          color: "var(--color-text-secondary)",
-                                        }}
+                        <VStack align="stretch" gap={3}>
+                          <VStack
+                            gap={3}
+                            align="stretch"
+                            maxH="360px"
+                            overflowY="auto"
+                            pr={1}
+                            css={{
+                              "&::-webkit-scrollbar": { width: "4px" },
+                              "&::-webkit-scrollbar-track": {
+                                background: "transparent",
+                              },
+                              "&::-webkit-scrollbar-thumb": {
+                                background: "var(--color-card-border)",
+                                borderRadius: "4px",
+                              },
+                            }}
+                          >
+                            <AnimatePresence mode="popLayout">
+                              {similarJobs
+                                .slice(0, visibleSimilarCount)
+                                .map((simJob) => (
+                                  <MotionBox
+                                    layout
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.25 }}
+                                    key={simJob.id}
+                                    onClick={() =>
+                                      navigate(`/jobs/${simJob.id}/apply`)
+                                    }
+                                    cursor="pointer"
+                                    p={4.5}
+                                    borderRadius="xl"
+                                    border="1px solid var(--color-card-border)"
+                                    bg="var(--color-input-bg)"
+                                    style={{ transition: "all 0.3s" }}
+                                    _hover={{
+                                      bg: "var(--color-glass)",
+                                      borderColor: accentColor,
+                                      transform: "translateY(-2px)",
+                                      boxShadow: `0 4px 20px rgba(59, 130, 246, 0.1)`,
+                                    }}
+                                  >
+                                    <VStack align="stretch" gap={2}>
+                                      <Text
+                                        color="var(--color-text-primary)"
+                                        fontSize="xs"
+                                        fontWeight="black"
+                                        noOfLines={1}
+                                        letterSpacing="tight"
                                       >
-                                        {JOB_TYPE_LABELS[simJob.job_type] ||
-                                          simJob.job_type}
-                                      </Badge>
-                                      {simJob.location && (
-                                        <HStack
-                                          gap={1}
+                                        {simJob.title}
+                                      </Text>
+                                      <Text
+                                        color="var(--color-secondary)"
+                                        fontSize="2xs"
+                                        fontWeight="bold"
+                                      >
+                                        {simJob.company_name}
+                                      </Text>
+                                      <HStack
+                                        justify="space-between"
+                                        flexWrap="wrap"
+                                        gap={2}
+                                        mt={1}
+                                      >
+                                        <Badge
+                                          px={2}
+                                          py={0.5}
                                           fontSize="3xs"
-                                          color="var(--color-text-muted)"
+                                          fontWeight="bold"
+                                          borderRadius="md"
+                                          style={{
+                                            background: "var(--color-glass)",
+                                            color: "var(--color-text-secondary)",
+                                          }}
                                         >
-                                          <MapPin
-                                            size={10}
-                                            color={accentColor}
-                                          />
-                                          <Text noOfLines={1}>
-                                            {simJob.location}
-                                          </Text>
-                                        </HStack>
-                                      )}
-                                    </HStack>
-                                  </VStack>
-                                </MotionBox>
-                              ))}
-                          </AnimatePresence>
+                                          {JOB_TYPE_LABELS[simJob.job_type] ||
+                                            simJob.job_type}
+                                        </Badge>
+                                        {simJob.location && (
+                                          <HStack
+                                            gap={1}
+                                            fontSize="3xs"
+                                            color="var(--color-text-muted)"
+                                          >
+                                            <MapPin
+                                              size={10}
+                                              color={accentColor}
+                                            />
+                                            <Text noOfLines={1}>
+                                              {simJob.location}
+                                            </Text>
+                                          </HStack>
+                                        )}
+                                      </HStack>
+                                    </VStack>
+                                  </MotionBox>
+                                ))}
+                            </AnimatePresence>
+                          </VStack>
 
                           {(similarJobs.length > visibleSimilarCount ||
                             visibleSimilarCount > 3) && (
-                            <Flex justify="center" gap={3} mt={2}>
+                            <Flex justify="center" gap={3} pt={2}>
                               {similarJobs.length > visibleSimilarCount && (
                                 <Button
                                   variant="ghost"
@@ -972,7 +994,6 @@ const ApplyJobPage = () => {
                                   fontWeight="black"
                                   fontSize="2xs"
                                   letterSpacing="wider"
-                                  gap={1.5}
                                   py={4.5}
                                   px={4}
                                   borderRadius="lg"
@@ -1191,6 +1212,84 @@ const ApplyJobPage = () => {
                   >
                     Submit your application
                   </Text>
+
+                  {isOwnCompanyJob && (
+                    <Flex
+                      bg="rgba(245, 158, 11, 0.1)"
+                      border="1px solid rgba(245, 158, 11, 0.3)"
+                      p={4}
+                      borderRadius="xl"
+                      mb={6}
+                      align="center"
+                      justify="space-between"
+                      gap={3}
+                      wrap="wrap"
+                    >
+                      <HStack gap={3}>
+                        <AlertCircle size={18} color="#f59e0b" />
+                        <VStack align="start" gap={0}>
+                          <Text color="#fbbf24" fontSize="xs" fontWeight="bold">
+                            This job opening is posted by your company.
+                          </Text>
+                          <Text color="var(--color-text-muted)" fontSize="3xs">
+                            You cannot submit an application to job openings posted by your own company.
+                          </Text>
+                        </VStack>
+                      </HStack>
+                      <Button
+                        size="xs"
+                        borderRadius="lg"
+                        fontWeight="bold"
+                        onClick={() => navigate(`/company/${job.company}/openings`)}
+                        style={{
+                          background: "rgba(245, 158, 11, 0.2)",
+                          color: "#fbbf24",
+                          border: "1px solid rgba(245, 158, 11, 0.4)",
+                        }}
+                      >
+                        Manage Openings
+                      </Button>
+                    </Flex>
+                  )}
+
+                  {hasAlreadyApplied && (
+                    <Flex
+                      bg="rgba(16, 185, 129, 0.1)"
+                      border="1px solid rgba(16, 185, 129, 0.3)"
+                      p={4}
+                      borderRadius="xl"
+                      mb={6}
+                      align="center"
+                      justify="space-between"
+                      gap={3}
+                      wrap="wrap"
+                    >
+                      <HStack gap={3}>
+                        <CheckCircle size={18} color="#10b981" />
+                        <VStack align="start" gap={0}>
+                          <Text color="#34d399" fontSize="xs" fontWeight="bold">
+                            You have already submitted an application for this job opening.
+                          </Text>
+                          <Text color="var(--color-text-muted)" fontSize="3xs">
+                            Your application has been received and is currently under review.
+                          </Text>
+                        </VStack>
+                      </HStack>
+                      <Button
+                        size="xs"
+                        borderRadius="lg"
+                        fontWeight="bold"
+                        onClick={() => navigate("/my-applications")}
+                        style={{
+                          background: "rgba(16, 185, 129, 0.2)",
+                          color: "#34d399",
+                          border: "1px solid rgba(16, 185, 129, 0.4)",
+                        }}
+                      >
+                        View My Applications
+                      </Button>
+                    </Flex>
+                  )}
 
                   {errorMsg && (
                     <Flex
@@ -1537,6 +1636,7 @@ const ApplyJobPage = () => {
                       <Button
                         type="submit"
                         isLoading={submitting}
+                        disabled={isOwnCompanyJob || hasAlreadyApplied}
                         loadingText="SUBMITTING..."
                         h="44px"
                         px={8}
@@ -1548,19 +1648,36 @@ const ApplyJobPage = () => {
                         letterSpacing="widest"
                         color="white"
                         style={{
-                          background: `linear-gradient(135deg, ${accentColor} 0%, #8b5cf6 100%)`,
-                          boxShadow: `0 4px 12px rgba(59, 130, 246, 0.2)`,
+                          background: (isOwnCompanyJob || hasAlreadyApplied)
+                            ? "var(--color-card-border)"
+                            : `linear-gradient(135deg, ${accentColor} 0%, #8b5cf6 100%)`,
+                          boxShadow: (isOwnCompanyJob || hasAlreadyApplied)
+                            ? "none"
+                            : `0 4px 12px rgba(59, 130, 246, 0.2)`,
                           border: "1px solid var(--color-card-border)",
+                          cursor: (isOwnCompanyJob || hasAlreadyApplied) ? "not-allowed" : "pointer",
                           transition: "all 0.3s ease",
                         }}
-                        _hover={{
-                          transform: "translateY(-1.5px)",
-                          boxShadow: `0 6px 18px rgba(59, 130, 246, 0.35)`,
-                          filter: "brightness(1.1)",
-                        }}
+                        _hover={
+                          (isOwnCompanyJob || hasAlreadyApplied)
+                            ? {}
+                            : {
+                                transform: "translateY(-1.5px)",
+                                boxShadow: `0 6px 18px rgba(59, 130, 246, 0.35)`,
+                                filter: "brightness(1.1)",
+                              }
+                        }
                       >
-                        <Send size={14} style={{ marginRight: "8px" }} />
-                        SUBMIT APPLICATION
+                        {hasAlreadyApplied ? (
+                          <CheckCircle size={14} style={{ marginRight: "8px" }} />
+                        ) : (
+                          <Send size={14} style={{ marginRight: "8px" }} />
+                        )}
+                        {isOwnCompanyJob
+                          ? "CANNOT APPLY TO OWN COMPANY"
+                          : hasAlreadyApplied
+                          ? "YOU ALREADY APPLIED"
+                          : "SUBMIT APPLICATION"}
                       </Button>
                     </VStack>
                   </form>

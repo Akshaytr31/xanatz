@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Check, Edit2, Trash2, Star, AlertCircle, ShieldAlert, Filter, Loader, CheckCircle, RotateCcw, Clock } from "lucide-react";
 import api from "../../api";
+import { formatDate } from "../../utils/dateUtils";
 
 /* ─── Shared ─────────────────────────────────────────────────── */
 const card = {
@@ -97,7 +98,7 @@ const ReviewCard = ({ review, onDismiss, onReopen, onEdit, onDelete }) => {
           )}
           <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", display: "inline-flex", alignItems: "center", gap: 4 }}>
             <Clock size={11} />
-            {new Date(review.created_at).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
+            {formatDate(review.created_at)}
           </span>
         </div>
 

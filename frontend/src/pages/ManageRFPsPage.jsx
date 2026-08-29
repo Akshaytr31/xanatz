@@ -12,6 +12,7 @@ import Navbar from "../components/Navbar";
 import RFPModal from "../components/company/RFPModal";
 import api from "../api";
 import { getMemberPermissions } from "../utils/companyPermissions";
+import { formatDate } from "../utils/dateUtils";
 
 const MotionBox = motion.create(Box);
 const MotionFlex = motion.create(Flex);
@@ -274,7 +275,7 @@ const ManageRFPsPage = () => {
                       <HStack gap={1}>
                         <Calendar size={11} color="var(--color-text-muted)" />
                         <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="black" letterSpacing="wider">
-                          DUE: {new Date(rfp.deadline).toLocaleDateString(undefined, { dateStyle: "medium" })}
+                          DUE: {formatDate(rfp.deadline)}
                         </Text>
                       </HStack>
                     )}
@@ -514,7 +515,7 @@ const ManageRFPsPage = () => {
                         <Flex key={rfp.id} justify="space-between" align="center" p={2.5} borderRadius="lg" bg="var(--color-input-bg)" border="1px solid var(--color-glass)">
                           <VStack align="start" gap={0} flex={1} overflow="hidden">
                             <Text color="white" fontSize="xs" fontWeight="black" noOfLines={1}>{rfp.title}</Text>
-                            <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="bold">DUE: {new Date(rfp.deadline).toLocaleDateString(undefined, { dateStyle: "short" })}</Text>
+                            <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="bold">DUE: {formatDate(rfp.deadline)}</Text>
                           </VStack>
                           <Badge colorScheme={daysLeft <= 7 ? "red" : "purple"} variant="subtle" fontSize="4xs" px={1.5} py={0.5} borderRadius="md" flexShrink={0} ml={2}>
                             {daysLeft === 0 ? "TODAY" : daysLeft === 1 ? "1 DAY LEFT" : `${daysLeft} DAYS LEFT`}

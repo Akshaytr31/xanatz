@@ -73,7 +73,7 @@ const CompanyLogo = ({ job, size = "48px" }) => (
    JobOpeningCard
    viewMode: "grid" (default tile card) | "list" (horizontal strip)
 ═══════════════════════════════════════════════════════════════════════════ */
-const JobOpeningCard = ({ job, onClick, viewMode = "grid" }) => {
+const JobOpeningCard = ({ job, onClick, viewMode = "grid", hasApplied = false }) => {
 
   /* ── LIST / STRIP VIEW ── */
   if (viewMode === "list") {
@@ -131,6 +131,11 @@ const JobOpeningCard = ({ job, onClick, viewMode = "grid" }) => {
 
         {/* ID + Arrow */}
         <HStack gap={2} flexShrink={0}>
+          {hasApplied && (
+            <Badge variant="subtle" fontSize="2xs" px={2} py={0.5} borderRadius="md" fontWeight="extrabold" style={{ background: "rgba(16,185,129,0.15)", color: "#34d399", border: "1px solid rgba(16,185,129,0.3)" }}>
+              ✓ APPLIED
+            </Badge>
+          )}
           {job.job_id && (
             <Badge variant="outline" colorScheme="gray" fontSize="2xs" px={1.5} py={0.2} borderRadius="sm" color="var(--color-text-muted)">
               {job.job_id}
@@ -180,6 +185,23 @@ const JobOpeningCard = ({ job, onClick, viewMode = "grid" }) => {
         right="16px"
         gap={1.5}
       >
+        {hasApplied && (
+          <Badge
+            variant="subtle"
+            fontSize="2xs"
+            px={2}
+            py={0.5}
+            borderRadius="md"
+            fontWeight="extrabold"
+            style={{
+              background: "rgba(16,185,129,0.15)",
+              color: "#34d399",
+              borderColor: "rgba(16,185,129,0.3)",
+            }}
+          >
+            ✓ APPLIED
+          </Badge>
+        )}
         {job.job_id && (
           <Badge
             variant="outline"

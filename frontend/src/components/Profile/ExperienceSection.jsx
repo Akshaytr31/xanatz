@@ -37,6 +37,7 @@ import { Country, City } from "country-state-city";
 import api from "../../api";
 import ConfirmDeleteModal from "../ConfirmDeleteModal";
 import CustomTooltip from "../CustomTooltip";
+import { formatDate } from "../../utils/dateUtils";
 
 const MotionBox = motion.create(Box);
 
@@ -274,8 +275,8 @@ const ExperienceSection = ({ user, onUpdate }) => {
                       >
                         <Calendar size={10} />
                         <Text>
-                          {exp.start_date} —{" "}
-                          {exp.current ? "PRESENT" : exp.end_date}
+                          {formatDate(exp.start_date)} —{" "}
+                          {exp.current || !exp.end_date ? "PRESENT" : formatDate(exp.end_date)}
                         </Text>
                       </HStack>
                       {exp.location && (

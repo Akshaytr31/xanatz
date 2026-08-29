@@ -8,6 +8,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import api from "../api";
+import { formatDate } from "../utils/dateUtils";
 
 const MySubmittedRFPInterestsPage = () => {
   const navigate = useNavigate();
@@ -204,7 +205,7 @@ const MySubmittedRFPInterestsPage = () => {
                         <Text color="rgba(255,255,255,0.3)">•</Text>
                         <HStack gap={1}>
                           <Clock size={12} />
-                          <Text>{new Date(item.created_at).toLocaleDateString(undefined, { dateStyle: "medium" })}</Text>
+                          <Text>{formatDate(item.created_at)}</Text>
                         </HStack>
                       </HStack>
 

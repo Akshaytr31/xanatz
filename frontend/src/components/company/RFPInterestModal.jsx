@@ -24,6 +24,9 @@ import {
   X,
   CheckCircle,
   AlertCircle,
+  Briefcase,
+  Building2,
+  Sparkles,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../api";
@@ -137,9 +140,22 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
     }
   }, [isOpen]);
 
+  const isOwnCompanyRfp = Boolean(
+    rfp && (
+      myCompanies.some((c) => c.id === rfp.company) ||
+      userInfo?.companies?.some((c) => c.id === rfp.company) ||
+      (userInfo && rfp.company === userInfo.company_id)
+    )
+  );
+
   const handleSave = async (e) => {
     e.preventDefault();
     
+    if (isOwnCompanyRfp) {
+      setErrorMsg("You cannot express interest in an RFP created by your own company.");
+      return;
+    }
+
     if (profileType === "company" && !selectedCompanyId) {
       setErrorMsg("Please select a company profile.");
       return;
@@ -344,13 +360,13 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
                       {/* Profile Type Selector */}
                       <Box>
                         <Text {...labelStyle}>EXPRESS INTEREST AS *</Text>
-                        <Flex gap={4} direction={{ base: "column", sm: "row" }}>
+                        <Flex gap={3} direction={{ base: "column", md: "row" }}>
                           {/* Personal Option */}
                           <Flex
                             flex={1}
                             align="center"
                             gap={3}
-                            p={4.5}
+                            p={3.5}
                             borderRadius="xl"
                             border="1px solid"
                             borderColor={profileType === "personal" ? "#10b981" : "var(--color-card-border)"}
@@ -379,17 +395,74 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
                               display="flex"
                               alignItems="center"
                               justifyContent="center"
+                              flexShrink={0}
                             >
                               {profileType === "personal" && (
                                 <Box w="2" h="2" borderRadius="full" bg="#10b981" />
                               )}
                             </Box>
                             <VStack align="start" gap={0}>
-                              <Text color="white" fontSize="xs" fontWeight="black">
-                                Personal Profile
-                              </Text>
+                              <HStack gap={1.5}>
+                                <User size={12} color={profileType === "personal" ? "#10b981" : "var(--color-text-muted)"} />
+                                <Text color="white" fontSize="xs" fontWeight="black">
+                                  Personal Profile
+                                </Text>
+                              </HStack>
                               <Text color="var(--color-text-muted)" fontSize="3xs">
-                                Individual capacity (Freelancer / Consultant)
+                                Individual capacity (General User)
+                              </Text>
+                            </VStack>
+                          </Flex>
+
+                          {/* Freelancer Option */}
+                          <Flex
+                            flex={1}
+                            align="center"
+                            gap={3}
+                            p={3.5}
+                            borderRadius="xl"
+                            border="1px solid"
+                            borderColor={profileType === "freelancer" ? "#10b981" : "var(--color-card-border)"}
+                            bg={profileType === "freelancer" ? "rgba(16, 185, 129, 0.08)" : "var(--color-glass)"}
+                            cursor="pointer"
+                            transition="all 0.2s"
+                            _hover={{ borderColor: profileType === "freelancer" ? "#10b981" : "var(--color-text-muted)" }}
+                            onClick={() => {
+                              setProfileType("freelancer");
+                              setSelectedCompanyId("");
+                              if (userInfo) {
+                                const name = `${userInfo.first_name || ""} ${userInfo.last_name || ""}`.trim();
+                                setForm(prev => ({
+                                  ...prev,
+                                  company_name: name || userInfo.email.split("@")[0],
+                                }));
+                              }
+                            }}
+                          >
+                            <Box
+                              w="4"
+                              h="4"
+                              borderRadius="full"
+                              border="2px solid"
+                              borderColor={profileType === "freelancer" ? "#10b981" : "var(--color-text-muted)"}
+                              display="flex"
+                              alignItems="center"
+                              justifyContent="center"
+                              flexShrink={0}
+                            >
+                              {profileType === "freelancer" && (
+                                <Box w="2" h="2" borderRadius="full" bg="#10b981" />
+                              )}
+                            </Box>
+                            <VStack align="start" gap={0}>
+                              <HStack gap={1.5}>
+                                <Briefcase size={12} color={profileType === "freelancer" ? "#10b981" : "var(--color-text-muted)"} />
+                                <Text color="white" fontSize="xs" fontWeight="black">
+                                  Freelancer Profile
+                                </Text>
+                              </HStack>
+                              <Text color="var(--color-text-muted)" fontSize="3xs">
+                                Independent specialist & contractor
                               </Text>
                             </VStack>
                           </Flex>
@@ -399,7 +472,7 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
                             flex={1}
                             align="center"
                             gap={3}
-                            p={4.5}
+                            p={3.5}
                             borderRadius="xl"
                             border="1px solid"
                             borderColor={profileType === "company" ? "#10b981" : "var(--color-card-border)"}
@@ -434,22 +507,77 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
                               display="flex"
                               alignItems="center"
                               justifyContent="center"
+                              flexShrink={0}
                             >
                               {profileType === "company" && (
                                 <Box w="2" h="2" borderRadius="full" bg="#10b981" />
                               )}
                             </Box>
                             <VStack align="start" gap={0}>
-                              <Text color="white" fontSize="xs" fontWeight="black">
-                                Company Profile
-                              </Text>
+                              <HStack gap={1.5}>
+                                <Building2 size={12} color={profileType === "company" ? "#10b981" : "var(--color-text-muted)"} />
+                                <Text color="white" fontSize="xs" fontWeight="black">
+                                  Company Profile
+                                </Text>
+                              </HStack>
                               <Text color="var(--color-text-muted)" fontSize="3xs">
-                                Represent a registered corporate entity
+                                Registered corporate entity
                               </Text>
                             </VStack>
                           </Flex>
                         </Flex>
                       </Box>
+
+                      {/* Freelancer Profile Details Preview */}
+                      {profileType === "freelancer" && (
+                        <Box
+                          p={3.5}
+                          borderRadius="xl"
+                          border="1px solid"
+                          borderColor={userInfo?.profile?.is_freelancer ? "rgba(16, 185, 129, 0.3)" : "rgba(245, 158, 11, 0.3)"}
+                          bg={userInfo?.profile?.is_freelancer ? "rgba(16, 185, 129, 0.05)" : "rgba(245, 158, 11, 0.05)"}
+                        >
+                          <Flex align="center" justify="space-between" gap={2} flexWrap="wrap">
+                            <HStack gap={2.5}>
+                              <Flex
+                                w={7}
+                                h={7}
+                                borderRadius="lg"
+                                bg={userInfo?.profile?.is_freelancer ? "rgba(16,185,129,0.15)" : "rgba(245,158,11,0.15)"}
+                                align="center"
+                                justify="center"
+                              >
+                                <Sparkles size={14} color={userInfo?.profile?.is_freelancer ? "#10b981" : "#f59e0b"} />
+                              </Flex>
+                              <VStack align="start" gap={0}>
+                                <Text color="white" fontSize="xs" fontWeight="bold">
+                                  {userInfo?.profile?.headline || `${userInfo?.first_name || ""} ${userInfo?.last_name || ""}`.trim() || "Freelance Consultant"}
+                                </Text>
+                                <Text color="var(--color-text-muted)" fontSize="3xs">
+                                  {userInfo?.profile?.is_freelancer
+                                    ? `Status: ${(userInfo?.profile?.freelancer_availability || "available").toUpperCase()}`
+                                    : "Freelancer mode selected. Enable public freelancer listing in settings for higher visibility."}
+                                </Text>
+                              </VStack>
+                            </HStack>
+
+                            {userInfo?.profile?.hourly_rate && (
+                              <Badge
+                                bg="rgba(16,185,129,0.15)"
+                                color="#10b981"
+                                border="1px solid rgba(16,185,129,0.3)"
+                                fontSize="3xs"
+                                px={2}
+                                py={0.5}
+                                borderRadius="md"
+                                fontWeight="bold"
+                              >
+                                {userInfo?.profile?.freelancer_currency || "USD"} ${userInfo?.profile?.hourly_rate}/hr
+                              </Badge>
+                            )}
+                          </Flex>
+                        </Box>
+                      )}
 
                       {/* Company Selection Dropdown */}
                       {profileType === "company" && (
@@ -458,7 +586,7 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
                             <Flex bg="rgba(245, 158, 11, 0.1)" border="1px solid rgba(245, 158, 11, 0.2)" p={3.5} borderRadius="xl" align="center" gap={3}>
                               <AlertCircle size={16} color="#f59e0b" />
                               <Text color="#fbbf24" fontSize="3xs" fontWeight="bold">
-                                You have no company profiles created yet. Please use your Personal Profile or register a company first.
+                                You have no company profiles created yet. Please use your Personal or Freelancer Profile, or register a company first.
                               </Text>
                             </Flex>
                           ) : (
@@ -484,15 +612,31 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
                         </Box>
                       )}
 
-                      {/* Profile / Company Name Display */}
+                      {/* Profile / Company / Freelancer Name Display */}
                       <Box>
                         <Text {...labelStyle}>
-                          {profileType === "company" ? "COMPANY NAME *" : "YOUR NAME *"}
+                          {profileType === "company"
+                            ? "COMPANY NAME *"
+                            : profileType === "freelancer"
+                            ? "FREELANCER NAME / TITLE *"
+                            : "YOUR NAME *"}
                         </Text>
                         <HStack {...fieldStyle} _focusWithin={{ borderColor: "#10b981" }}>
-                          <User size={14} color="var(--color-text-muted)" />
+                          {profileType === "company" ? (
+                            <Building2 size={14} color="var(--color-text-muted)" />
+                          ) : profileType === "freelancer" ? (
+                            <Briefcase size={14} color="var(--color-text-muted)" />
+                          ) : (
+                            <User size={14} color="var(--color-text-muted)" />
+                          )}
                           <Input
-                            placeholder={profileType === "company" ? "Enter company name" : "Enter your name"}
+                            placeholder={
+                              profileType === "company"
+                                ? "Enter company name"
+                                : profileType === "freelancer"
+                                ? "Enter freelancer name / title"
+                                : "Enter your name"
+                            }
                             variant="unstyled"
                             color="white"
                             fontSize="xs"
@@ -647,6 +791,7 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
                       loadingText="SUBMITTING..."
                       onClick={handleSave}
                       disabled={
+                        isOwnCompanyRfp ||
                         !form.company_name.trim() || 
                         !form.email.trim() || 
                         !form.proposal_summary.trim() ||

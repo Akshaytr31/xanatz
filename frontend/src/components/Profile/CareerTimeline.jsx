@@ -26,6 +26,7 @@ import { Briefcase, Edit2, Plus, Trash2, Calendar, Target, Star, ChevronDown } f
 import api from "../../api";
 import ConfirmDeleteModal from "../ConfirmDeleteModal";
 import CustomTooltip from "../CustomTooltip";
+import { formatDate } from "../../utils/dateUtils";
 
 const MotionBox = motion.create(Box);
 
@@ -1053,8 +1054,8 @@ const TimelineChart = ({ experiences, handleOpen, handleOpenDeleteConfirm }) => 
 
         <VStack gap={7} align="stretch">
           {experiencesWithLevels.map((exp, index) => {
-            const startDateStr = new Date(exp.start_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
-            const endDateStr = exp.current || !exp.end_date ? "Present" : new Date(exp.end_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
+            const startDateStr = formatDate(exp.start_date);
+            const endDateStr = exp.current || !exp.end_date ? "Present" : formatDate(exp.end_date);
 
             return (
               <Box key={exp.id} position="relative">

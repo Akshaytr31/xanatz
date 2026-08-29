@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Search, FolderKanban, Calendar, DollarSign, ExternalLink, ShieldAlert, CheckCircle2, XCircle, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import api from "../../api";
+import { formatDate } from "../../utils/dateUtils";
 
 const AdminRFPsList = () => {
   const [rfps, setRfps] = useState([]);
@@ -69,7 +70,7 @@ const AdminRFPsList = () => {
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 14 }}>
           {rfps.map(r => {
-            const createdDate = r.created_at ? new Date(r.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "N/A";
+            const createdDate = r.created_at ? formatDate(r.created_at, "N/A") : "N/A";
 
             return (
               <div
@@ -115,7 +116,7 @@ const AdminRFPsList = () => {
                   {r.category && <span>Category: <strong style={{ color: "rgba(255,255,255,0.7)" }}>{r.category}</strong></span>}
                   {r.sub_category && <span>Sub-cat: <strong style={{ color: "rgba(255,255,255,0.7)" }}>{r.sub_category}</strong></span>}
                   {r.budget && <span>Budget: <strong style={{ color: "#10b981" }}>{r.budget}</strong></span>}
-                  {r.deadline && <span>Deadline: <strong style={{ color: "rgba(255,255,255,0.7)" }}>{r.deadline}</strong></span>}
+                  {r.deadline && <span>Deadline: <strong style={{ color: "rgba(255,255,255,0.7)" }}>{formatDate(r.deadline)}</strong></span>}
                 </div>
 
                 <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 10, display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11, color: "rgba(255,255,255,0.4)" }}>

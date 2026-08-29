@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Search, Briefcase, MapPin, DollarSign, Calendar, Users, ShieldAlert, CheckCircle2, XCircle } from "lucide-react";
 import api from "../../api";
+import { formatDate } from "../../utils/dateUtils";
 
 const AdminJobsList = () => {
   const [jobs, setJobs] = useState([]);
@@ -68,7 +69,7 @@ const AdminJobsList = () => {
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 14 }}>
           {jobs.map(j => {
-            const createdDate = j.created_at ? new Date(j.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "N/A";
+            const createdDate = j.created_at ? formatDate(j.created_at, "N/A") : "N/A";
 
             return (
               <div

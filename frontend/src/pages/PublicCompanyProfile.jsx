@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../api";
+import { formatDate } from "../utils/dateUtils";
 import FlagConfirmationModal from "../components/FlagConfirmationModal";
 import { ArrowRight, Globe, MapPin, Users, Calendar, Link2, AtSign, Briefcase, ExternalLink, Share2, Check, Mail, ArrowUpRight, Star, Flag, ShieldAlert, CheckCircle2, HelpCircle, ChevronDown, MessageSquare } from "lucide-react";
 import { motion, useScroll, useSpring, useTransform, AnimatePresence } from "framer-motion";
@@ -908,7 +909,7 @@ const PublicCompanyProfile = () => {
                         )}
                         {rfp.deadline && (
                           <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.75rem", color: "#6b7280" }}>
-                            <Calendar size={11} /> <span>Due: {new Date(rfp.deadline).toLocaleDateString()}</span>
+                            <Calendar size={11} /> <span>Due: {formatDate(rfp.deadline)}</span>
                           </div>
                         )}
                       </div>
@@ -1233,7 +1234,7 @@ const PublicCompanyProfile = () => {
                                 )}
                               </div>
                               <div style={{ fontSize: "0.65rem", color: "#6b7280" }}>
-                                {new Date(review.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                                {formatDate(review.created_at)}
                               </div>
                             </div>
                           </div>

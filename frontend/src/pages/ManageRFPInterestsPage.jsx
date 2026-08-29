@@ -11,6 +11,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import api, { backendUrl } from "../api";
 import { getMemberPermissions } from "../utils/companyPermissions";
+import { formatDate } from "../utils/dateUtils";
 
 const MotionBox = motion.create(Box);
 
@@ -387,7 +388,7 @@ const ManageRFPInterestsPage = () => {
                           <Flex align="center" gap={2}>
                             <HStack gap={1} fontSize="3xs" color="var(--color-text-muted)" fontWeight="bold" letterSpacing="wider">
                               <Clock size={10} />
-                              <Text>{new Date(interest.created_at).toLocaleDateString(undefined, { dateStyle: "medium" }).toUpperCase()}</Text>
+                              <Text>{formatDate(interest.created_at)}</Text>
                             </HStack>
                             <Badge
                               fontSize="3xs"

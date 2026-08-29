@@ -11,6 +11,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import api, { backendUrl } from "../api";
 import { getMemberPermissions } from "../utils/companyPermissions";
+import { formatDate } from "../utils/dateUtils";
 
 const MotionBox = motion.create(Box);
 
@@ -328,7 +329,7 @@ const ManageApplicationsPage = () => {
                           </HStack>
                           <HStack gap={1.5} fontSize="3xs" color="var(--color-text-muted)" fontWeight="bold" letterSpacing="wider">
                             <Clock size={10} />
-                            <Text>{new Date(app.created_at).toLocaleDateString(undefined, { dateStyle: "medium" }).toUpperCase()}</Text>
+                            <Text>{formatDate(app.created_at)}</Text>
                           </HStack>
                         </VStack>
                       </Flex>

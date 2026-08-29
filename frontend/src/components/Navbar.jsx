@@ -28,6 +28,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import api, { backendUrl } from "../api";
+import { formatDate } from "../utils/dateUtils";
 
 /* ─── tiny helpers ─────────────────────────────────────────────────────────── */
 
@@ -711,7 +712,7 @@ const Navbar = () => {
                                 {notif.message}
                               </p>
                               <span style={{ fontSize: "0.65rem", color: "var(--color-text-muted)", display: "block", marginTop: "4px" }}>
-                                {new Date(notif.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {new Date(notif.created_at).toLocaleDateString()}
+                                {new Date(notif.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {formatDate(notif.created_at)}
                               </span>
                             </div>
                             {notif.sender && (

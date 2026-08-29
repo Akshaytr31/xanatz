@@ -24,6 +24,7 @@ import {
 import { motion } from "framer-motion";
 import { Plus, Edit2, GraduationCap, Trash2, MapPin, Calendar, School } from "lucide-react";
 import api from "../../api";
+import { formatDate } from "../../utils/dateUtils";
 
 const MotionBox = motion.create(Box);
 
@@ -142,7 +143,7 @@ const EducationSection = ({ user, onUpdate }) => {
                     
                     <HStack color="var(--color-text-muted)" fontSize="10px" fontWeight="medium" mt={0.5}>
                       <Calendar size={10} />
-                      <Text>{edu.start_date} — {edu.end_date || "PRESENT"}</Text>
+                      <Text>{formatDate(edu.start_date)} — {edu.end_date ? formatDate(edu.end_date) : "PRESENT"}</Text>
                     </HStack>
 
                     {edu.description && (

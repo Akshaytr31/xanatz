@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Star, MessageSquare, Flag } from "lucide-react";
+import { formatDate } from "../../utils/dateUtils";
 
 const PublicReviews = ({ reviews = [], average_rating = 0, reviews_count = 0, onFlagReview }) => {
   const token = localStorage.getItem("access");
@@ -121,7 +122,7 @@ const PublicReviews = ({ reviews = [], average_rating = 0, reviews_count = 0, on
                           )}
                         </div>
                         <div style={{ fontSize: "0.7rem", color: "#6b7280" }}>
-                          {new Date(review.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                          {formatDate(review.created_at)}
                         </div>
                       </div>
                     </div>

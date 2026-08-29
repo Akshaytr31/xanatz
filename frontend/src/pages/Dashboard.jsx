@@ -86,22 +86,28 @@ const Dashboard = () => {
     return v !== "all" && v !== "";
   }).length;
 
+  const [myApplications, setMyApplications] = useState([]);
+
   useEffect(() => {
     if (!localStorage.getItem("access")) {
       navigate("/login");
       return;
     }
-    const fetchJobs = async () => {
+    const fetchData = async () => {
       try {
-        const response = await api.get("jobs/");
-        setJobs(response.data);
+        const [jobsRes, appsRes] = await Promise.all([
+          api.get("jobs/"),
+          api.get("applications/").catch(() => ({ data: [] })),
+        ]);
+        setJobs(jobsRes.data);
+        setMyApplications(appsRes.data || []);
       } catch (err) {
         console.error("Failed to fetch jobs", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchJobs();
+    fetchData();
   }, [navigate]);
 
   const handleLogout = () => {
@@ -329,6 +335,7 @@ const Dashboard = () => {
                   key={job.id}
                   job={job}
                   viewMode="list"
+                  hasApplied={myApplications.some((app) => String(app.job_opening) === String(job.id))}
                   onClick={() => navigate(`/jobs/${job.id}/apply`)}
                 />
               ))}
@@ -344,6 +351,7 @@ const Dashboard = () => {
                   key={job.id}
                   job={job}
                   viewMode="grid"
+                  hasApplied={myApplications.some((app) => String(app.job_opening) === String(job.id))}
                   onClick={() => navigate(`/jobs/${job.id}/apply`)}
                 />
               ))}

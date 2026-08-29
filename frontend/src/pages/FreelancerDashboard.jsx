@@ -24,6 +24,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "../components/Navbar";
 import api, { backendUrl } from "../api";
+import { formatDate } from "../utils/dateUtils";
 import { useNavigate } from "react-router-dom";
 import CompleteProfileModal, { getProfileCompletionDetails } from "../components/Profile/CompleteProfileModal";
 import {
@@ -703,7 +704,7 @@ const FreelancerDashboard = () => {
                             ))}
                           </HStack>
                           <Text fontSize="9px" color="rgba(255,255,255,0.35)">
-                            {new Date(rev.created_at).toLocaleDateString()}
+                            {formatDate(rev.created_at)}
                           </Text>
                         </Flex>
                         <Text fontSize="11px" color="rgba(255,255,255,0.7)" fontStyle="italic">
@@ -873,7 +874,7 @@ const FreelancerDashboard = () => {
                           </Text>
                         )}
                         <Text fontSize="11px" color="rgba(255,255,255,0.4)">
-                          Submitted on {new Date(bid.created_at || Date.now()).toLocaleDateString()}
+                          Submitted on {formatDate(bid.created_at || Date.now())}
                         </Text>
                       </VStack>
                       <Badge
@@ -947,7 +948,7 @@ const FreelancerDashboard = () => {
                         </Text>
                       </HStack>
                       <Text fontSize="11px" color="rgba(255,255,255,0.4)">
-                        {new Date(rev.created_at).toLocaleDateString()}
+                        {formatDate(rev.created_at)}
                       </Text>
                     </Flex>
 

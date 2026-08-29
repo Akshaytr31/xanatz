@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Search, Building2, ExternalLink, MapPin, Mail, Clock, Activity, CheckCircle2, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import api from "../../api";
+import { formatDate } from "../../utils/dateUtils";
 
 const AdminCompaniesList = () => {
   const [companies, setCompanies] = useState([]);
@@ -24,14 +25,8 @@ const AdminCompaniesList = () => {
     return () => clearTimeout(timer);
   }, [search, statusFilter]);
 
-  const formatDate = (isoString) => {
-    if (!isoString) return "No postings yet";
-    try {
-      const date = new Date(isoString);
-      return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-    } catch (e) {
-      return "Invalid date";
-    }
+  const formatLastActivity = (isoString) => {
+    return formatDate(isoString, "No postings yet");
   };
 
   return (
@@ -178,7 +173,7 @@ const AdminCompaniesList = () => {
                   <Activity size={12} color="#3b82f6" /> 30d Posts: <strong style={{ color: "white" }}>{(c.recent_jobs || 0) + (c.recent_rfps || 0)}</strong> ({c.recent_jobs || 0} jobs, {c.recent_rfps || 0} RFPs)
                 </span>
                 <span style={{ color: "rgba(255,255,255,0.4)", display: "flex", alignItems: "center", gap: 4 }}>
-                  <Clock size={11} /> Last: {formatDate(c.last_activity_date)}
+                  <Clock size={11} /> Last: {formatLastActivity(c.last_activity_date)}
                 </span>
               </div>
 
