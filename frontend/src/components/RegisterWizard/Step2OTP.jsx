@@ -1,18 +1,22 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { KeyRound } from "lucide-react";
-import { Box, VStack, Text, Input, Button } from "@chakra-ui/react";
+import { Box, VStack, Text, Input, Button, Flex } from "@chakra-ui/react";
 
 const Step2OTP = ({
   formData,
   handleChange,
   handleVerifyOTP,
+  handleResendOTP,
+  resendCountdown = 0,
+  resendLoading = false,
+  resendNotice = "",
   prevStep,
   loading,
 }) => {
   return (
     <form onSubmit={handleVerifyOTP}>
-      <VStack gap={6}>
+      <VStack gap={5}>
         <Text
           color="slate.400"
           fontSize="xs"
@@ -24,6 +28,13 @@ const Step2OTP = ({
             {formData.email}
           </Text>
         </Text>
+
+        {resendNotice && (
+          <Text color="green.400" fontSize="xs" fontWeight="medium" textAlign="center">
+            {resendNotice}
+          </Text>
+        )}
+
         <Box w="full" position="relative">
           <Box
             position="absolute"
@@ -60,6 +71,7 @@ const Step2OTP = ({
             }}
           />
         </Box>
+
         <Button
           as={motion.button}
           whileHover={{ scale: 1.01, translateY: -1 }}
@@ -76,21 +88,49 @@ const Step2OTP = ({
         >
           VERIFY CODE
         </Button>
-        <Button
-          variant="ghost"
-          onClick={prevStep}
-          w="full"
-          color="slate.500"
-          _hover={{
-            color: "var(--color-accent)",
-            bg: "transparent",
-          }}
-          fontSize="0.7rem"
-          fontWeight="bold"
-          textTransform="uppercase"
-        >
-          wrong email? go back
-        </Button>
+
+        <Flex justify="space-between" align="center" w="full" px={1}>
+          <Button
+            variant="ghost"
+            type="button"
+            onClick={prevStep}
+            color="slate.500"
+            _hover={{
+              color: "var(--color-accent)",
+              bg: "transparent",
+            }}
+            fontSize="0.7rem"
+            fontWeight="bold"
+            textTransform="uppercase"
+            p={0}
+            height="auto"
+          >
+            Wrong email? Go back
+          </Button>
+
+          <Button
+            variant="ghost"
+            type="button"
+            disabled={resendCountdown > 0 || resendLoading}
+            onClick={handleResendOTP}
+            color={resendCountdown > 0 ? "slate.600" : "var(--color-accent)"}
+            _hover={{
+              bg: "transparent",
+            }}
+            fontSize="0.7rem"
+            fontWeight="bold"
+            textTransform="uppercase"
+            p={0}
+            height="auto"
+            cursor={resendCountdown > 0 ? "not-allowed" : "pointer"}
+          >
+            {resendLoading
+              ? "Resending..."
+              : resendCountdown > 0
+              ? `Resend in ${resendCountdown}s`
+              : "Resend Code"}
+          </Button>
+        </Flex>
       </VStack>
     </form>
   );

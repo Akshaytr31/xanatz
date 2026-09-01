@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation, Link as RouterLink } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import { Box, VStack, Heading, Text, HStack, Link, Input, Button } from "@chakra-ui/react";
 import api from "../../api";
 import Step1Email from "./Step1Email";
@@ -19,8 +20,12 @@ const RegisterWizard = () => {
   const [direction, setDirection] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [resendNotice, setResendNotice] = useState("");
+  const [resendCountdown, setResendCountdown] = useState(0);
+  const [resendLoading, setResendLoading] = useState(false);
   const [showPasswordSetup, setShowPasswordSetup] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [passwordSetupError, setPasswordSetupError] = useState("");
   const [setupLoading, setSetupLoading] = useState(false);
   const [pendingRedirection, setPendingRedirection] = useState("");
@@ -56,13 +61,25 @@ const RegisterWizard = () => {
     setError("");
   };
 
+  useEffect(() => {
+    let timer;
+    if (resendCountdown > 0) {
+      timer = setInterval(() => {
+        setResendCountdown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendCountdown]);
+
   const handleSendOTP = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setResendNotice("");
     try {
       await api.post("auth/send-otp/", { email: formData.email });
       nextStep();
+      setResendCountdown(30);
     } catch (err) {
       const errData = err.response?.data;
       const errMsg =
@@ -73,6 +90,22 @@ const RegisterWizard = () => {
       setError(errMsg);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    if (resendCountdown > 0 || resendLoading) return;
+    setResendLoading(true);
+    setError("");
+    setResendNotice("");
+    try {
+      await api.post("auth/send-otp/", { email: formData.email });
+      setResendNotice("A new 6-digit code has been sent to your email!");
+      setResendCountdown(30);
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to resend code. Please try again.");
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -276,6 +309,10 @@ const RegisterWizard = () => {
                 formData={formData}
                 handleChange={handleChange}
                 handleVerifyOTP={handleVerifyOTP}
+                handleResendOTP={handleResendOTP}
+                resendCountdown={resendCountdown}
+                resendLoading={resendLoading}
+                resendNotice={resendNotice}
                 prevStep={prevStep}
                 loading={loading}
               />
@@ -374,17 +411,37 @@ const RegisterWizard = () => {
                 <Text fontSize="2xs" fontWeight="bold" color="var(--color-text-muted, #9ca3af)" mb={1.5} letterSpacing="wider">
                   NEW PASSWORD
                 </Text>
-                <Input
-                  type="password"
-                  placeholder="Enter secure password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  style={{
-                    background: "rgba(255,255,255,0.03)",
-                    borderColor: "var(--color-card-border, rgba(255,255,255,0.1))",
-                    color: "white",
-                  }}
-                />
+                <Box position="relative">
+                  <Input
+                    type={showNewPassword ? "text" : "password"}
+                    placeholder="Enter secure password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    style={{
+                      background: "rgba(255,255,255,0.03)",
+                      borderColor: "var(--color-card-border, rgba(255,255,255,0.1))",
+                      color: "white",
+                      paddingRight: "2.75rem",
+                    }}
+                  />
+                  <Box
+                    as="button"
+                    type="button"
+                    onClick={() => setShowNewPassword((v) => !v)}
+                    position="absolute"
+                    right="12px"
+                    top="50%"
+                    transform="translateY(-50%)"
+                    zIndex={1}
+                    bg="none"
+                    border="none"
+                    cursor="pointer"
+                    color="#6b7280"
+                    _hover={{ color: "white" }}
+                  >
+                    {showNewPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </Box>
+                </Box>
               </Box>
 
               <Button

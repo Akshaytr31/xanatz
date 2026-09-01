@@ -1,9 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Lock } from "lucide-react";
+import { Lock, Eye, EyeOff } from "lucide-react";
 import { Box, VStack, Input, Button } from "@chakra-ui/react";
 
 const Step3Password = ({ formData, handleChange, handlePasswordSubmit }) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   return (
     <form onSubmit={handlePasswordSubmit}>
       <VStack gap={4}>
@@ -19,7 +22,7 @@ const Step3Password = ({ formData, handleChange, handlePasswordSubmit }) => {
             <Lock size={16} />
           </Box>
           <Input
-            type="password"
+            type={showPassword ? "text" : "password"}
             name="password"
             value={formData.password}
             onChange={handleChange}
@@ -31,6 +34,7 @@ const Step3Password = ({ formData, handleChange, handlePasswordSubmit }) => {
             borderRadius="lg"
             py="6"
             pl="11"
+            pr="11"
             color="white"
             fontSize="sm"
             _focus={{
@@ -38,7 +42,25 @@ const Step3Password = ({ formData, handleChange, handlePasswordSubmit }) => {
               boxShadow: "0 0 0 4px rgba(var(--color-accent-rgb), 0.05)",
             }}
           />
+          <Box
+            as="button"
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            position="absolute"
+            right="3.5"
+            top="50%"
+            transform="translateY(-50%)"
+            zIndex={1}
+            bg="none"
+            border="none"
+            cursor="pointer"
+            color="slate.500"
+            _hover={{ color: "white" }}
+          >
+            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+          </Box>
         </Box>
+
         <Box w="full" position="relative">
           <Box
             position="absolute"
@@ -51,7 +73,7 @@ const Step3Password = ({ formData, handleChange, handlePasswordSubmit }) => {
             <Lock size={16} />
           </Box>
           <Input
-            type="password"
+            type={showConfirmPassword ? "text" : "password"}
             name="confirm_password"
             value={formData.confirm_password}
             onChange={handleChange}
@@ -63,6 +85,7 @@ const Step3Password = ({ formData, handleChange, handlePasswordSubmit }) => {
             borderRadius="lg"
             py="6"
             pl="11"
+            pr="11"
             color="white"
             fontSize="sm"
             _focus={{
@@ -70,7 +93,25 @@ const Step3Password = ({ formData, handleChange, handlePasswordSubmit }) => {
               boxShadow: "0 0 0 4px rgba(var(--color-accent-rgb), 0.05)",
             }}
           />
+          <Box
+            as="button"
+            type="button"
+            onClick={() => setShowConfirmPassword((v) => !v)}
+            position="absolute"
+            right="3.5"
+            top="50%"
+            transform="translateY(-50%)"
+            zIndex={1}
+            bg="none"
+            border="none"
+            cursor="pointer"
+            color="slate.500"
+            _hover={{ color: "white" }}
+          >
+            {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+          </Box>
         </Box>
+
         <Button
           as={motion.button}
           whileHover={{ scale: 1.01, translateY: -1 }}
@@ -83,7 +124,6 @@ const Step3Password = ({ formData, handleChange, handlePasswordSubmit }) => {
           py="6"
           borderRadius="lg"
           fontSize="sm"
-          mt={2}
         >
           CONTINUE
         </Button>

@@ -20,25 +20,42 @@ const GoogleLoginButton = ({
           onMouseLeave={() => setIsGoogleHovered(false)}
           cursor="pointer"
         >
-          {/* Real Google Login - Transparent but active */}
+          {/* Real Google Login - Transparent overlay spanning 100% of parent */}
           <Box
             position="absolute"
             top="0"
             left="0"
+            right="0"
+            bottom="0"
             w="full"
             h="full"
             zIndex={20}
-            opacity="0.01"
+            opacity="0.001"
             overflow="hidden"
+            pointerEvents="auto"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
-            <GoogleLogin
-              onSuccess={onSuccess}
-              onError={onError}
-              type="icon"
-              shape="circle"
-              size="large"
-              width="280"
-            />
+            <Box
+              style={{
+                transform: "scale(3.5)",
+                transformOrigin: "center center",
+                width: "350px",
+                display: "flex",
+                justifyContent: "center",
+              }}
+            >
+              <GoogleLogin
+                onSuccess={onSuccess}
+                onError={onError}
+                type="standard"
+                size="large"
+                width="350"
+              />
+            </Box>
           </Box>
 
           {/* Custom UI - Visible to user */}

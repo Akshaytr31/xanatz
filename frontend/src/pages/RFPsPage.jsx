@@ -398,14 +398,9 @@ const RFPsPage = () => {
                                 )}
                               </Box>
                               <VStack align="start" gap={0}>
-                                <HStack gap={2}>
-                                  <Text color="var(--color-text-primary)" fontSize="xs" fontWeight="black">
-                                    {rfp.company_name}
-                                  </Text>
-                                  <Badge bg={`${accentColor}12`} color={accentColor} fontSize="4xs" borderRadius="md" letterSpacing="wider">
-                                    CLIENT
-                                  </Badge>
-                                </HStack>
+                                <Text color="var(--color-text-primary)" fontSize="xs" fontWeight="black">
+                                  {rfp.company_name}
+                                </Text>
                                 <HStack gap={1.5} fontSize="4xs" color="var(--color-text-muted)" fontWeight="bold">
                                   <Clock size={10} />
                                   <Text>{formatDate(rfp.created_at)}</Text>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Link as RouterLink, useNavigate, useLocation } from "react-router-dom";
@@ -37,11 +37,24 @@ const LoginForm = () => {
   const [forgotPassword, setForgotPassword] = useState("");
   const [forgotConfirmPassword, setForgotConfirmPassword] = useState("");
   const [forgotError, setForgotError] = useState("");
+  const [forgotNotice, setForgotNotice] = useState("");
   const [forgotSuccess, setForgotSuccess] = useState("");
   const [forgotLoading, setForgotLoading] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(0);
+  const [resendLoading, setResendLoading] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    let timer;
+    if (resendCountdown > 0) {
+      timer = setInterval(() => {
+        setResendCountdown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendCountdown]);
 
   const handleForgotSendOTP = async () => {
     if (!forgotEmail.trim()) {
@@ -50,13 +63,31 @@ const LoginForm = () => {
     }
     setForgotLoading(true);
     setForgotError("");
+    setForgotNotice("");
     try {
       await api.post("auth/forgot-password/", { email: forgotEmail });
       setForgotStep(2);
+      setResendCountdown(30);
     } catch (err) {
       setForgotError(err.response?.data?.error || "Failed to send reset code. Please try again.");
     } finally {
       setForgotLoading(false);
+    }
+  };
+
+  const handleForgotResendOTP = async () => {
+    if (resendCountdown > 0 || resendLoading) return;
+    setResendLoading(true);
+    setForgotError("");
+    setForgotNotice("");
+    try {
+      await api.post("auth/forgot-password/", { email: forgotEmail });
+      setForgotNotice("A new OTP verification code has been sent to your email!");
+      setResendCountdown(30);
+    } catch (err) {
+      setForgotError(err.response?.data?.error || "Failed to resend code. Please try again.");
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -616,6 +647,12 @@ const LoginForm = () => {
                     </Text>
                   )}
 
+                  {forgotNotice && (
+                    <Text color="green.400" fontSize="xs" fontWeight="medium">
+                      {forgotNotice}
+                    </Text>
+                  )}
+
                   {/* Step 1: Email Input */}
                   {forgotStep === 1 && (
                     <Box>
@@ -773,7 +810,7 @@ const LoginForm = () => {
                   )}
 
                   {forgotStep === 2 && (
-                    <VStack gap={2} w="100%">
+                    <VStack gap={3} w="100%">
                       <Button
                         onClick={handleForgotVerifyOTP}
                         loading={forgotLoading}
@@ -787,16 +824,45 @@ const LoginForm = () => {
                       >
                         VERIFY CODE
                       </Button>
-                      <Button
-                        variant="ghost"
-                        onClick={() => setForgotStep(1)}
-                        style={{
-                          color: "var(--color-text-muted)",
-                          fontSize: "0.75rem",
-                        }}
-                      >
-                        Change Email
-                      </Button>
+                      <Flex justify="space-between" align="center" w="100%" px={1}>
+                        <Button
+                          variant="ghost"
+                          onClick={() => {
+                            setForgotStep(1);
+                            setForgotError("");
+                            setForgotNotice("");
+                          }}
+                          style={{
+                            color: "var(--color-text-muted, #9ca3af)",
+                            fontSize: "0.75rem",
+                            padding: 0,
+                            height: "auto",
+                            background: "transparent",
+                          }}
+                        >
+                          Change Email
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          disabled={resendCountdown > 0 || resendLoading}
+                          onClick={handleForgotResendOTP}
+                          style={{
+                            color: resendCountdown > 0 ? "#6b7280" : "var(--color-accent, #60a5fa)",
+                            fontSize: "0.75rem",
+                            fontWeight: "600",
+                            padding: 0,
+                            height: "auto",
+                            background: "transparent",
+                            cursor: resendCountdown > 0 ? "not-allowed" : "pointer",
+                          }}
+                        >
+                          {resendLoading
+                            ? "Resending..."
+                            : resendCountdown > 0
+                            ? `Resend Code in ${resendCountdown}s`
+                            : "Resend Code"}
+                        </Button>
+                      </Flex>
                     </VStack>
                   )}
 
