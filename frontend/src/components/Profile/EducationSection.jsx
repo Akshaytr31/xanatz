@@ -196,7 +196,20 @@ const EducationSection = ({ user, onUpdate }) => {
         <Portal>
           <DialogBackdrop bg="blackAlpha.900" backdropFilter="blur(10px)" zIndex={99999} />
           <DialogPositioner display="flex" alignItems="center" justifyContent="center" zIndex={100000}>
-            <DialogContent bg="var(--color-primary)" border="1px solid" borderColor="whiteAlpha.300" borderRadius="2xl" maxW="550px" m="auto" overflow="hidden">
+            <DialogContent
+              as="form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSubmit();
+              }}
+              bg="var(--color-primary)"
+              border="1px solid"
+              borderColor="whiteAlpha.300"
+              borderRadius="2xl"
+              maxW="550px"
+              m="auto"
+              overflow="hidden"
+            >
               <DialogHeader color="white" py={6} px={8} borderBottom="1px solid" borderColor="whiteAlpha.100">
                 {editingItem ? "Refine Education" : "Add New Academic Milestone"}
               </DialogHeader>
@@ -234,7 +247,7 @@ const EducationSection = ({ user, onUpdate }) => {
                 </VStack>
               </DialogBody>
               <DialogFooter p={8} bg="whiteAlpha.50">
-                <Button bg="var(--color-accent)" color="white" w="full" size="lg" onClick={handleSubmit} isLoading={loading}>
+                <Button type="submit" bg="var(--color-accent)" color="white" w="full" size="lg" isLoading={loading}>
                   {editingItem ? "Update Education" : "Add Education"}
                 </Button>
               </DialogFooter>

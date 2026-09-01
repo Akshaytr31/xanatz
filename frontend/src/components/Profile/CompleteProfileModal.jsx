@@ -441,6 +441,12 @@ const CompleteProfileModal = ({ isOpen, onClose, user, onProfileUpdated }) => {
                                   placeholder="Ex: Senior Full-Stack Developer | React & Django Specialist"
                                   value={headline}
                                   onChange={(e) => setHeadline(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      e.preventDefault();
+                                      handleSaveField("headline");
+                                    }
+                                  }}
                                   size="sm"
                                   bg="rgba(0,0,0,0.3)"
                                   borderColor="rgba(255,255,255,0.15)"
@@ -493,6 +499,12 @@ const CompleteProfileModal = ({ isOpen, onClose, user, onProfileUpdated }) => {
                                     placeholder="Ex: 75"
                                     value={hourlyRate}
                                     onChange={(e) => setHourlyRate(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") {
+                                        e.preventDefault();
+                                        handleSaveField("hourly_rate");
+                                      }
+                                    }}
                                     size="sm"
                                     bg="rgba(0,0,0,0.3)"
                                     borderColor="rgba(255,255,255,0.15)"
@@ -519,6 +531,12 @@ const CompleteProfileModal = ({ isOpen, onClose, user, onProfileUpdated }) => {
                                   placeholder="Ex: Dubai, United Arab Emirates"
                                   value={locationStr}
                                   onChange={(e) => setLocationStr(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      e.preventDefault();
+                                      handleSaveField("location");
+                                    }
+                                  }}
                                   size="sm"
                                   bg="rgba(0,0,0,0.3)"
                                   borderColor="rgba(255,255,255,0.15)"

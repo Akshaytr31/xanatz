@@ -155,6 +155,16 @@ const SearchableFilterSelect = ({ label, value, onChange, options, placeholder }
             <Box maxH="160px" overflowY="auto">
               {/* Option "All" */}
               <Box
+                tabIndex={0}
+                role="option"
+                aria-selected={!value}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onChange("");
+                    setIsOpen(false);
+                  }
+                }}
                 onClick={() => {
                   onChange("");
                   setIsOpen(false);
@@ -184,6 +194,16 @@ const SearchableFilterSelect = ({ label, value, onChange, options, placeholder }
                 filteredOptions.map((opt) => (
                   <Box
                     key={opt.value}
+                    tabIndex={0}
+                    role="option"
+                    aria-selected={opt.value === value}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        onChange(opt.value);
+                        setIsOpen(false);
+                      }
+                    }}
                     onClick={() => {
                       onChange(opt.value);
                       setIsOpen(false);

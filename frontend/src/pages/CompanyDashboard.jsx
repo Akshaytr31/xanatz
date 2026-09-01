@@ -1324,7 +1324,22 @@ const CompanyDashboard = () => {
                           transition="all 0.2s"
                           overflow="hidden"
                         >
-                          <Flex align="center" justify="space-between" p={4} cursor="pointer" onClick={() => toggleFaq(faq.id)}>
+                          <Flex
+                            align="center"
+                            justify="space-between"
+                            p={4}
+                            cursor="pointer"
+                            tabIndex={0}
+                            role="button"
+                            aria-expanded={isOpen}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                toggleFaq(faq.id);
+                              }
+                            }}
+                            onClick={() => toggleFaq(faq.id)}
+                          >
                             <HStack gap={3} flex={1}>
                               <HelpCircle size={15} color={isOpen ? accentColor : "var(--color-text-muted)"} />
                               <Text fontSize="xs" fontWeight="bold" color="white" textAlign="left">

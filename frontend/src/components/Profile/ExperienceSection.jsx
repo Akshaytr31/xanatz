@@ -378,6 +378,11 @@ const ExperienceSection = ({ user, onUpdate }) => {
             zIndex={100000}
           >
             <DialogContent
+              as="form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSubmit();
+              }}
               bg="var(--color-primary)"
               border="1px solid"
               borderColor="whiteAlpha.300"
@@ -758,6 +763,7 @@ const ExperienceSection = ({ user, onUpdate }) => {
               </DialogBody>
               <DialogFooter p={8} bg="whiteAlpha.50">
                 <Button
+                  type="submit"
                   bg="var(--color-accent)"
                   color="white"
                   w="full"

@@ -54,6 +54,14 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         {/* First Page */}
         <Box
           as="button"
+          aria-label="First page"
+          tabIndex={safePage === 1 ? -1 : 0}
+          onKeyDown={(e) => {
+            if ((e.key === "Enter" || e.key === " ") && safePage !== 1) {
+              e.preventDefault();
+              onPageChange(1);
+            }
+          }}
           onClick={() => onPageChange(1)}
           disabled={safePage === 1}
           p={2}
@@ -78,6 +86,14 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         {/* Prev Page */}
         <Box
           as="button"
+          aria-label="Previous page"
+          tabIndex={safePage === 1 ? -1 : 0}
+          onKeyDown={(e) => {
+            if ((e.key === "Enter" || e.key === " ") && safePage !== 1) {
+              e.preventDefault();
+              onPageChange(Math.max(1, safePage - 1));
+            }
+          }}
           onClick={() => onPageChange(Math.max(1, safePage - 1))}
           disabled={safePage === 1}
           p={2}
@@ -114,6 +130,14 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
             <Box
               key={page}
               as="button"
+              aria-label={`Page ${page}`}
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onPageChange(page);
+                }
+              }}
               onClick={() => onPageChange(page)}
               minW="32px"
               h="32px"
@@ -154,6 +178,14 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         {/* Next Page */}
         <Box
           as="button"
+          aria-label="Next page"
+          tabIndex={safePage === totalPages ? -1 : 0}
+          onKeyDown={(e) => {
+            if ((e.key === "Enter" || e.key === " ") && safePage !== totalPages) {
+              e.preventDefault();
+              onPageChange(Math.min(totalPages, safePage + 1));
+            }
+          }}
           onClick={() => onPageChange(Math.min(totalPages, safePage + 1))}
           disabled={safePage === totalPages}
           p={2}
@@ -181,6 +213,14 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         {/* Last Page */}
         <Box
           as="button"
+          aria-label="Last page"
+          tabIndex={safePage === totalPages ? -1 : 0}
+          onKeyDown={(e) => {
+            if ((e.key === "Enter" || e.key === " ") && safePage !== totalPages) {
+              e.preventDefault();
+              onPageChange(totalPages);
+            }
+          }}
           onClick={() => onPageChange(totalPages)}
           disabled={safePage === totalPages}
           p={2}

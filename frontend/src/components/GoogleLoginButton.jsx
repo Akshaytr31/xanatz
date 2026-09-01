@@ -18,6 +18,16 @@ const GoogleLoginButton = ({
           position="relative"
           onMouseEnter={() => setIsGoogleHovered(true)}
           onMouseLeave={() => setIsGoogleHovered(false)}
+          onFocus={() => setIsGoogleHovered(true)}
+          onBlur={() => setIsGoogleHovered(false)}
+          tabIndex={0}
+          role="button"
+          aria-label={label}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              // Space or Enter on container focuses/activates Google iframe
+            }
+          }}
           cursor="pointer"
         >
           {/* Real Google Login - Transparent overlay spanning 100% of parent */}

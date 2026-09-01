@@ -138,6 +138,15 @@ const PillGroup = ({ options, value, onChange }) => (
           align="center"
           gap={2.5}
           cursor="pointer"
+          tabIndex={0}
+          role="radio"
+          aria-checked={active}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onChange(opt.value);
+            }
+          }}
           onClick={() => onChange(opt.value)}
           py={1.5}
           px={2}

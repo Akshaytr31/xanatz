@@ -515,6 +515,12 @@ const LoginForm = () => {
                     placeholder="Enter secure password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handlePasswordSubmit();
+                      }
+                    }}
                     style={{
                       background: "rgba(255,255,255,0.03)",
                       borderColor: "var(--color-card-border, rgba(255,255,255,0.1))",
@@ -664,6 +670,12 @@ const LoginForm = () => {
                         placeholder="e.g. name@company.com"
                         value={forgotEmail}
                         onChange={(e) => setForgotEmail(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleForgotSendOTP();
+                          }
+                        }}
                         style={{
                           background: "rgba(255,255,255,0.03)",
                           borderColor: "var(--color-card-border, rgba(255,255,255,0.1))",
@@ -701,6 +713,12 @@ const LoginForm = () => {
                           maxLength={6}
                           value={forgotOtp}
                           onChange={(e) => setForgotOtp(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleForgotVerifyOTP();
+                            }
+                          }}
                           style={{
                             background: "rgba(255,255,255,0.03)",
                             borderColor: "var(--color-card-border, rgba(255,255,255,0.1))",
@@ -727,6 +745,12 @@ const LoginForm = () => {
                             placeholder="Minimum 8 characters"
                             value={forgotPassword}
                             onChange={(e) => setForgotPassword(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                handleForgotResetPassword();
+                              }
+                            }}
                             style={{
                               background: "rgba(255,255,255,0.03)",
                               borderColor: "var(--color-card-border, rgba(255,255,255,0.1))",
@@ -763,6 +787,12 @@ const LoginForm = () => {
                             placeholder="Re-enter password"
                             value={forgotConfirmPassword}
                             onChange={(e) => setForgotConfirmPassword(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                handleForgotResetPassword();
+                              }
+                            }}
                             style={{
                               background: "rgba(255,255,255,0.03)",
                               borderColor: "var(--color-card-border, rgba(255,255,255,0.1))",

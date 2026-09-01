@@ -92,6 +92,15 @@ const JobOpeningCard = ({ job, onClick, viewMode = "grid", hasApplied = false })
         }}
         transition="all 0.25s cubic-bezier(0.4,0,0.2,1)"
         cursor="pointer"
+        tabIndex={0}
+        role="button"
+        aria-label={`View details for ${job.title} at ${job.company_name}`}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onClick && onClick(e);
+          }
+        }}
         onClick={onClick}
       >
         {/* Logo */}
@@ -174,6 +183,15 @@ const JobOpeningCard = ({ job, onClick, viewMode = "grid", hasApplied = false })
       }}
       transition="all 0.3s cubic-bezier(0.4,0,0.2,1)"
       cursor="pointer"
+      tabIndex={0}
+      role="button"
+      aria-label={`View details for ${job.title} at ${job.company_name}`}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick && onClick(e);
+        }
+      }}
       onClick={onClick}
       display="flex"
       flexDirection="column"

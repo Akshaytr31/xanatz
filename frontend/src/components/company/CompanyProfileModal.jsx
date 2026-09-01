@@ -292,6 +292,11 @@ const CompanyProfileModal = ({ isOpen, onClose, company, onSaved }) => {
             overflow="visible"
           >
             <MotionBox
+              as="form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSave();
+              }}
               initial={{ opacity: 0, y: 30, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.97 }}
@@ -662,6 +667,7 @@ const CompanyProfileModal = ({ isOpen, onClose, company, onSaved }) => {
                     CANCEL
                   </Button>
                   <Button
+                    type="submit"
                     h="10"
                     px={7}
                     borderRadius="lg"

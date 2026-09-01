@@ -259,7 +259,19 @@ const ProfileHeader = ({ user, onUpdate }) => {
         <Portal>
           <DialogBackdrop bg="blackAlpha.800" backdropFilter="blur(10px)" zIndex={99999} />
           <DialogPositioner display="flex" alignItems="center" justifyContent="center" zIndex={100000}>
-            <DialogContent bg="var(--color-primary)" border="1px solid" borderColor="whiteAlpha.300" borderRadius="xl" maxW="500px" m="auto">
+            <DialogContent
+              as="form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSubmit();
+              }}
+              bg="var(--color-primary)"
+              border="1px solid"
+              borderColor="whiteAlpha.300"
+              borderRadius="xl"
+              maxW="500px"
+              m="auto"
+            >
               <DialogHeader color="white" py={5}>Edit Intro</DialogHeader>
               <DialogCloseTrigger color="whiteAlpha.600" top={4} right={4} />
               <DialogBody p={6}>
@@ -469,10 +481,10 @@ const ProfileHeader = ({ user, onUpdate }) => {
               </DialogBody>
               <DialogFooter p={6}>
                 <Button
+                  type="submit"
                   bg="var(--color-accent)"
                   color="white"
                   w="full"
-                  onClick={handleSubmit}
                   isLoading={loading}
                 >
                   Save Changes

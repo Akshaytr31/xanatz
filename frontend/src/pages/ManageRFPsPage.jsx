@@ -284,7 +284,20 @@ const ManageRFPsPage = () => {
 
                 {/* Actions */}
                 <HStack gap={3.5} align="center">
-                  <Box cursor="pointer" onClick={() => handleToggleActive(rfp)} title={rfp.is_active ? "Mark Inactive" : "Mark Active"}>
+                  <Box
+                    tabIndex={0}
+                    role="button"
+                    aria-label={rfp.is_active ? "Mark Inactive" : "Mark Active"}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleToggleActive(rfp);
+                      }
+                    }}
+                    cursor="pointer"
+                    onClick={() => handleToggleActive(rfp)}
+                    title={rfp.is_active ? "Mark Inactive" : "Mark Active"}
+                  >
                     {rfp.is_active ? (
                       <ToggleRight size={32} color="#10b981" />
                     ) : (
@@ -398,7 +411,26 @@ const ManageRFPsPage = () => {
                     <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="bold" letterSpacing="wider">INACTIVE</Text>
                   </VStack>
                 </Grid>
-                <Flex align="center" gap={3} mt={4} p={3.5} borderRadius="xl" bg="var(--color-input-bg)" border="1px solid var(--color-glass)" cursor="pointer" onClick={() => navigate(`/company/${id}/rfp-interests`)}>
+                <Flex
+                  align="center"
+                  gap={3}
+                  mt={4}
+                  p={3.5}
+                  borderRadius="xl"
+                  bg="var(--color-input-bg)"
+                  border="1px solid var(--color-glass)"
+                  cursor="pointer"
+                  tabIndex={0}
+                  role="button"
+                  aria-label="View received proposals"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      navigate(`/company/${id}/rfp-interests`);
+                    }
+                  }}
+                  onClick={() => navigate(`/company/${id}/rfp-interests`)}
+                >
                   <Box w="8" h="8" borderRadius="lg" bg="rgba(139,92,246,0.15)" display="flex" alignItems="center" justify="center" border="1px solid rgba(139,92,246,0.3)">
                     <FileText size={16} color={accentColor} />
                   </Box>

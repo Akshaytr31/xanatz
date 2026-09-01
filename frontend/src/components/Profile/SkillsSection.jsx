@@ -100,7 +100,12 @@ const SkillsSection = ({ user, onUpdate }) => {
                   fontSize="sm"
                   borderRadius="lg"
                   _focus={{ borderColor: "yellow.400", boxShadow: "0 0 0 1px var(--chakra-colors-yellow-400)" }}
-                  onKeyPress={(e) => e.key === "Enter" && handleAddSkill()}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddSkill();
+                    }
+                  }}
                 />
                 <Button
                   bg="yellow.500"
