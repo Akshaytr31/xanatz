@@ -290,7 +290,7 @@ const LoginForm = () => {
             <Input
               type="email"
               name="email"
-              placeholder="Email Address"
+              placeholder="Email Address *"
               required
               bg="whiteAlpha.100"
               border="1px solid"
@@ -326,7 +326,7 @@ const LoginForm = () => {
             <Input
               type={showLoginPassword ? "text" : "password"}
               name="password"
-              placeholder="Password"
+              placeholder="Password *"
               required
               bg="whiteAlpha.100"
               border="1px solid"
@@ -507,7 +507,7 @@ const LoginForm = () => {
 
               <Box>
                 <Text fontSize="2xs" fontWeight="bold" color="var(--color-text-muted, #9ca3af)" mb={1.5} letterSpacing="wider">
-                  NEW PASSWORD
+                  NEW PASSWORD *
                 </Text>
                 <Box position="relative">
                   <Input
@@ -663,7 +663,7 @@ const LoginForm = () => {
                   {forgotStep === 1 && (
                     <Box>
                       <Text fontSize="2xs" fontWeight="bold" color="var(--color-text-muted, #9ca3af)" mb={1.5} letterSpacing="wider">
-                        EMAIL ADDRESS
+                        EMAIL ADDRESS *
                       </Text>
                       <Input
                         type="email"
@@ -705,7 +705,7 @@ const LoginForm = () => {
                       </Box>
                       <Box>
                         <Text fontSize="2xs" fontWeight="bold" color="var(--color-text-muted, #9ca3af)" mb={1.5} letterSpacing="wider">
-                          ENTER 6-DIGIT OTP CODE
+                          ENTER 6-DIGIT OTP CODE *
                         </Text>
                         <Input
                           type="text"
@@ -737,7 +737,7 @@ const LoginForm = () => {
                     <VStack gap={4} align="stretch" w="100%">
                       <Box>
                         <Text fontSize="2xs" fontWeight="bold" color="var(--color-text-muted, #9ca3af)" mb={1.5} letterSpacing="wider">
-                          NEW PASSWORD
+                          NEW PASSWORD *
                         </Text>
                         <Box position="relative">
                           <Input
@@ -779,7 +779,7 @@ const LoginForm = () => {
                       </Box>
                       <Box>
                         <Text fontSize="2xs" fontWeight="bold" color="var(--color-text-muted, #9ca3af)" mb={1.5} letterSpacing="wider">
-                          CONFIRM NEW PASSWORD
+                          CONFIRM NEW PASSWORD *
                         </Text>
                         <Box position="relative">
                           <Input

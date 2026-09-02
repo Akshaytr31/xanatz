@@ -41,6 +41,7 @@ const EducationSection = ({ user, onUpdate }) => {
     end_date: "",
     description: "",
   });
+  const [error, setError] = useState("");
 
   const handleOpen = (item = null) => {
     if (item) {
@@ -64,6 +65,7 @@ const EducationSection = ({ user, onUpdate }) => {
         description: "",
       });
     }
+    setError("");
     setIsDialogOpen(true);
   };
 
@@ -72,6 +74,11 @@ const EducationSection = ({ user, onUpdate }) => {
   };
 
   const handleSubmit = async () => {
+    setError("");
+    if (!formData.school?.trim() || !formData.degree?.trim() || !formData.field_of_study?.trim() || !formData.start_date || !formData.end_date) {
+      setError("Please fill in all mandatory fields (Institution, Degree, Field of Study, Start Date, and End Date).");
+      return;
+    }
     setLoading(true);
     try {
       if (editingItem) {
@@ -83,6 +90,7 @@ const EducationSection = ({ user, onUpdate }) => {
       setIsDialogOpen(false);
     } catch (err) {
       console.error(err);
+      setError("Failed to save education details. Please check inputs and try again.");
     } finally {
       setLoading(false);
     }
@@ -207,37 +215,45 @@ const EducationSection = ({ user, onUpdate }) => {
               borderColor="whiteAlpha.300"
               borderRadius="2xl"
               maxW="550px"
+              maxH="90vh"
               m="auto"
+              display="flex"
+              flexDirection="column"
               overflow="hidden"
             >
               <DialogHeader color="white" py={6} px={8} borderBottom="1px solid" borderColor="whiteAlpha.100">
                 {editingItem ? "Refine Education" : "Add New Academic Milestone"}
               </DialogHeader>
               <DialogCloseTrigger color="whiteAlpha.600" top={6} right={6} />
-              <DialogBody p={8}>
+              <DialogBody p={8} overflowY="auto" flex="1">
                 <VStack gap={6}>
+                  {error && (
+                    <Text color="red.400" fontSize="xs" fontWeight="bold">
+                      {error}
+                    </Text>
+                  )}
                   <Box w="full">
                     <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">INSTITUTION *</Text>
-                    <Input name="school" value={formData.school} onChange={handleChange} placeholder="Ex: Stanford University" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" />
+                    <Input name="school" value={formData.school} onChange={handleChange} placeholder="Ex: Stanford University" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" required />
                   </Box>
                   <HStack w="full" gap={6}>
                     <Box flex="1">
-                      <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">DEGREE</Text>
-                      <Input name="degree" value={formData.degree} onChange={handleChange} placeholder="Ex: Master of Science" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" />
+                      <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">DEGREE *</Text>
+                      <Input name="degree" value={formData.degree} onChange={handleChange} placeholder="Ex: Master of Science" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" required />
                     </Box>
                     <Box flex="1">
-                      <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">FIELD OF STUDY</Text>
-                      <Input name="field_of_study" value={formData.field_of_study} onChange={handleChange} placeholder="Ex: Computer Science" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" />
+                      <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">FIELD OF STUDY *</Text>
+                      <Input name="field_of_study" value={formData.field_of_study} onChange={handleChange} placeholder="Ex: Computer Science" bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" required />
                     </Box>
                   </HStack>
                   <HStack w="full" gap={6}>
                     <Box flex="1">
                       <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">START DATE *</Text>
-                      <Input name="start_date" type="date" value={formData.start_date} onChange={handleChange} bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" />
+                      <Input name="start_date" type="date" value={formData.start_date} onChange={handleChange} bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" required />
                     </Box>
                     <Box flex="1">
-                      <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">END DATE (OR EXPECTED)</Text>
-                      <Input name="end_date" type="date" value={formData.end_date} onChange={handleChange} bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" />
+                      <Text mb={2} color="whiteAlpha.500" fontSize="xs" fontWeight="bold" letterSpacing="widest">END DATE (OR EXPECTED) *</Text>
+                      <Input name="end_date" type="date" value={formData.end_date} onChange={handleChange} bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" color="white" required />
                     </Box>
                   </HStack>
                   <Box w="full">

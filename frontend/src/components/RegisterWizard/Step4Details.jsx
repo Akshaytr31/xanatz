@@ -67,7 +67,7 @@ const Step4Details = ({
               name="first_name"
               value={formData.first_name}
               onChange={handleChange}
-              placeholder="First Name"
+              placeholder="First Name *"
               required
               bg="whiteAlpha.100"
               border="1px solid"
@@ -99,7 +99,7 @@ const Step4Details = ({
               name="last_name"
               value={formData.last_name}
               onChange={handleChange}
-              placeholder="Last Name"
+              placeholder="Last Name *"
               required
               bg="whiteAlpha.100"
               border="1px solid"

@@ -48,7 +48,7 @@ const Step1Email = ({
             name="email"
             value={formData.email}
             onChange={handleChange}
-            placeholder="Email Address"
+            placeholder="Email Address *"
             required
             bg="whiteAlpha.100"
             border="1px solid"

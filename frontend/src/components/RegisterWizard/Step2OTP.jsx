@@ -51,7 +51,7 @@ const Step2OTP = ({
             name="otp"
             value={formData.otp}
             onChange={handleChange}
-            placeholder="6-DIGIT CODE"
+            placeholder="6-DIGIT CODE *"
             maxLength={6}
             required
             bg="whiteAlpha.100"

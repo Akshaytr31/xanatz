@@ -116,7 +116,14 @@ class EducationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Education
         fields = '__all__'
-        extra_kwargs = {'profile': {'required': False}}
+        extra_kwargs = {
+            'profile': {'required': False},
+            'school': {'required': True, 'allow_blank': False},
+            'degree': {'required': True, 'allow_blank': False},
+            'field_of_study': {'required': True, 'allow_blank': False},
+            'start_date': {'required': True, 'allow_null': False},
+            'end_date': {'required': True, 'allow_null': False},
+        }
 
 class PortfolioProjectSerializer(serializers.ModelSerializer):
     class Meta:

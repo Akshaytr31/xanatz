@@ -91,7 +91,7 @@ const AboutSection = ({ user, onUpdate }) => {
               <DialogBody p={6}>
                 <VStack gap={4}>
                   <Box w="full">
-                    <Text mb={2} color="whiteAlpha.700" fontSize="sm">About Summary</Text>
+                    <Text mb={2} color="whiteAlpha.700" fontSize="sm">About Summary *</Text>
                     <Textarea
                       value={about}
                       onChange={(e) => setAbout(e.target.value)}

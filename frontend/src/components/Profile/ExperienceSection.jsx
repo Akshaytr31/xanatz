@@ -388,7 +388,10 @@ const ExperienceSection = ({ user, onUpdate }) => {
               borderColor="whiteAlpha.300"
               borderRadius="2xl"
               maxW="550px"
+              maxH="90vh"
               m="auto"
+              display="flex"
+              flexDirection="column"
               overflow="hidden"
             >
               <DialogHeader
@@ -401,7 +404,7 @@ const ExperienceSection = ({ user, onUpdate }) => {
                 {editingItem ? "Refine Experience" : "Add New Experience"}
               </DialogHeader>
               <DialogCloseTrigger color="whiteAlpha.600" top={6} right={6} />
-              <DialogBody p={8}>
+              <DialogBody p={8} overflowY="auto" flex="1">
                 <VStack gap={6}>
                   <Box w="full">
                     <Text

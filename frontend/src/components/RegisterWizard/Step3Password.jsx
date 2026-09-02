@@ -26,7 +26,7 @@ const Step3Password = ({ formData, handleChange, handlePasswordSubmit }) => {
             name="password"
             value={formData.password}
             onChange={handleChange}
-            placeholder="NEW PASSWORD"
+            placeholder="NEW PASSWORD *"
             required
             bg="whiteAlpha.100"
             border="1px solid"
@@ -77,7 +77,7 @@ const Step3Password = ({ formData, handleChange, handlePasswordSubmit }) => {
             name="confirm_password"
             value={formData.confirm_password}
             onChange={handleChange}
-            placeholder="CONFIRM PASSWORD"
+            placeholder="CONFIRM PASSWORD *"
             required
             bg="whiteAlpha.100"
             border="1px solid"

@@ -257,7 +257,7 @@ const RFPModal = ({ isOpen, onClose, companyId, rfp, onSaved }) => {
                   {/* Category & Sub-category */}
                   <Flex gap={4} direction={{ base: "column", sm: "row" }}>
                     <Box flex={1}>
-                      <Text {...labelStyle}>CATEGORY</Text>
+                      <Text {...labelStyle}>CATEGORY *</Text>
                       <SearchableSelect
                         value={form.category}
                         onChange={(val) => setForm(prev => ({ ...prev, category: val, sub_category: "" }))}
@@ -280,7 +280,7 @@ const RFPModal = ({ isOpen, onClose, companyId, rfp, onSaved }) => {
                   {/* Budget & Deadline */}
                   <Flex gap={4} direction={{ base: "column", sm: "row" }}>
                     <Box flex={1}>
-                      <Text {...labelStyle}>ESTIMATED BUDGET</Text>
+                      <Text {...labelStyle}>ESTIMATED BUDGET *</Text>
                       <Box position="relative">
                         <Input
                           {...fieldStyle}
@@ -295,7 +295,7 @@ const RFPModal = ({ isOpen, onClose, companyId, rfp, onSaved }) => {
                       </Box>
                     </Box>
                     <Box flex={1}>
-                      <Text {...labelStyle}>SUBMISSION DEADLINE</Text>
+                      <Text {...labelStyle}>SUBMISSION DEADLINE *</Text>
                       <Box position="relative">
                         <Input
                           {...fieldStyle}

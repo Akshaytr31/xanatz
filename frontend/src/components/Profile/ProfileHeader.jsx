@@ -278,7 +278,7 @@ const ProfileHeader = ({ user, onUpdate }) => {
                 <VStack gap={4}>
                   <HStack w="full" gap={4}>
                     <Box flex="1">
-                      <Text mb={2} color="whiteAlpha.700" fontSize="sm">First Name</Text>
+                      <Text mb={2} color="whiteAlpha.700" fontSize="sm">First Name *</Text>
                       <Input
                         name="first_name"
                         value={formData.first_name}
@@ -288,7 +288,7 @@ const ProfileHeader = ({ user, onUpdate }) => {
                       />
                     </Box>
                     <Box flex="1">
-                      <Text mb={2} color="whiteAlpha.700" fontSize="sm">Last Name</Text>
+                      <Text mb={2} color="whiteAlpha.700" fontSize="sm">Last Name *</Text>
                       <Input
                         name="last_name"
                         value={formData.last_name}
