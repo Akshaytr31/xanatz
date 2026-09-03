@@ -626,8 +626,26 @@ class JobOpeningViewSet(viewsets.ModelViewSet):
         job = self.get_object()
         job.is_flagged = True
         job.flag_status = 'unresolved'
-        job.flag_reason = request.data.get('reason', '')
+        reason = request.data.get('reason', '')
+        if reason:
+            if job.flag_reason:
+                job.flag_reason += f"\n- {request.user.email}: {reason}"
+            else:
+                job.flag_reason = f"- {request.user.email}: {reason}"
+        job.flagged_by.add(request.user)
         job.save()
+
+        # Notify admins about the new flag activity
+        sender_name = f"{request.user.first_name} {request.user.last_name}".strip() or request.user.email
+        admin_users = User.objects.filter(Q(is_staff=True) | Q(is_superuser=True))
+        for admin in admin_users:
+            Notification.objects.create(
+                recipient=admin,
+                sender=request.user,
+                message=f"🚩 New flag on '{job.title}' by {sender_name}: '{reason[:40]}'",
+                target_url="/admin/moderation"
+            )
+
         return Response({"message": "Job opening flagged successfully"}, status=status.HTTP_200_OK)
 
     def check_company_access(self, company):
@@ -791,8 +809,26 @@ class RFPViewSet(viewsets.ModelViewSet):
         rfp = self.get_object()
         rfp.is_flagged = True
         rfp.flag_status = 'unresolved'
-        rfp.flag_reason = request.data.get('reason', '')
+        reason = request.data.get('reason', '')
+        if reason:
+            if rfp.flag_reason:
+                rfp.flag_reason += f"\n- {request.user.email}: {reason}"
+            else:
+                rfp.flag_reason = f"- {request.user.email}: {reason}"
+        rfp.flagged_by.add(request.user)
         rfp.save()
+
+        # Notify admins about the new flag activity
+        sender_name = f"{request.user.first_name} {request.user.last_name}".strip() or request.user.email
+        admin_users = User.objects.filter(Q(is_staff=True) | Q(is_superuser=True))
+        for admin in admin_users:
+            Notification.objects.create(
+                recipient=admin,
+                sender=request.user,
+                message=f"🚩 New flag on RFP '{rfp.title}' by {sender_name}: '{reason[:40]}'",
+                target_url="/admin/moderation"
+            )
+
         return Response({"message": "RFP flagged successfully"}, status=status.HTTP_200_OK)
 
     def check_company_access(self, company):
@@ -965,7 +1001,19 @@ class MessageViewSet(viewsets.ModelViewSet):
         return Message.objects.filter(Q(sender=user) | Q(recipient=user))
 
     def perform_create(self, serializer):
-        serializer.save(sender=self.request.user)
+        msg = serializer.save(sender=self.request.user)
+        # Notify staff/admins if user sends a message/reply
+        if not self.request.user.is_staff and not self.request.user.is_superuser:
+            sender_name = f"{self.request.user.first_name} {self.request.user.last_name}".strip() or self.request.user.email
+            admin_users = User.objects.filter(Q(is_staff=True) | Q(is_superuser=True))
+            for admin in admin_users:
+                if admin.id != self.request.user.id:
+                    Notification.objects.create(
+                        recipient=admin,
+                        sender=self.request.user,
+                        message=f"Flag reply from {sender_name}: '{msg.content[:50]}'",
+                        target_url="/admin/moderation"
+                    )
 
     @action(detail=False, methods=['get'])
     def conversations(self, request):
@@ -1108,8 +1156,26 @@ class CompanyReviewViewSet(viewsets.ModelViewSet):
         review = self.get_object()
         review.is_flagged = True
         review.flag_status = 'unresolved'
-        review.flag_reason = request.data.get('reason', '')
+        reason = request.data.get('reason', '')
+        if reason:
+            if review.flag_reason:
+                review.flag_reason += f"\n- {request.user.email}: {reason}"
+            else:
+                review.flag_reason = f"- {request.user.email}: {reason}"
+        review.flagged_by.add(request.user)
         review.save()
+
+        # Notify admins about the new flag activity
+        sender_name = f"{request.user.first_name} {request.user.last_name}".strip() or request.user.email
+        admin_users = User.objects.filter(Q(is_staff=True) | Q(is_superuser=True))
+        for admin in admin_users:
+            Notification.objects.create(
+                recipient=admin,
+                sender=request.user,
+                message=f"🚩 New flag on Company Review by {sender_name}: '{reason[:40]}'",
+                target_url="/admin/moderation"
+            )
+
         return Response({"message": "Review flagged successfully"}, status=status.HTTP_200_OK)
 
 
@@ -1139,8 +1205,26 @@ class FreelancerReviewViewSet(viewsets.ModelViewSet):
         review = self.get_object()
         review.is_flagged = True
         review.flag_status = 'unresolved'
-        review.flag_reason = request.data.get('reason', '')
+        reason = request.data.get('reason', '')
+        if reason:
+            if review.flag_reason:
+                review.flag_reason += f"\n- {request.user.email}: {reason}"
+            else:
+                review.flag_reason = f"- {request.user.email}: {reason}"
+        review.flagged_by.add(request.user)
         review.save()
+
+        # Notify admins about the new flag activity
+        sender_name = f"{request.user.first_name} {request.user.last_name}".strip() or request.user.email
+        admin_users = User.objects.filter(Q(is_staff=True) | Q(is_superuser=True))
+        for admin in admin_users:
+            Notification.objects.create(
+                recipient=admin,
+                sender=request.user,
+                message=f"🚩 New flag on Freelancer Review by {sender_name}: '{reason[:40]}'",
+                target_url="/admin/moderation"
+            )
+
         return Response({"message": "Review flagged successfully"}, status=status.HTTP_200_OK)
 
 
@@ -1152,11 +1236,44 @@ class AdminFlaggedReviewsView(APIView):
         
         def get_filtered_queryset(model):
             if status_filter == 'unresolved':
-                return model.objects.filter(is_flagged=True).order_by('-created_at')
+                return model.objects.filter(Q(is_flagged=True) | Q(flagged_by__isnull=False)).distinct().order_by('-created_at')
             elif status_filter == 'resolved':
                 return model.objects.filter(is_flagged=False, flag_status='resolved').order_by('-created_at')
             else:  # 'all'
-                return model.objects.filter(Q(is_flagged=True) | Q(flag_status='resolved')).order_by('-created_at')
+                return model.objects.filter(Q(is_flagged=True) | Q(flagged_by__isnull=False) | Q(flag_status='resolved')).distinct().order_by('-created_at')
+
+        def build_flagged_users_list(item, admin_user):
+            users_data = []
+            reason_lines = (item.flag_reason or '').split('\n')
+            admin_ids = set(User.objects.filter(Q(is_staff=True) | Q(is_superuser=True)).values_list('id', flat=True))
+            if admin_user and admin_user.id:
+                admin_ids.add(admin_user.id)
+
+            for u in item.flagged_by.all():
+                name = f"{u.first_name} {u.last_name}".strip() or u.email
+                user_reason = ""
+                for line in reason_lines:
+                    if u.email in line:
+                        user_reason = line.split(':', 1)[1].strip() if ':' in line else line.strip()
+                        break
+                
+                # Check if admin sent message to u FIRST
+                admin_sent_msg = Message.objects.filter(sender_id__in=admin_ids, recipient=u).exists()
+                
+                # Check if u replied to admin AFTER admin reached out
+                user_reply_messages = Message.objects.filter(sender=u, recipient_id__in=admin_ids)
+                has_reply = admin_sent_msg and user_reply_messages.exists()
+                unread_reply_count = user_reply_messages.filter(is_read=False).count() if admin_sent_msg else 0
+
+                users_data.append({
+                    'user_id': u.id,
+                    'email': u.email,
+                    'name': name,
+                    'reason': user_reason or item.flag_reason or 'Flagged by user',
+                    'has_reply': has_reply,
+                    'unread_reply_count': unread_reply_count,
+                })
+            return users_data
 
         company_reviews = get_filtered_queryset(CompanyReview)
         freelancer_reviews = get_filtered_queryset(FreelancerReview)
@@ -1168,6 +1285,9 @@ class AdminFlaggedReviewsView(APIView):
             reviewer_email = r.reviewer.email if r.reviewer else ""
             reviewer_name = (f"{r.reviewer.first_name} {r.reviewer.last_name}".strip() or r.reviewer.email) if r.reviewer else "Anonymous"
             subject_name = r.company.name if r.company else (r.company_name or "")
+            flagged_users = build_flagged_users_list(r, request.user)
+            has_reply = any(fu['has_reply'] for fu in flagged_users)
+            unread_replies_count = sum(fu['unread_reply_count'] for fu in flagged_users)
             results.append({
                 'id': r.id,
                 'custom_id': r.review_id,
@@ -1179,14 +1299,21 @@ class AdminFlaggedReviewsView(APIView):
                 'review_text': r.review_text,
                 'created_at': r.created_at,
                 'flag_reason': r.flag_reason or '',
-                'is_flagged': r.is_flagged,
-                'flag_status': 'resolved' if (r.flag_status == 'resolved' and not r.is_flagged) else 'unresolved'
+                'is_flagged': r.is_flagged or r.flagged_by.exists(),
+                'flags_count': r.flagged_by.count() or (1 if r.is_flagged else 0),
+                'flagged_users': flagged_users,
+                'has_reply': has_reply,
+                'unread_replies_count': unread_replies_count,
+                'flag_status': 'resolved' if (r.flag_status == 'resolved' and not r.is_flagged and not r.flagged_by.exists()) else 'unresolved'
             })
 
         for r in freelancer_reviews:
             reviewer_email = r.reviewer.email if r.reviewer else ""
             reviewer_name = (f"{r.reviewer.first_name} {r.reviewer.last_name}".strip() or r.reviewer.email) if r.reviewer else "Anonymous"
             subject_name = (f"{r.freelancer.first_name} {r.freelancer.last_name}".strip() or r.freelancer.email) if r.freelancer else "Unknown Freelancer"
+            flagged_users = build_flagged_users_list(r, request.user)
+            has_reply = any(fu['has_reply'] for fu in flagged_users)
+            unread_replies_count = sum(fu['unread_reply_count'] for fu in flagged_users)
             results.append({
                 'id': r.id,
                 'custom_id': r.review_id,
@@ -1198,13 +1325,20 @@ class AdminFlaggedReviewsView(APIView):
                 'review_text': r.review_text,
                 'created_at': r.created_at,
                 'flag_reason': r.flag_reason or '',
-                'is_flagged': r.is_flagged,
-                'flag_status': 'resolved' if (r.flag_status == 'resolved' and not r.is_flagged) else 'unresolved'
+                'is_flagged': r.is_flagged or r.flagged_by.exists(),
+                'flags_count': r.flagged_by.count() or (1 if r.is_flagged else 0),
+                'flagged_users': flagged_users,
+                'has_reply': has_reply,
+                'unread_replies_count': unread_replies_count,
+                'flag_status': 'resolved' if (r.flag_status == 'resolved' and not r.is_flagged and not r.flagged_by.exists()) else 'unresolved'
             })
 
         for j in flagged_jobs:
             reviewer_email = j.company.creator.email if (j.company and j.company.creator) else ""
             subject_name = f"{j.title} at {j.company.name}" if j.company else j.title
+            flagged_users = build_flagged_users_list(j, request.user)
+            has_reply = any(fu['has_reply'] for fu in flagged_users)
+            unread_replies_count = sum(fu['unread_reply_count'] for fu in flagged_users)
             results.append({
                 'id': j.id,
                 'custom_id': j.job_id,
@@ -1216,13 +1350,20 @@ class AdminFlaggedReviewsView(APIView):
                 'review_text': j.description,
                 'created_at': j.created_at,
                 'flag_reason': j.flag_reason or '',
-                'is_flagged': j.is_flagged,
-                'flag_status': 'resolved' if (j.flag_status == 'resolved' and not j.is_flagged) else 'unresolved'
+                'is_flagged': j.is_flagged or j.flagged_by.exists(),
+                'flags_count': j.flagged_by.count() or (1 if j.is_flagged else 0),
+                'flagged_users': flagged_users,
+                'has_reply': has_reply,
+                'unread_replies_count': unread_replies_count,
+                'flag_status': 'resolved' if (j.flag_status == 'resolved' and not j.is_flagged and not j.flagged_by.exists()) else 'unresolved'
             })
 
         for rfp in flagged_rfps:
             reviewer_email = rfp.company.creator.email if (rfp.company and rfp.company.creator) else ""
             subject_name = f"{rfp.title} by {rfp.company.name}" if rfp.company else rfp.title
+            flagged_users = build_flagged_users_list(rfp, request.user)
+            has_reply = any(fu['has_reply'] for fu in flagged_users)
+            unread_replies_count = sum(fu['unread_reply_count'] for fu in flagged_users)
             results.append({
                 'id': rfp.id,
                 'custom_id': rfp.rfp_id,
@@ -1234,8 +1375,12 @@ class AdminFlaggedReviewsView(APIView):
                 'review_text': rfp.description,
                 'created_at': rfp.created_at,
                 'flag_reason': rfp.flag_reason or '',
-                'is_flagged': rfp.is_flagged,
-                'flag_status': 'resolved' if (rfp.flag_status == 'resolved' and not rfp.is_flagged) else 'unresolved'
+                'is_flagged': rfp.is_flagged or rfp.flagged_by.exists(),
+                'flags_count': rfp.flagged_by.count() or (1 if rfp.is_flagged else 0),
+                'flagged_users': flagged_users,
+                'has_reply': has_reply,
+                'unread_replies_count': unread_replies_count,
+                'flag_status': 'resolved' if (rfp.flag_status == 'resolved' and not rfp.is_flagged and not rfp.flagged_by.exists()) else 'unresolved'
             })
 
         results.sort(key=lambda x: x['created_at'], reverse=True)
@@ -1268,6 +1413,7 @@ class AdminFlaggedReviewsView(APIView):
         if action == 'dismiss':
             review.is_flagged = False
             review.flag_status = 'resolved'
+            review.flagged_by.clear()
             review.save()
             return Response({"message": "Flag dismissed successfully"}, status=status.HTTP_200_OK)
 
@@ -1397,10 +1543,10 @@ class AdminStatsView(APIView):
         active_jobs = JobOpening.objects.filter(is_active=True).count()
         total_rfps = RFP.objects.count()
         flagged_count = (
-            CompanyReview.objects.filter(is_flagged=True).count() +
-            FreelancerReview.objects.filter(is_flagged=True).count() +
-            JobOpening.objects.filter(is_flagged=True).count() +
-            RFP.objects.filter(is_flagged=True).count()
+            CompanyReview.objects.filter(Q(is_flagged=True) | Q(flagged_by__isnull=False)).distinct().count() +
+            FreelancerReview.objects.filter(Q(is_flagged=True) | Q(flagged_by__isnull=False)).distinct().count() +
+            JobOpening.objects.filter(Q(is_flagged=True) | Q(flagged_by__isnull=False)).distinct().count() +
+            RFP.objects.filter(Q(is_flagged=True) | Q(flagged_by__isnull=False)).distinct().count()
         )
         return Response({
             "total_users": total_users,
@@ -1555,7 +1701,7 @@ class AdminJobsListView(APIView):
                 'salary_range': j.salary_range,
                 'is_active': j.is_active,
                 'is_frozen': getattr(j, 'is_frozen', False),
-                'is_flagged': j.is_flagged,
+                'is_flagged': j.is_flagged or j.flagged_by.exists(),
                 'applications_count': j.applications.count(),
                 'created_at': j.created_at,
             })
@@ -1589,7 +1735,7 @@ class AdminRFPsListView(APIView):
                 'budget': r.budget,
                 'deadline': r.deadline,
                 'is_active': r.is_active,
-                'is_flagged': r.is_flagged,
+                'is_flagged': r.is_flagged or r.flagged_by.exists(),
                 'interests_count': r.interests.count(),
                 'created_at': r.created_at,
             })

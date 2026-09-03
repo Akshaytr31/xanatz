@@ -432,7 +432,7 @@ class JobAndRFPModerationTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.job.refresh_from_db()
         self.assertTrue(self.job.is_flagged)
-        self.assertEqual(self.job.flag_reason, 'Spam job offer')
+        self.assertIn('Spam job offer', self.job.flag_reason)
 
     def test_flag_rfp_via_api(self):
         self.client.force_authenticate(user=self.regular_user)
@@ -440,7 +440,27 @@ class JobAndRFPModerationTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.rfp.refresh_from_db()
         self.assertTrue(self.rfp.is_flagged)
-        self.assertEqual(self.rfp.flag_reason, 'Scam RFP')
+        self.assertIn('Scam RFP', self.rfp.flag_reason)
+
+    def test_per_user_flag_visibility(self):
+        # User A flags the job
+        self.client.force_authenticate(user=self.regular_user)
+        self.client.post(f'/api/jobs/{self.job.id}/flag/', {'reason': 'Spam'})
+        
+        # User A sees is_flagged=True
+        res_a = self.client.get(f'/api/jobs/{self.job.id}/')
+        self.assertTrue(res_a.data['is_flagged'])
+
+        # User B views the same job and sees is_flagged=False
+        other_user = User.objects.create_user(email='otheruser@example.com', password='Password123!')
+        self.client.force_authenticate(user=other_user)
+        res_b = self.client.get(f'/api/jobs/{self.job.id}/')
+        self.assertFalse(res_b.data['is_flagged'])
+
+        # User B flags it too
+        self.client.post(f'/api/jobs/{self.job.id}/flag/', {'reason': 'Misleading info'})
+        res_b2 = self.client.get(f'/api/jobs/{self.job.id}/')
+        self.assertTrue(res_b2.data['is_flagged'])
 
     def test_public_views_include_flagged_items_until_admin_removes_them(self):
         self.client.force_authenticate(user=self.regular_user)

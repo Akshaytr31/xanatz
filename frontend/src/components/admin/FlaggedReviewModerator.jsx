@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Check, Edit2, Trash2, Star, AlertCircle, ShieldAlert, Filter, Loader, CheckCircle, RotateCcw, Clock } from "lucide-react";
+import { Check, Edit2, Trash2, Star, AlertCircle, ShieldAlert, Filter, Loader, CheckCircle, RotateCcw, Clock, Flag, MessageSquare, Send, Bell } from "lucide-react";
 import api from "../../api";
 import { formatDate } from "../../utils/dateUtils";
 
@@ -50,16 +50,298 @@ const StarRating = ({ rating, editable, onChange }) => (
   </div>
 );
 
+/* ─── Admin Chat Modal (User-Section Style) ─────────────────────── */
+const AdminChatModal = ({ target, onClose }) => {
+  const [messages, setMessages] = useState([]);
+  const [inputText, setInputText] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const messagesEndRef = React.useRef(null);
+
+  const getInitials = (name) => {
+    if (!name) return "U";
+    return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+  };
+
+  useEffect(() => {
+    const fetchMe = async () => {
+      try {
+        const res = await api.get("me/");
+        setCurrentUser(res.data);
+      } catch (err) {
+        console.error("Failed to fetch user me", err);
+      }
+    };
+    fetchMe();
+  }, []);
+
+  const fetchHistory = async () => {
+    if (!target?.user_id) return;
+    try {
+      const res = await api.get(`messages/chat/?user_id=${target.user_id}`);
+      setMessages(res.data || []);
+      await api.post("messages/mark-read/", { sender_id: target.user_id });
+    } catch (err) {
+      console.error("Failed to fetch chat history:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchHistory();
+    const interval = setInterval(fetchHistory, 3000);
+    return () => clearInterval(interval);
+  }, [target]);
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
+  const handleSend = async (e) => {
+    e.preventDefault();
+    if (!inputText.trim() || !target?.user_id) return;
+    setSending(true);
+    try {
+      await api.post("messages/", {
+        recipient: target.user_id,
+        content: inputText.trim()
+      });
+      setInputText("");
+      fetchHistory();
+    } catch (err) {
+      console.error("Failed to send message:", err);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const partnerName = target.user_name || target.name || "User";
+  const partnerEmail = target.user_email || target.email || "";
+
+  return (
+    <div style={{
+      position: "fixed",
+      bottom: "24px",
+      right: "24px",
+      width: "420px",
+      height: "560px",
+      maxWidth: "calc(100vw - 32px)",
+      maxHeight: "calc(100vh - 48px)",
+      zIndex: 99999,
+      background: "rgba(15, 23, 42, 0.96)",
+      backdropFilter: "blur(24px)",
+      borderRadius: "1.25rem",
+      border: "1px solid var(--color-card-border, rgba(255, 255, 255, 0.12))",
+      display: "flex",
+      flexDirection: "column",
+      overflow: "hidden",
+      boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.05)",
+      fontFamily: "'Inter', sans-serif"
+    }}>
+        {/* Chat window Header */}
+        <div style={{
+          padding: "1rem 1.5rem",
+          borderBottom: "1px solid var(--color-card-border, rgba(255, 255, 255, 0.08))",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          background: "rgba(10, 15, 30, 0.4)",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div
+              style={{
+                width: "40px",
+                height: "40px",
+                borderRadius: "50%",
+                background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "white",
+                fontSize: "0.85rem",
+                fontWeight: "bold",
+                flexShrink: 0,
+              }}
+            >
+              {getInitials(partnerName)}
+            </div>
+            <div>
+              <h3 style={{ fontSize: "0.95rem", fontWeight: 700, margin: 0, color: "white" }}>{partnerName}</h3>
+              <span style={{ fontSize: "0.7rem", color: "#64748b" }}>{partnerEmail}</span>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              background: "rgba(255, 255, 255, 0.06)", border: "none", color: "white",
+              width: 32, height: 32, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 14, fontWeight: 700
+            }}
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Reason Context Banner */}
+        {target.reason && (
+          <div style={{
+            padding: "10px 1.5rem", background: "rgba(239, 68, 68, 0.08)",
+            borderBottom: "1px solid rgba(239, 68, 68, 0.15)",
+            fontSize: "0.8rem", color: "#fca5a5", lineHeight: 1.4
+          }}>
+            <strong>Flagged Reason:</strong> {target.reason}
+          </div>
+        )}
+
+        {/* Message Log */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "12px", background: "rgba(15, 23, 42, 0.15)" }}>
+          {loading ? (
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
+              <Loader size={24} style={{ color: "#3b82f6", animation: "spin 1s linear infinite" }} />
+            </div>
+          ) : messages.length === 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%", color: "#64748b" }}>
+              <MessageSquare size={40} style={{ opacity: 0.3, marginBottom: "8px" }} />
+              <p style={{ fontSize: "0.8rem", marginBottom: "12px" }}>Say hello to {partnerName}!</p>
+              <button
+                type="button"
+                onClick={() => setInputText(`Hi ${partnerName}, regarding your flag on '${target.item_title || "this content"}': Could you please clarify why you flagged it?`)}
+                style={{
+                  padding: "8px 14px", background: "rgba(59,130,246,0.15)",
+                  border: "1px solid rgba(59,130,246,0.3)", color: "#60a5fa",
+                  borderRadius: "0.75rem", fontSize: "0.75rem", fontWeight: 700, cursor: "pointer"
+                }}
+              >
+                Auto-fill Clarification Question
+              </button>
+            </div>
+          ) : (
+            messages.map((msg, index) => {
+              const senderId = typeof msg.sender === "object" ? msg.sender?.id : msg.sender;
+              const isMe = currentUser && (Number(senderId) === Number(currentUser.id) || String(senderId) === String(currentUser.id));
+              const timeStr = msg.created_at
+                ? new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                : "";
+              return (
+                <div
+                  key={msg.id || index}
+                  style={{
+                    display: "flex",
+                    justifyContent: isMe ? "flex-end" : "flex-start",
+                    width: "100%",
+                  }}
+                >
+                  <div
+                    style={{
+                      maxWidth: "70%",
+                      background: isMe
+                        ? "linear-gradient(135deg, #2563eb, #1d4ed8)"
+                        : "rgba(255, 255, 255, 0.05)",
+                      border: isMe
+                        ? "none"
+                        : "1px solid var(--color-card-border, rgba(255, 255, 255, 0.08))",
+                      borderRadius: isMe ? "1.25rem 1.25rem 0.25rem 1.25rem" : "1.25rem 1.25rem 1.25rem 0.25rem",
+                      padding: "10px 14px",
+                      color: isMe ? "white" : "var(--color-text-primary, #f8fafc)",
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                      textAlign: "left",
+                    }}
+                  >
+                    <p style={{ margin: 0, fontSize: "0.85rem", lineHeight: "1.4", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                      {msg.content}
+                    </p>
+                    {timeStr && (
+                      <span
+                        style={{
+                          display: "block",
+                          fontSize: "0.6rem",
+                          color: isMe ? "rgba(255,255,255,0.6)" : "#64748b",
+                          textAlign: "right",
+                          marginTop: "4px",
+                        }}
+                      >
+                        {timeStr}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Bottom Input Area */}
+        <form
+          onSubmit={handleSend}
+          style={{
+            padding: "1.25rem 1.5rem",
+            borderTop: "1px solid var(--color-card-border, rgba(255, 255, 255, 0.08))",
+            display: "flex",
+            gap: "12px",
+            background: "rgba(10, 15, 30, 0.4)",
+          }}
+        >
+          <input
+            type="text"
+            placeholder="Type your message here..."
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            style={{
+              flex: 1,
+              padding: "12px 16px",
+              borderRadius: "0.75rem",
+              border: "1px solid var(--color-card-border, rgba(255, 255, 255, 0.08))",
+              background: "rgba(15, 23, 42, 0.6)",
+              color: "white",
+              fontSize: "0.85rem",
+              outline: "none",
+              transition: "border 0.2s",
+            }}
+            onFocus={(e) => e.target.style.borderColor = "var(--color-accent, #3b82f6)"}
+            onBlur={(e) => e.target.style.borderColor = "var(--color-card-border, rgba(255, 255, 255, 0.08))"}
+          />
+          <button
+            type="submit"
+            disabled={sending || !inputText.trim()}
+            style={{
+              background: inputText.trim() ? "var(--color-accent, #2563eb)" : "rgba(255,255,255,0.03)",
+              border: "none",
+              borderRadius: "0.75rem",
+              padding: "0 20px",
+              color: inputText.trim() ? "white" : "rgba(255,255,255,0.2)",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              fontSize: "0.85rem",
+              fontWeight: 600,
+              cursor: sending || !inputText.trim() ? "not-allowed" : "pointer",
+              transition: "all 0.2s",
+            }}
+          >
+            <span>{sending ? "..." : "Send"}</span>
+            <Send size={18} />
+          </button>
+        </form>
+      </div>
+  );
+};
+
 /* ─── Review Card ────────────────────────────────────────────── */
-const ReviewCard = ({ review, onDismiss, onReopen, onEdit, onDelete }) => {
+const ReviewCard = ({ review, onDismiss, onReopen, onEdit, onDelete, onOpenChat }) => {
   const typeInfo = TYPE_COLORS[review.review_type] || TYPE_COLORS.company;
   const isResolved = review.flag_status === "resolved" || review.is_flagged === false;
 
   return (
     <div
+      id={`flag-card-${review.review_type}-${review.id}`}
       style={{
         ...card, padding: "18px 20px",
-        transition: "all 0.25s",
+        transition: "all 0.3s ease",
       }}
       onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)"; }}
@@ -78,6 +360,47 @@ const ReviewCard = ({ review, onDismiss, onReopen, onEdit, onDelete }) => {
           }}>
             {isResolved ? <CheckCircle size={11} /> : <AlertCircle size={11} />}
             {isResolved ? "RESOLVED" : "UNRESOLVED"}
+          </span>
+
+          {/* Reply Status Badge */}
+          {review.unread_replies_count > 0 ? (
+            <span style={{
+              fontSize: 10, fontWeight: 800, padding: "3px 9px", borderRadius: 99,
+              display: "inline-flex", alignItems: "center", gap: 4,
+              background: "rgba(239, 68, 68, 0.2)",
+              color: "#fca5a5",
+              border: "1px solid rgba(239, 68, 68, 0.4)",
+              boxShadow: "0 0 10px rgba(239, 68, 68, 0.3)",
+              letterSpacing: "0.5px"
+            }}>
+              <MessageSquare size={11} fill="#ef4444" />
+              {review.unread_replies_count} NEW REPLY
+            </span>
+          ) : review.has_reply ? (
+            <span style={{
+              fontSize: 10, fontWeight: 800, padding: "3px 9px", borderRadius: 99,
+              display: "inline-flex", alignItems: "center", gap: 4,
+              background: "rgba(59, 130, 246, 0.15)",
+              color: "#60a5fa",
+              border: "1px solid rgba(59, 130, 246, 0.3)",
+              letterSpacing: "0.5px"
+            }}>
+              <MessageSquare size={11} />
+              REPLIED
+            </span>
+          ) : null}
+
+          {/* Total Flags Badge */}
+          <span style={{
+            fontSize: 10, fontWeight: 800, padding: "3px 9px", borderRadius: 99,
+            display: "inline-flex", alignItems: "center", gap: 4,
+            background: "rgba(239,68,68,0.15)",
+            color: "#f87171",
+            border: "1px solid rgba(239,68,68,0.3)",
+            letterSpacing: "0.5px",
+          }}>
+            <Flag size={11} fill="#f87171" />
+            {review.flags_count || 1} {(review.flags_count || 1) === 1 ? "FLAG" : "FLAGS"}
           </span>
 
           {/* Type Badge */}
@@ -146,12 +469,100 @@ const ReviewCard = ({ review, onDismiss, onReopen, onEdit, onDelete }) => {
           background: isResolved ? "rgba(16,185,129,0.04)" : "rgba(239,68,68,0.06)",
           border: isResolved ? "1px solid rgba(16,185,129,0.12)" : "1px solid rgba(239,68,68,0.15)",
         }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: isResolved ? "#6ee7b7" : "#fca5a5", letterSpacing: "1.5px", marginBottom: 4 }}>
-            FLAG REASON {isResolved && "(RESOLVED)"}
+          <div style={{ fontSize: 9, fontWeight: 700, color: isResolved ? "#6ee7b7" : "#fca5a5", letterSpacing: "1.5px", marginBottom: 6 }}>
+            FLAG REASONS {isResolved && "(RESOLVED)"}
           </div>
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", margin: 0, lineHeight: 1.5 }}>
-            {review.flag_reason}
-          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            {review.flagged_users && review.flagged_users.length > 0 ? (
+              review.flagged_users.map((fu, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    fontSize: 12,
+                    color: "rgba(255,255,255,0.85)",
+                    lineHeight: 1.5,
+                    padding: "8px 12px",
+                    borderRadius: 8,
+                    background: "rgba(0,0,0,0.25)",
+                    borderLeft: "3px solid #EF4444",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 10,
+                    flexWrap: "wrap"
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#f87171", marginBottom: 2, display: "flex", alignItems: "center", gap: 6 }}>
+                      <span>👤 {fu.name} <span style={{ opacity: 0.65, fontWeight: 400 }}>({fu.email})</span></span>
+                      {fu.unread_reply_count > 0 ? (
+                        <span style={{
+                          fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 99,
+                          background: "rgba(239, 68, 68, 0.25)", color: "#fca5a5", border: "1px solid rgba(239,68,68,0.4)"
+                        }}>
+                          🔴 New Reply
+                        </span>
+                      ) : fu.has_reply ? (
+                        <span style={{
+                          fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 99,
+                          background: "rgba(59, 130, 246, 0.18)", color: "#93c5fd", border: "1px solid rgba(59,130,246,0.3)"
+                        }}>
+                          💬 Replied
+                        </span>
+                      ) : null}
+                    </div>
+                    <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", color: "rgba(255,255,255,0.85)" }}>
+                      {fu.reason}
+                    </div>
+                  </div>
+                  {fu.user_id && (
+                    <button
+                      type="button"
+                      onClick={() => onOpenChat && onOpenChat(fu, review)}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 5,
+                        padding: "5px 11px",
+                        borderRadius: 6,
+                        background: fu.unread_reply_count > 0 ? "rgba(239, 68, 68, 0.25)" : "rgba(59, 130, 246, 0.18)",
+                        border: fu.unread_reply_count > 0 ? "1px solid rgba(239, 68, 68, 0.5)" : "1px solid rgba(59, 130, 246, 0.35)",
+                        color: fu.unread_reply_count > 0 ? "#fca5a5" : "#60a5fa",
+                        fontSize: 11,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                        boxShadow: fu.unread_reply_count > 0 ? "0 0 10px rgba(239, 68, 68, 0.4)" : "none"
+                      }}
+                      title={`Chat with ${fu.name} about this flag`}
+                    >
+                      <MessageSquare size={12} />
+                      <span>{fu.unread_reply_count > 0 ? `Chat (${fu.unread_reply_count} new)` : "Chat User"}</span>
+                    </button>
+                  )}
+                </div>
+              ))
+            ) : (
+              review.flag_reason.split("\n").filter(Boolean).map((reasonLine, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    fontSize: 12,
+                    color: "rgba(255,255,255,0.75)",
+                    lineHeight: 1.5,
+                    padding: "6px 10px",
+                    borderRadius: 6,
+                    background: "rgba(0,0,0,0.15)",
+                    borderLeft: "2px solid rgba(239,68,68,0.4)",
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-word"
+                  }}
+                >
+                  {reasonLine}
+                </div>
+              ))
+            )}
+          </div>
         </div>
       )}
 
@@ -286,15 +697,98 @@ const EditModal = ({ review, onClose, onSave, saving }) => {
 /* ─── FlaggedReviewModerator ─────────────────────────────────── */
 const FlaggedReviewModerator = () => {
   const [flaggedReviews, setFlaggedReviews] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [editingReview, setEditingReview] = useState(null);
+  const [chatTarget, setChatTarget] = useState(null);
   const [savingEdit, setSavingEdit] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("unresolved");
   const [selectedFilter, setSelectedFilter] = useState("all");
 
-  useEffect(() => { fetchFlaggedReviews(); }, []);
+  useEffect(() => {
+    fetchFlaggedReviews();
+    fetchNotifications();
+    const notifInterval = setInterval(fetchNotifications, 5000);
+    return () => clearInterval(notifInterval);
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await api.get("notifications/");
+      const allNotifs = res.data || [];
+      const flagOnlyNotifs = allNotifs.filter(n => {
+        const msg = (n.message || "").toLowerCase();
+        const url = (n.target_url || "").toLowerCase();
+        return (
+          url.includes("moderation") ||
+          url.includes("flag") ||
+          msg.includes("flag") ||
+          msg.includes("🚩") ||
+          msg.includes("inquiry")
+        );
+      });
+      setNotifications(flagOnlyNotifs);
+    } catch (err) {
+      console.error("Failed to fetch notifications", err);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await api.post("notifications/mark-all-read/");
+      fetchNotifications();
+    } catch (err) {
+      console.error("Failed to mark notifications read", err);
+    }
+  };
+
+  const handleNotificationClick = async (n) => {
+    try {
+      if (!n.is_read) {
+        await api.post(`notifications/${n.id}/mark-read/`);
+        fetchNotifications();
+      }
+    } catch (err) {
+      console.error("Failed to mark notification read", err);
+    }
+
+    if (n.sender) {
+      const matchedReview = flaggedReviews.find(r =>
+        r.flagged_users && r.flagged_users.some(fu => fu.user_id === n.sender)
+      );
+
+      if (matchedReview) {
+        setSelectedStatus("all");
+        setSelectedFilter("all");
+        
+        const matchedFu = matchedReview.flagged_users.find(fu => fu.user_id === n.sender);
+        if (matchedFu) {
+          setChatTarget({
+            user_id: matchedFu.user_id,
+            user_name: matchedFu.name,
+            user_email: matchedFu.email,
+            reason: matchedFu.reason,
+            item_title: matchedReview.subject_name
+          });
+        }
+
+        setTimeout(() => {
+          const el = document.getElementById(`flag-card-${matchedReview.review_type}-${matchedReview.id}`);
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+            el.style.border = "1px solid rgba(59, 130, 246, 0.6)";
+            el.style.boxShadow = "0 0 25px rgba(59, 130, 246, 0.4)";
+            setTimeout(() => {
+              el.style.border = "1px solid rgba(255,255,255,0.07)";
+              el.style.boxShadow = "none";
+            }, 3000);
+          }
+        }, 100);
+      }
+    }
+  };
 
   const fetchFlaggedReviews = async () => {
     try {
@@ -390,6 +884,77 @@ const FlaggedReviewModerator = () => {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* Admin Flag Reply Notifications Banner */}
+      {notifications.length > 0 && (
+        <div style={{
+          background: "linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.8))",
+          border: "1px solid rgba(59, 130, 246, 0.25)",
+          borderRadius: 14, padding: "14px 18px",
+          backdropFilter: "blur(20px)",
+          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{
+                position: "relative", background: "rgba(59, 130, 246, 0.15)",
+                padding: "6px 8px", borderRadius: 8, color: "#60a5fa", display: "flex", alignItems: "center", gap: 6
+              }}>
+                <Bell size={15} />
+                {notifications.some(n => !n.is_read) && (
+                  <span style={{
+                    width: 8, height: 8, borderRadius: "50%", background: "#ef4444",
+                    boxShadow: "0 0 8px #ef4444"
+                  }} />
+                )}
+              </div>
+              <span style={{ color: "white", fontSize: 13, fontWeight: 700 }}>
+                Flag Reply Notifications ({notifications.filter(n => !n.is_read).length} unread)
+              </span>
+            </div>
+            {notifications.some(n => !n.is_read) && (
+              <button
+                type="button"
+                onClick={handleMarkAllRead}
+                style={{
+                  background: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255, 255, 255, 0.1)",
+                  borderRadius: 6, padding: "4px 10px", color: "rgba(255, 255, 255, 0.6)",
+                  fontSize: 11, fontWeight: 600, cursor: "pointer"
+                }}
+              >
+                Mark all read
+              </button>
+            )}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 150, overflowY: "auto" }}>
+            {notifications.slice(0, 8).map((n) => (
+              <div
+                key={n.id}
+                onClick={() => handleNotificationClick(n)}
+                style={{
+                  display: "flex", justifyContent: "space-between", alignItems: "center",
+                  padding: "9px 14px", borderRadius: 8, cursor: "pointer",
+                  background: n.is_read ? "rgba(255, 255, 255, 0.02)" : "rgba(59, 130, 246, 0.14)",
+                  border: n.is_read ? "1px solid transparent" : "1px solid rgba(59, 130, 246, 0.3)",
+                  fontSize: 12, color: n.is_read ? "rgba(255,255,255,0.6)" : "white",
+                  transition: "all 0.2s"
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = "rgba(59, 130, 246, 0.2)"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = n.is_read ? "rgba(255, 255, 255, 0.02)" : "rgba(59, 130, 246, 0.14)"; }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
+                  <MessageSquare size={13} color={n.is_read ? "#94a3b8" : "#60a5fa"} />
+                  <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: n.is_read ? 400 : 600 }}>
+                    {n.message}
+                  </span>
+                </div>
+                <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", flexShrink: 0, marginLeft: 10 }}>
+                  {formatDate(n.created_at)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       {/* Primary Status Filters (Unresolved vs Resolved vs All) */}
       <div style={{
         display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center",
@@ -513,6 +1078,13 @@ const FlaggedReviewModerator = () => {
               onReopen={handleReopenFlag}
               onEdit={setEditingReview}
               onDelete={handleDeleteReview}
+              onOpenChat={(fu, rev) => setChatTarget({
+                user_id: fu.user_id,
+                user_name: fu.name,
+                user_email: fu.email,
+                reason: fu.reason,
+                item_title: rev.subject_name
+              })}
             />
           ))}
         </div>
@@ -525,6 +1097,14 @@ const FlaggedReviewModerator = () => {
           onClose={() => setEditingReview(null)}
           onSave={handleSaveEdit}
           saving={savingEdit}
+        />
+      )}
+
+      {/* Admin Chat Modal */}
+      {chatTarget && (
+        <AdminChatModal
+          target={chatTarget}
+          onClose={() => setChatTarget(null)}
         />
       )}
     </div>

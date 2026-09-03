@@ -312,6 +312,7 @@ class JobOpening(models.Model):
     is_flagged = models.BooleanField(default=False)
     flag_reason = models.TextField(blank=True, null=True)
     flag_status = models.CharField(max_length=20, choices=FLAG_STATUS_CHOICES, default='none', blank=True, null=True)
+    flagged_by = models.ManyToManyField(User, blank=True, related_name='flagged_job_openings')
     job_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
     version = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -384,6 +385,7 @@ class RFP(models.Model):
     is_flagged = models.BooleanField(default=False)
     flag_reason = models.TextField(blank=True, null=True)
     flag_status = models.CharField(max_length=20, choices=FLAG_STATUS_CHOICES, default='none', blank=True, null=True)
+    flagged_by = models.ManyToManyField(User, blank=True, related_name='flagged_rfps')
     rfp_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
     version = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -538,6 +540,7 @@ class CompanyReview(models.Model):
     is_flagged = models.BooleanField(default=False)
     flag_reason = models.TextField(blank=True, null=True)
     flag_status = models.CharField(max_length=20, choices=FLAG_STATUS_CHOICES, default='none', blank=True, null=True)
+    flagged_by = models.ManyToManyField(User, blank=True, related_name='flagged_company_reviews')
     review_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -565,6 +568,7 @@ class FreelancerReview(models.Model):
     is_flagged = models.BooleanField(default=False)
     flag_reason = models.TextField(blank=True, null=True)
     flag_status = models.CharField(max_length=20, choices=FLAG_STATUS_CHOICES, default='none', blank=True, null=True)
+    flagged_by = models.ManyToManyField(User, blank=True, related_name='flagged_freelancer_reviews')
     review_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

@@ -185,6 +185,7 @@ class UserSearchSerializer(serializers.ModelSerializer):
 class FreelancerReviewSerializer(serializers.ModelSerializer):
     reviewer_name = serializers.SerializerMethodField()
     reviewer_profile_picture = serializers.SerializerMethodField()
+    is_flagged = serializers.SerializerMethodField()
 
     class Meta:
         model = FreelancerReview
@@ -204,6 +205,14 @@ class FreelancerReviewSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.reviewer.profile.profile_picture.url)
             return obj.reviewer.profile.profile_picture.url
         return None
+
+    def get_is_flagged(self, obj):
+        request = self.context.get('request')
+        if request and request.user and request.user.is_authenticated:
+            if request.user.is_staff or request.user.is_superuser:
+                return obj.is_flagged
+            return obj.flagged_by.filter(id=request.user.id).exists()
+        return False
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -254,6 +263,7 @@ class CompanyReviewSerializer(serializers.ModelSerializer):
     reviewer_name = serializers.SerializerMethodField()
     reviewer_profile_picture = serializers.SerializerMethodField()
     company_details = serializers.SerializerMethodField()
+    is_flagged = serializers.SerializerMethodField()
 
     class Meta:
         model = CompanyReview
@@ -293,6 +303,14 @@ class CompanyReviewSerializer(serializers.ModelSerializer):
                 'location': obj.company.location
             }
         return None
+
+    def get_is_flagged(self, obj):
+        request = self.context.get('request')
+        if request and request.user and request.user.is_authenticated:
+            if request.user.is_staff or request.user.is_superuser:
+                return obj.is_flagged
+            return obj.flagged_by.filter(id=request.user.id).exists()
+        return False
 
 
 class CompanyFAQSerializer(serializers.ModelSerializer):
@@ -468,6 +486,7 @@ class JobOpeningSerializer(serializers.ModelSerializer):
     company_logo_url = serializers.SerializerMethodField()
     industry = serializers.ReadOnlyField(source='company.industry')
     is_expired = serializers.SerializerMethodField()
+    is_flagged = serializers.SerializerMethodField()
 
     class Meta:
         model = JobOpening
@@ -488,6 +507,14 @@ class JobOpeningSerializer(serializers.ModelSerializer):
     def get_is_expired(self, obj):
         return obj.is_expired
 
+    def get_is_flagged(self, obj):
+        request = self.context.get('request')
+        if request and request.user and request.user.is_authenticated:
+            if request.user.is_staff or request.user.is_superuser:
+                return obj.is_flagged
+            return obj.flagged_by.filter(id=request.user.id).exists()
+        return False
+
 
 class JobApplicationSerializer(serializers.ModelSerializer):
     job_title = serializers.ReadOnlyField(source='job_opening.title')
@@ -507,6 +534,7 @@ class JobApplicationSerializer(serializers.ModelSerializer):
 class RFPSerializer(serializers.ModelSerializer):
     company_name = serializers.ReadOnlyField(source='company.name')
     company_logo_url = serializers.SerializerMethodField()
+    is_flagged = serializers.SerializerMethodField()
 
     class Meta:
         model = RFP
@@ -522,6 +550,14 @@ class RFPSerializer(serializers.ModelSerializer):
         if obj.company.logo and request:
             return request.build_absolute_uri(obj.company.logo.url)
         return None
+
+    def get_is_flagged(self, obj):
+        request = self.context.get('request')
+        if request and request.user and request.user.is_authenticated:
+            if request.user.is_staff or request.user.is_superuser:
+                return obj.is_flagged
+            return obj.flagged_by.filter(id=request.user.id).exists()
+        return False
 
 
 class RFPInterestSerializer(serializers.ModelSerializer):
