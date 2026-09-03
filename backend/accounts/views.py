@@ -602,20 +602,19 @@ class JobOpeningViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(company_id=company_id)
             try:
                 if int(company_id) not in managed_company_ids:
-                    queryset = queryset.filter(is_active=True, is_flagged=False)
+                    queryset = queryset.filter(is_active=True)
             except (ValueError, TypeError):
-                queryset = queryset.filter(is_active=True, is_flagged=False)
+                queryset = queryset.filter(is_active=True)
         else:
             if self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
-                # Allow access if it's active & non-flagged, OR if the job belongs to a managed company
+                # Allow access if it's active OR if the job belongs to a managed company
                 queryset = queryset.filter(
-                    Q(is_active=True, is_flagged=False) | Q(company_id__in=managed_company_ids)
+                    Q(is_active=True) | Q(company_id__in=managed_company_ids)
                 )
             else:
-                # Candidate/user dashboard: only show active and non-expired jobs
+                # Candidate/user dashboard: show active and non-expired jobs
                 queryset = queryset.filter(
-                    is_active=True,
-                    is_flagged=False
+                    is_active=True
                 ).filter(
                     Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now())
                 )
@@ -773,17 +772,17 @@ class RFPViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(company_id=company_id)
             try:
                 if int(company_id) not in managed_company_ids:
-                    queryset = queryset.filter(is_active=True, is_flagged=False)
+                    queryset = queryset.filter(is_active=True)
             except (ValueError, TypeError):
-                queryset = queryset.filter(is_active=True, is_flagged=False)
+                queryset = queryset.filter(is_active=True)
         else:
             if self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
-                # Allow access if it's active & non-flagged, OR if the RFP belongs to a managed company, OR if user submitted an interest
+                # Allow access if it's active, OR if the RFP belongs to a managed company, OR if user submitted an interest
                 queryset = queryset.filter(
-                    Q(is_active=True, is_flagged=False) | Q(company_id__in=managed_company_ids) | Q(interests__user=user)
+                    Q(is_active=True) | Q(company_id__in=managed_company_ids) | Q(interests__user=user)
                 ).distinct()
             else:
-                queryset = queryset.filter(is_active=True, is_flagged=False)
+                queryset = queryset.filter(is_active=True)
             
         return queryset.order_by('-created_at')
 

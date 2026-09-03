@@ -442,7 +442,7 @@ class JobAndRFPModerationTests(APITestCase):
         self.assertTrue(self.rfp.is_flagged)
         self.assertEqual(self.rfp.flag_reason, 'Scam RFP')
 
-    def test_public_views_exclude_flagged_items(self):
+    def test_public_views_include_flagged_items_until_admin_removes_them(self):
         self.client.force_authenticate(user=self.regular_user)
         # Flag the job
         self.job.is_flagged = True
@@ -452,21 +452,14 @@ class JobAndRFPModerationTests(APITestCase):
         self.rfp.is_flagged = True
         self.rfp.save()
 
-        # Fetch company profile and check jobs/rfps are empty
-        response = self.client.get(f'/api/public-company/{self.company.public_id}/')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['jobs']), 0)
-        self.assertEqual(len(response.data['rfps']), 0)
-
-        # General listings should also be empty
+        # Flagged job and rfp should remain visible until admin moderation removes them
         response = self.client.get('/api/jobs/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(len(response.data), 1)
 
-        # RFP view is authenticated-only, so let's check it
         response = self.client.get('/api/rfps/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(len(response.data), 1)
 
     def test_admin_moderation_actions_for_job_and_rfp(self):
         self.job.is_flagged = True
