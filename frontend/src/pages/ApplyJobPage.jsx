@@ -124,7 +124,7 @@ const ApplyJobPage = () => {
       loading: false
     });
     if (wasSuccess) {
-      navigate("/dashboard");
+      setJob(prev => prev ? ({ ...prev, is_flagged: true }) : null);
     }
   };
 
@@ -725,26 +725,46 @@ const ApplyJobPage = () => {
                               </HStack>
                             )}
                           </Button>
-                          <Button
-                            onClick={handleOpenFlagModal}
-                            px={4}
-                            h="40px"
-                            borderRadius="xl"
-                            fontWeight="black"
-                            fontSize="xs"
-                            letterSpacing="widest"
-                            variant="outline"
-                            color="var(--color-text-secondary)"
-                            borderColor="var(--color-card-border)"
-                            _hover={{
-                              bg: "rgba(239, 68, 68, 0.1)",
-                              borderColor: "#EF4444",
-                              color: "#EF4444"
-                            }}
-                          >
-                            <Flag size={14} style={{ marginRight: "6px" }} />
-                            FLAG JOB
-                          </Button>
+                          {job?.is_flagged ? (
+                            <Badge
+                              px={4}
+                              h="40px"
+                              borderRadius="xl"
+                              fontWeight="black"
+                              fontSize="xs"
+                              letterSpacing="widest"
+                              variant="subtle"
+                              color="#EF4444"
+                              bg="rgba(239, 68, 68, 0.15)"
+                              border="1px solid rgba(239, 68, 68, 0.3)"
+                              display="inline-flex"
+                              alignItems="center"
+                            >
+                              <Flag size={14} style={{ marginRight: "6px" }} fill="#EF4444" />
+                              FLAGGED
+                            </Badge>
+                          ) : (
+                            <Button
+                              onClick={handleOpenFlagModal}
+                              px={4}
+                              h="40px"
+                              borderRadius="xl"
+                              fontWeight="black"
+                              fontSize="xs"
+                              letterSpacing="widest"
+                              variant="outline"
+                              color="var(--color-text-secondary)"
+                              borderColor="var(--color-card-border)"
+                              _hover={{
+                                bg: "rgba(239, 68, 68, 0.1)",
+                                borderColor: "#EF4444",
+                                color: "#EF4444"
+                              }}
+                            >
+                              <Flag size={14} style={{ marginRight: "6px" }} />
+                              FLAG JOB
+                            </Button>
+                          )}
                         </HStack>
                       </Flex>
 

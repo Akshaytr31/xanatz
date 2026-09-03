@@ -140,6 +140,11 @@ const JobOpeningCard = ({ job, onClick, viewMode = "grid", hasApplied = false })
 
         {/* ID + Arrow */}
         <HStack gap={2} flexShrink={0}>
+          {job.is_flagged && (
+            <Badge variant="subtle" fontSize="2xs" px={2} py={0.5} borderRadius="md" fontWeight="extrabold" style={{ background: "rgba(239,68,68,0.15)", color: "#f87171", border: "1px solid rgba(239,68,68,0.3)" }}>
+              🚩 FLAGGED
+            </Badge>
+          )}
           {hasApplied && (
             <Badge variant="subtle" fontSize="2xs" px={2} py={0.5} borderRadius="md" fontWeight="extrabold" style={{ background: "rgba(16,185,129,0.15)", color: "#34d399", border: "1px solid rgba(16,185,129,0.3)" }}>
               ✓ APPLIED
@@ -203,6 +208,23 @@ const JobOpeningCard = ({ job, onClick, viewMode = "grid", hasApplied = false })
         right="16px"
         gap={1.5}
       >
+        {job.is_flagged && (
+          <Badge
+            variant="subtle"
+            fontSize="2xs"
+            px={2}
+            py={0.5}
+            borderRadius="md"
+            fontWeight="extrabold"
+            style={{
+              background: "rgba(239,68,68,0.15)",
+              color: "#f87171",
+              borderColor: "rgba(239,68,68,0.3)",
+            }}
+          >
+            🚩 FLAGGED
+          </Badge>
+        )}
         {hasApplied && (
           <Badge
             variant="subtle"

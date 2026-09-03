@@ -420,20 +420,39 @@ const RFPsPage = () => {
                               >
                                 <Share2 size={14} />
                               </Button>
-                              {(!currentUser || rfp.company !== currentUser.company_id) && (
-                                <Button
-                                  variant="ghost"
-                                  size="xs"
-                                  color="var(--color-text-muted)"
-                                  _hover={{ color: "#EF4444", bg: "rgba(239, 68, 68, 0.1)" }}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleOpenFlagModal(rfp);
-                                  }}
-                                  title="Flag this RFP as inappropriate"
+                              {rfp.is_flagged ? (
+                                <Badge
+                                  variant="subtle"
+                                  px={2.5}
+                                  py={1}
+                                  borderRadius="lg"
+                                  fontSize="2xs"
+                                  fontWeight="black"
+                                  color="#EF4444"
+                                  bg="rgba(239, 68, 68, 0.15)"
+                                  border="1px solid rgba(239, 68, 68, 0.3)"
+                                  display="inline-flex"
+                                  alignItems="center"
                                 >
-                                  <Flag size={14} />
-                                </Button>
+                                  <Flag size={12} fill="#EF4444" style={{ marginRight: "4px" }} />
+                                  FLAGGED
+                                </Badge>
+                              ) : (
+                                (!currentUser || rfp.company !== currentUser.company_id) && (
+                                  <Button
+                                    variant="ghost"
+                                    size="xs"
+                                    color="var(--color-text-muted)"
+                                    _hover={{ color: "#EF4444", bg: "rgba(239, 68, 68, 0.1)" }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenFlagModal(rfp);
+                                    }}
+                                    title="Flag this RFP as inappropriate"
+                                  >
+                                    <Flag size={14} />
+                                  </Button>
+                                )
                               )}
                             </HStack>
                           </Flex>

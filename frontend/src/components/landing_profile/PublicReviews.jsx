@@ -141,23 +141,43 @@ const PublicReviews = ({ reviews = [], average_rating = 0, reviews_count = 0, on
                         ))}
                       </div>
                       {isAuthenticated && onFlagReview && (
-                        <button
-                          onClick={() => onFlagReview(review.id)}
-                          title={review.is_flagged ? "Review flagged" : "Flag inappropriate review"}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            cursor: "pointer",
-                            color: review.is_flagged ? "#EF4444" : "#6b7280",
-                            display: "flex",
-                            alignItems: "center",
-                            padding: "2px",
-                            borderRadius: "4px",
-                            transition: "all 0.2s"
-                          }}
-                        >
-                          <Flag size={14} fill={review.is_flagged ? "#EF4444" : "none"} />
-                        </button>
+                        review.is_flagged ? (
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                              fontSize: "11px",
+                              fontWeight: "700",
+                              color: "#EF4444",
+                              backgroundColor: "rgba(239, 68, 68, 0.12)",
+                              padding: "2px 8px",
+                              borderRadius: "12px",
+                              border: "1px solid rgba(239, 68, 68, 0.25)"
+                            }}
+                          >
+                            <Flag size={12} fill="#EF4444" />
+                            FLAGGED
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => onFlagReview(review.id)}
+                            title="Flag inappropriate review"
+                            style={{
+                              background: "none",
+                              border: "none",
+                              cursor: "pointer",
+                              color: "#6b7280",
+                              display: "flex",
+                              alignItems: "center",
+                              padding: "2px",
+                              borderRadius: "4px",
+                              transition: "all 0.2s"
+                            }}
+                          >
+                            <Flag size={14} fill="none" />
+                          </button>
+                        )
                       )}
                     </div>
                   </div>
