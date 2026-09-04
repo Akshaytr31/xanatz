@@ -641,13 +641,14 @@ class NotificationSerializer(serializers.ModelSerializer):
 
 class MessageSerializer(serializers.ModelSerializer):
     sender_email = serializers.ReadOnlyField(source='sender.email')
-    recipient_email = serializers.ReadOnlyField(source='recipient.email')
+    recipient_email = serializers.ReadOnlyField(source='recipient.email', default=None)
+    company_name = serializers.ReadOnlyField(source='company.name', default=None)
     sender_name = serializers.SerializerMethodField()
     recipient_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
-        fields = ['id', 'sender', 'sender_email', 'sender_name', 'recipient', 'recipient_email', 'recipient_name', 'content', 'is_read', 'created_at']
+        fields = ['id', 'sender', 'sender_email', 'sender_name', 'recipient', 'recipient_email', 'recipient_name', 'company', 'company_name', 'content', 'is_read', 'created_at']
         read_only_fields = ['id', 'sender', 'created_at']
 
     def get_sender_name(self, obj):
@@ -655,6 +656,8 @@ class MessageSerializer(serializers.ModelSerializer):
         return name or obj.sender.email
 
     def get_recipient_name(self, obj):
+        if not obj.recipient:
+            return obj.company.name if obj.company else "Company"
         name = f"{obj.recipient.first_name or ''} {obj.recipient.last_name or ''}".strip()
         return name or obj.recipient.email
 

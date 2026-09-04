@@ -518,7 +518,8 @@ class Notification(models.Model):
 
 class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='received_messages')
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, related_name='company_messages')
     content = models.TextField()
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -527,7 +528,8 @@ class Message(models.Model):
         ordering = ['created_at']
 
     def __str__(self):
-        return f'Message from {self.sender.email} to {self.recipient.email}: {self.content[:35]}'
+        target_str = self.company.name if self.company else (self.recipient.email if self.recipient else "Unknown")
+        return f'Message from {self.sender.email} to {target_str}: {self.content[:35]}'
 
 
 class CompanyReview(models.Model):

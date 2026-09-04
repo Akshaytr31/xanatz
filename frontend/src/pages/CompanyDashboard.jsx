@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Box, Flex, Text, Button, VStack, HStack, Container, Spinner, Badge, Grid, GridItem } from "@chakra-ui/react";
-import { Building2, ArrowLeft, Globe, MapPin, Users, Calendar, Link2, AtSign, Settings2, Briefcase, TrendingUp, Award, ExternalLink, Plus, FileText, CreditCard, Zap, Share2, Check, Star, Flag, ShieldAlert, CheckCircle2, HelpCircle, Edit, Trash2, ChevronDown, MessageSquare } from "lucide-react";
+import { Building2, ArrowLeft, Globe, MapPin, Users, Calendar, Link2, AtSign, Settings2, Briefcase, TrendingUp, Award, ExternalLink, Plus, FileText, CreditCard, Zap, Share2, Check, Star, Flag, ShieldAlert, CheckCircle2, HelpCircle, Edit, Trash2, ChevronDown, MessageSquare, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import FlagConfirmationModal from "../components/FlagConfirmationModal";
@@ -11,6 +11,7 @@ import JobOpeningModal from "../components/company/JobOpeningModal";
 import RFPModal from "../components/company/RFPModal";
 import PricingPlansModal from "../components/company/PricingPlansModal";
 import CompanyFAQModal from "../components/company/CompanyFAQModal";
+import AdminChatModal from "../components/admin/AdminChatModal";
 import api from "../api";
 import { getMemberPermissions } from "../utils/companyPermissions";
 import { formatDate } from "../utils/dateUtils";
@@ -100,6 +101,8 @@ const CompanyDashboard = () => {
   const [expandedFaqId, setExpandedFaqId] = useState(null);
   const [copied, setCopied] = useState(false);
   const [reviewTab, setReviewTab] = useState("employee");
+  const [flagClarifications, setFlagClarifications] = useState([]);
+  const [adminChatTarget, setAdminChatTarget] = useState(null);
   const reviewsTabsRef = useRef(null);
 
   useEffect(() => {
@@ -178,13 +181,14 @@ const CompanyDashboard = () => {
 
   const fetchCompany = async () => {
     try {
-      const [cRes, uRes, jRes, aRes, rRes, riRes] = await Promise.all([
+      const [cRes, uRes, jRes, aRes, rRes, riRes, fcRes] = await Promise.all([
         api.get(`companies/${id}/`),
         api.get("me/"),
         api.get(`jobs/?company_id=${id}`),
         api.get(`applications/?company_id=${id}`).catch(() => ({ data: [] })),
         api.get(`rfps/?company_id=${id}`).catch(() => ({ data: [] })),
-        api.get(`rfp-interests/?company_id=${id}`).catch(() => ({ data: [] }))
+        api.get(`rfp-interests/?company_id=${id}`).catch(() => ({ data: [] })),
+        api.get(`companies/${id}/admin_flag_clarifications/`).catch(() => ({ data: [] }))
       ]);
       setCompany(cRes.data);
       setCurrentUser(uRes.data);
@@ -192,6 +196,7 @@ const CompanyDashboard = () => {
       setApplications(aRes.data);
       setRfps(rRes.data);
       setRfpInterests(riRes.data);
+      setFlagClarifications(fcRes.data || []);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
@@ -487,6 +492,76 @@ const CompanyDashboard = () => {
               </HStack>
             </Flex>
           </MotionBox>
+
+          {/* ── ADMIN FLAG CLARIFICATIONS & ALERTS SECTION ── */}
+          {canAccessHR && flagClarifications.length > 0 && (
+            <MotionBox initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} mb={8}>
+              <Box p={6} borderRadius="2xl" border="1px solid rgba(239,68,68,0.3)" style={{ background: "linear-gradient(135deg, rgba(239,68,68,0.08) 0%, rgba(15,23,42,0.85) 100%)", backdropFilter: "blur(24px)", boxShadow: "0 12px 32px rgba(239,68,68,0.15)" }}>
+                <Flex align="center" justify="space-between" mb={4} flexWrap="wrap" gap={3}>
+                  <HStack gap={3}>
+                    <Flex w="38px" h="38px" borderRadius="xl" align="center" justify="center" style={{ background: "rgba(239,68,68,0.18)", border: "1px solid rgba(239,68,68,0.35)", color: "#fca5a5" }}>
+                      <AlertCircle size={20} />
+                    </Flex>
+                    <VStack align="start" gap={0}>
+                      <Text color="white" fontWeight="black" fontSize="md">
+                        Admin Flag Clarifications ({flagClarifications.length})
+                      </Text>
+                      <Text color="rgba(255,255,255,0.6)" fontSize="xs">
+                        Platform Admins have requested clarification regarding flagged content in your company.
+                      </Text>
+                    </VStack>
+                  </HStack>
+                </Flex>
+
+                <VStack gap={3} align="stretch">
+                  {flagClarifications.map((item) => (
+                    <Box key={`${item.item_type}-${item.id}`} p={4} borderRadius="xl" border="1px solid rgba(255,255,255,0.08)" style={{ background: "rgba(0,0,0,0.3)" }}>
+                      <Flex justify="space-between" align="center" flexWrap="wrap" gap={3}>
+                        <VStack align="start" gap={1} flex={1}>
+                          <HStack gap={2}>
+                            <Badge colorScheme="red" fontSize="2xs" px={2} py={0.5} borderRadius="full">
+                              {item.item_type.toUpperCase()} FLAGGED
+                            </Badge>
+                            <Text color="white" fontWeight="bold" fontSize="sm">
+                              {item.title} {item.custom_id ? `(${item.custom_id})` : ""}
+                            </Text>
+                          </HStack>
+                          {item.flag_reason && (
+                            <Text color="rgba(255,255,255,0.7)" fontSize="xs">
+                              <strong>Reason:</strong> {item.flag_reason}
+                            </Text>
+                          )}
+                          {item.last_admin_message && (
+                            <Text color="#93c5fd" fontSize="xs" mt={1}>
+                              💬 <strong>Admin Inquiry:</strong> "{item.last_admin_message}"
+                            </Text>
+                          )}
+                        </VStack>
+
+                        <Button
+                          size="sm"
+                          colorScheme="blue"
+                          borderRadius="xl"
+                          leftIcon={<MessageSquare size={14} />}
+                          onClick={() => setAdminChatTarget({
+                            company_id: company.id,
+                            company_name: company.name,
+                            user_id: item.admin_user_id,
+                            user_name: "Platform Admin",
+                            user_email: "admin@xanatz.com",
+                            reason: `Clarification for ${item.title}`,
+                            item_title: item.title
+                          })}
+                        >
+                          Reply to Admin
+                        </Button>
+                      </Flex>
+                    </Box>
+                  ))}
+                </VStack>
+              </Box>
+            </MotionBox>
+          )}
 
           {/* ── STATS ROW ── */}
           <MotionBox initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }} mb={6}>
@@ -1472,6 +1547,14 @@ const CompanyDashboard = () => {
         title="Flag this review?"
         description="Are you sure you want to flag this review as inappropriate? It will be sent to the administrator for moderation."
       />
+
+      {/* Admin Chat Modal for Company Admins/HR */}
+      {adminChatTarget && (
+        <AdminChatModal
+          target={adminChatTarget}
+          onClose={() => setAdminChatTarget(null)}
+        />
+      )}
 
     </Box>
   );
