@@ -746,6 +746,42 @@ const Navbar = () => {
                       ))
                     )}
                   </div>
+                  <div
+                    style={{
+                      borderTop: "1px solid var(--color-card-border)",
+                      marginTop: "0.5rem",
+                      paddingTop: "0.5rem",
+                      textAlign: "center",
+                    }}
+                  >
+                    <button
+                      onClick={() => {
+                        setIsNotificationsOpen(false);
+                        navigate("/notifications");
+                      }}
+                      style={{
+                        width: "100%",
+                        padding: "0.5rem",
+                        borderRadius: "0.5rem",
+                        border: "none",
+                        background: "rgba(59, 130, 246, 0.1)",
+                        color: "var(--color-accent, #3b82f6)",
+                        fontSize: "0.75rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "0.35rem",
+                        transition: "all 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(59, 130, 246, 0.2)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(59, 130, 246, 0.1)")}
+                    >
+                      <span>View all notifications</span>
+                      <ChevronRight size={14} />
+                    </button>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -1086,6 +1122,7 @@ const Navbar = () => {
             <MobileNavItem icon={FileText} label="RFPs" active={location.pathname === "/rfps"} onClick={() => { navigate("/rfps"); setIsMobileMenuOpen(false); }} />
             <MobileNavItem icon={ClipboardList} label="Applications" active={location.pathname === "/my-applications"} onClick={() => { navigate("/my-applications"); setIsMobileMenuOpen(false); }} />
             <MobileNavItem icon={MessageSquare} label="Chats" active={location.pathname === "/messages"} onClick={() => { navigate("/messages"); setIsMobileMenuOpen(false); }} />
+            <MobileNavItem icon={Bell} label="Notifications" active={location.pathname === "/notifications"} onClick={() => { navigate("/notifications"); setIsMobileMenuOpen(false); }} badgeCount={notifications.filter((n) => !n.is_read).length} />
           </motion.div>
         )}
       </AnimatePresence>

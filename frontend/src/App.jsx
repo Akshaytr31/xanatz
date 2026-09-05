@@ -21,6 +21,7 @@ import ManageRFPsPage from "./pages/ManageRFPsPage";
 import ManageRFPInterestsPage from "./pages/ManageRFPInterestsPage";
 import MySubmittedRFPInterestsPage from "./pages/MySubmittedRFPInterestsPage";
 import MessagesPage from "./pages/MessagesPage";
+import NotificationsPage from "./pages/NotificationsPage";
 import FreelancersPage from "./pages/FreelancersPage";
 
 
@@ -29,6 +30,14 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <NotificationsPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/messages"
           element={
