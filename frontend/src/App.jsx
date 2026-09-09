@@ -151,6 +151,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin/moderation"
+          element={
+            <ProtectedRoute requireAdmin>
+              <Navigate to="/admin?tab=flagged_reviews" replace />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>

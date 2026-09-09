@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import ReactDOM from "react-dom";
 import { Send, MessageSquare, Loader } from "lucide-react";
 import api from "../../api";
 
@@ -78,10 +79,17 @@ const AdminChatModal = ({ target, onClose }) => {
     }
   };
 
-  const partnerName = target.company_name || target.user_name || target.name || "Company";
-  const partnerEmail = target.company_id ? "Company Channel" : (target.user_email || target.email || "");
+  const isCompanyChannel = target.is_company_channel || (target.company_id && !target.user_id);
 
-  return (
+  const partnerName = isCompanyChannel
+    ? (target.company_name || target.name || "Company Channel")
+    : (target.user_name || target.name || "User");
+
+  const partnerEmail = isCompanyChannel
+    ? (target.owner_name ? `Company Channel • Shared Team (Owner: ${target.owner_name})` : "Company Channel • Shared Team")
+    : (target.user_email || target.email || "");
+
+  return ReactDOM.createPortal(
     <div style={{
       position: "fixed",
       bottom: "24px",
@@ -130,7 +138,10 @@ const AdminChatModal = ({ target, onClose }) => {
           </div>
           <div>
             <h3 style={{ fontSize: "0.95rem", fontWeight: 700, margin: 0, color: "white" }}>{partnerName}</h3>
-            <span style={{ fontSize: "0.7rem", color: "#64748b" }}>{partnerEmail}</span>
+            <span style={{ fontSize: "0.7rem", color: "#64748b" }}>
+              {partnerEmail}
+              {!isCompanyChannel && target.user_company_name ? ` • (${target.user_company_name})` : ""}
+            </span>
           </div>
         </div>
         <button
@@ -152,7 +163,7 @@ const AdminChatModal = ({ target, onClose }) => {
           borderBottom: "1px solid rgba(239, 68, 68, 0.15)",
           fontSize: "0.8rem", color: "#fca5a5", lineHeight: 1.4
         }}>
-          <strong>Flagged Reason:</strong> {target.reason}
+          <strong>Flagged Item ({target.company_name || target.item_title || "Company"}):</strong> {target.reason}
         </div>
       )}
 
@@ -291,7 +302,8 @@ const AdminChatModal = ({ target, onClose }) => {
           <Send size={18} />
         </button>
       </form>
-    </div>
+    </div>,
+    document.body
   );
 };
 

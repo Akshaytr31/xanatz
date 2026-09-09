@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Check, Edit2, Trash2, Star, AlertCircle, ShieldAlert, Filter, Loader, CheckCircle, RotateCcw, Clock, Flag, MessageSquare, Send, Bell } from "lucide-react";
+import ReactDOM from "react-dom";
+import { Check, Edit2, Trash2, Star, AlertCircle, ShieldAlert, Filter, Loader, CheckCircle, RotateCcw, Clock, Flag, MessageSquare, Send, Bell, Eye, Briefcase, FileText } from "lucide-react";
 import api from "../../api";
 import { formatDate } from "../../utils/dateUtils";
 
@@ -53,7 +54,7 @@ const StarRating = ({ rating, editable, onChange }) => (
 import AdminChatModal from "./AdminChatModal";
 
 /* ─── Review Card ────────────────────────────────────────────── */
-const ReviewCard = ({ review, onDismiss, onReopen, onEdit, onDelete, onOpenChat }) => {
+const ReviewCard = ({ review, onDismiss, onReopen, onEdit, onDelete, onOpenChat, onViewPost }) => {
   const typeInfo = TYPE_COLORS[review.review_type] || TYPE_COLORS.company;
   const isResolved = review.flag_status === "resolved" || review.is_flagged === false;
 
@@ -157,6 +158,9 @@ const ReviewCard = ({ review, onDismiss, onReopen, onEdit, onDelete, onOpenChat 
               <RotateCcw size={12} /> <span>Reopen</span>
             </ActionBtn>
           )}
+          <ActionBtn color="#8b5cf6" hoverColor="#7c3aed" onClick={() => onViewPost && onViewPost(review)} title="View Job Post Details">
+            <Eye size={12} /> <span>View Post</span>
+          </ActionBtn>
           <ActionBtn color="#3b82f6" hoverColor="#2563eb" onClick={() => onEdit(review)} title="Edit">
             <Edit2 size={12} />
           </ActionBtn>
@@ -178,11 +182,12 @@ const ReviewCard = ({ review, onDismiss, onReopen, onEdit, onDelete, onOpenChat 
             <button
               type="button"
               onClick={() => onOpenChat && onOpenChat({
+                is_company_channel: !!review.company_id,
                 company_id: review.company_id || null,
-                company_name: review.company_id ? review.subject_name : null,
-                user_id: review.owner_id || null,
-                name: review.owner_name || review.reviewer_name,
-                email: review.owner_email || review.reviewer_email,
+                company_name: review.subject_name || null,
+                user_id: review.company_id ? null : (review.owner_id || null),
+                owner_name: review.owner_name || review.reviewer_name,
+                owner_email: review.owner_email || review.reviewer_email,
                 reason: `Admin clarification inquiry regarding ${review.subject_name}`
               }, review)}
               style={{
@@ -334,6 +339,186 @@ const ReviewCard = ({ review, onDismiss, onReopen, onEdit, onDelete, onOpenChat 
   );
 };
 
+/* ─── Post Detail Modal ─────────────────────────────────────── */
+const PostDetailModal = ({ review, onClose, onOpenChat }) => {
+  if (!review) return null;
+  const isJob = review.review_type === "job";
+  const isRFP = review.review_type === "rfp";
+
+  return ReactDOM.createPortal(
+    <div style={{
+      position: "fixed",
+      bottom: "24px",
+      left: "24px",
+      width: "540px",
+      height: "560px",
+      maxWidth: "calc(100vw - 32px)",
+      maxHeight: "calc(100vh - 48px)",
+      zIndex: 99998,
+      background: "rgba(15, 23, 42, 0.96)",
+      backdropFilter: "blur(24px)",
+      borderRadius: "1.25rem",
+      border: "1px solid rgba(139, 92, 246, 0.35)",
+      display: "flex",
+      flexDirection: "column",
+      overflow: "hidden",
+      boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.05)",
+      color: "white",
+      fontFamily: "'Inter', sans-serif"
+    }}>
+      {/* Modal Header */}
+      <div style={{
+        padding: "1rem 1.5rem",
+        borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        background: "rgba(10, 15, 30, 0.4)",
+        flexShrink: 0,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{
+            width: 38, height: 38, borderRadius: 10, background: "rgba(139,92,246,0.18)",
+            border: "1px solid rgba(139,92,246,0.35)", display: "flex", alignItems: "center", justifyContent: "center",
+            color: "#c084fc", flexShrink: 0
+          }}>
+            {isJob ? <Briefcase size={18} /> : isRFP ? <FileText size={18} /> : <Eye size={18} />}
+          </div>
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "#a855f7", textTransform: "uppercase", letterSpacing: "1px" }}>
+              {review.review_type.toUpperCase()} DETAILS {review.custom_id ? `• ${review.custom_id}` : ""}
+            </div>
+            <h3 style={{ fontSize: "1rem", fontWeight: 800, margin: "2px 0 0 0", color: "white" }}>
+              {review.title || review.subject_name}
+            </h3>
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          style={{
+            background: "rgba(255, 255, 255, 0.06)", border: "none", color: "white",
+            width: 32, height: 32, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 14, fontWeight: 700
+          }}
+        >
+          ✕
+        </button>
+      </div>
+
+      {/* Scrollable Content */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "1.25rem 1.5rem", display: "flex", flexDirection: "column", gap: "14px" }}>
+        {/* Attribute Badges */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          {review.company_name && (
+            <span style={{ fontSize: 11, padding: "4px 10px", borderRadius: 8, background: "rgba(59,130,246,0.15)", color: "#93c5fd", border: "1px solid rgba(59,130,246,0.3)", fontWeight: 600 }}>
+              🏢 {review.company_name}
+            </span>
+          )}
+          {review.job_type && (
+            <span style={{ fontSize: 11, padding: "4px 10px", borderRadius: 8, background: "rgba(16,185,129,0.15)", color: "#6ee7b7", border: "1px solid rgba(16,185,129,0.3)", fontWeight: 600 }}>
+              💼 {review.job_type}
+            </span>
+          )}
+          {review.location && (
+            <span style={{ fontSize: 11, padding: "4px 10px", borderRadius: 8, background: "rgba(245,158,11,0.15)", color: "#fcd34d", border: "1px solid rgba(245,158,11,0.3)", fontWeight: 600 }}>
+              📍 {review.location}
+            </span>
+          )}
+          {review.salary_range && (
+            <span style={{ fontSize: 11, padding: "4px 10px", borderRadius: 8, background: "rgba(236,72,153,0.15)", color: "#f472b6", border: "1px solid rgba(236,72,153,0.3)", fontWeight: 600 }}>
+              💰 {review.salary_range}
+            </span>
+          )}
+          {review.budget && (
+            <span style={{ fontSize: 11, padding: "4px 10px", borderRadius: 8, background: "rgba(236,72,153,0.15)", color: "#f472b6", border: "1px solid rgba(236,72,153,0.3)", fontWeight: 600 }}>
+              💰 Budget: {review.budget}
+            </span>
+          )}
+        </div>
+
+        {/* Poster / Owner Info Box */}
+        <div style={{ padding: "12px 14px", borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 2 }}>Posted By</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "white" }}>{review.owner_name || review.reviewer_name}</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>{review.owner_email || review.reviewer_email}</div>
+          </div>
+          {(review.company_id || review.owner_id) && (
+            <button
+              type="button"
+              onClick={() => {
+                onOpenChat && onOpenChat({
+                  is_company_channel: !!review.company_id,
+                  company_id: review.company_id || null,
+                  company_name: review.company_name || review.subject_name,
+                  user_id: review.company_id ? null : (review.owner_id || null),
+                  owner_name: review.owner_name || review.reviewer_name,
+                  owner_email: review.owner_email || review.reviewer_email,
+                  reason: `Admin inquiry regarding ${review.subject_name}`
+                }, review);
+              }}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 5,
+                padding: "6px 12px", borderRadius: 8, background: "rgba(168,85,247,0.2)", border: "1px solid rgba(168,85,247,0.4)", color: "#c084fc", fontSize: 11, fontWeight: 700, cursor: "pointer"
+              }}
+            >
+              <MessageSquare size={12} />
+              <span>{review.company_id ? "Contact Channel" : "Contact Poster"}</span>
+            </button>
+          )}
+        </div>
+
+        {/* Description */}
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#a5b4fc", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 6 }}>
+            {isJob || isRFP ? "Full Description" : "Review Content"}
+          </div>
+          <div style={{
+            padding: "12px 14px", borderRadius: 10, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)",
+            fontSize: 12.5, color: "rgba(255,255,255,0.85)", lineHeight: 1.6, whiteSpace: "pre-wrap"
+          }}>
+            {review.review_text || "No description provided."}
+          </div>
+        </div>
+
+        {/* Requirements if applicable */}
+        {review.requirements && (
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#a5b4fc", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 6 }}>
+              Requirements
+            </div>
+            <div style={{
+              padding: "12px 14px", borderRadius: 10, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)",
+              fontSize: 12.5, color: "rgba(255,255,255,0.85)", lineHeight: 1.6, whiteSpace: "pre-wrap"
+            }}>
+              {review.requirements}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div style={{
+        padding: "0.85rem 1.5rem",
+        borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+        display: "flex", justifyContent: "flex-end", gap: 10,
+        background: "rgba(10, 15, 30, 0.4)", flexShrink: 0
+      }}>
+        <button
+          onClick={onClose}
+          style={{
+            padding: "8px 18px", borderRadius: 10, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)",
+            color: "white", fontSize: 12, fontWeight: 700, cursor: "pointer"
+          }}
+        >
+          Close Preview
+        </button>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
 /* ─── Action Button ──────────────────────────────────────────── */
 const ActionBtn = ({ color, hoverColor, onClick, title, children }) => (
   <button
@@ -355,7 +540,7 @@ const EditModal = ({ review, onClose, onSave, saving }) => {
   const [text, setText] = useState(review.review_text);
   const [rating, setRating] = useState(review.rating || 5);
 
-  return (
+  return ReactDOM.createPortal(
     <div style={{
       position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)",
       backdropFilter: "blur(12px)", zIndex: 9999,
@@ -442,7 +627,8 @@ const EditModal = ({ review, onClose, onSave, saving }) => {
         </div>
       </div>
       <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-    </div>
+    </div>,
+    document.body
   );
 };
 
@@ -454,6 +640,7 @@ const FlaggedReviewModerator = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [editingReview, setEditingReview] = useState(null);
+  const [viewingPost, setViewingPost] = useState(null);
   const [chatTarget, setChatTarget] = useState(null);
   const [savingEdit, setSavingEdit] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("unresolved");
@@ -521,6 +708,9 @@ const FlaggedReviewModerator = () => {
             user_id: matchedFu.user_id,
             user_name: matchedFu.name,
             user_email: matchedFu.email,
+            user_company_name: matchedFu.user_company_name || null,
+            company_id: matchedFu.flagged_company_id || matchedReview?.company_id || null,
+            company_name: matchedFu.flagged_company_name || matchedReview?.subject_name || null,
             reason: matchedFu.reason,
             item_title: matchedReview.subject_name
           });
@@ -830,12 +1020,14 @@ const FlaggedReviewModerator = () => {
               onReopen={handleReopenFlag}
               onEdit={setEditingReview}
               onDelete={handleDeleteReview}
+              onViewPost={setViewingPost}
               onOpenChat={(fu, rev) => setChatTarget({
                 user_id: fu.user_id,
-                company_id: fu.company_id || rev?.company_id || null,
-                company_name: fu.company_name || rev?.subject_name || null,
                 user_name: fu.name,
                 user_email: fu.email,
+                user_company_name: fu.user_company_name || null,
+                company_id: fu.flagged_company_id || rev?.company_id || null,
+                company_name: fu.flagged_company_name || rev?.subject_name || null,
                 reason: fu.reason,
                 item_title: rev.subject_name
               })}
@@ -851,6 +1043,15 @@ const FlaggedReviewModerator = () => {
           onClose={() => setEditingReview(null)}
           onSave={handleSaveEdit}
           saving={savingEdit}
+        />
+      )}
+
+      {/* View Post Detail Modal */}
+      {viewingPost && (
+        <PostDetailModal
+          review={viewingPost}
+          onClose={() => setViewingPost(null)}
+          onOpenChat={setChatTarget}
         />
       )}
 

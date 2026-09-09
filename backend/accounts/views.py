@@ -700,7 +700,7 @@ class JobOpeningViewSet(viewsets.ModelViewSet):
                 recipient=admin,
                 sender=request.user,
                 message=f"🚩 New flag on '{job.title}' by {sender_name}: '{reason[:40]}'",
-                target_url="/admin/moderation"
+                target_url="/admin?tab=flagged_reviews"
             )
 
         return Response({"message": "Job opening flagged successfully"}, status=status.HTTP_200_OK)
@@ -883,7 +883,7 @@ class RFPViewSet(viewsets.ModelViewSet):
                 recipient=admin,
                 sender=request.user,
                 message=f"🚩 New flag on RFP '{rfp.title}' by {sender_name}: '{reason[:40]}'",
-                target_url="/admin/moderation"
+                target_url="/admin?tab=flagged_reviews"
             )
 
         return Response({"message": "RFP flagged successfully"}, status=status.HTTP_200_OK)
@@ -1084,29 +1084,50 @@ class MessageViewSet(viewsets.ModelViewSet):
 
         msg = serializer.save(**save_kwargs)
 
-        # Notify staff/admins if user or company sends a message/reply
-        if not self.request.user.is_staff and not self.request.user.is_superuser:
-            sender_name = f"{self.request.user.first_name} {self.request.user.last_name}".strip() or self.request.user.email
-            if company:
-                sender_name = f"{company.name} ({sender_name})"
-            admin_users = User.objects.filter(Q(is_staff=True) | Q(is_superuser=True))
-            for admin in admin_users:
-                if admin.id != self.request.user.id:
-                    Notification.objects.create(
-                        recipient=admin,
-                        sender=self.request.user,
-                        message=f"Flag reply from {sender_name}: '{msg.content[:50]}'",
-                        target_url="/admin/moderation"
-                    )
+        # Send notifications depending on whether message recipient is admin or regular user/company
+        sender_name = f"{self.request.user.first_name} {self.request.user.last_name}".strip() or self.request.user.email
+        if company:
+            sender_name = f"{company.name} ({sender_name})"
+
+        if recipient and (recipient.is_staff or recipient.is_superuser):
+            Notification.objects.create(
+                recipient=recipient,
+                sender=self.request.user,
+                message=f"Message from {sender_name}: '{msg.content[:50]}'",
+                target_url="/admin?tab=flagged_reviews"
+            )
+        elif recipient and recipient != self.request.user:
+            Notification.objects.create(
+                recipient=recipient,
+                sender=self.request.user,
+                message=f"New message from {sender_name}: '{msg.content[:50]}'",
+                target_url="/messages"
+            )
+        elif company and company.creator and company.creator != self.request.user:
+            Notification.objects.create(
+                recipient=company.creator,
+                sender=self.request.user,
+                message=f"New message for {company.name} from {sender_name}: '{msg.content[:50]}'",
+                target_url="/messages"
+            )
 
     @action(detail=False, methods=['get'])
     def conversations(self, request):
         user = request.user
         from django.utils import timezone
         
+        my_companies = Company.objects.filter(creator=user).values_list('id', flat=True)
+        my_member_companies = CompanyMember.objects.filter(user=user).values_list('company_id', flat=True)
+        company_ids = set(list(my_companies) + list(my_member_companies))
+
         sent_recipients = Message.objects.filter(sender=user).values_list('recipient', flat=True)
         received_senders = Message.objects.filter(recipient=user).values_list('sender', flat=True)
-        partner_ids = set(list(sent_recipients) + list(received_senders))
+        comp_sent_recipients = Message.objects.filter(company_id__in=company_ids).values_list('recipient', flat=True) if company_ids else []
+        comp_senders = Message.objects.filter(company_id__in=company_ids).values_list('sender', flat=True) if company_ids else []
+
+        partner_ids = set(list(sent_recipients) + list(received_senders) + list(comp_sent_recipients) + list(comp_senders))
+        partner_ids.discard(None)
+        partner_ids.discard(user.id)
         
         partners = User.objects.filter(id__in=partner_ids)
         conversations_data = []
@@ -1114,7 +1135,8 @@ class MessageViewSet(viewsets.ModelViewSet):
         for partner in partners:
             last_msg = Message.objects.filter(
                 (Q(sender=user) & Q(recipient=partner)) | 
-                (Q(sender=partner) & Q(recipient=user))
+                (Q(sender=partner) & Q(recipient=user)) |
+                (Q(company_id__in=company_ids) & (Q(sender=partner) | Q(recipient=partner)) if company_ids else Q(pk__in=[]))
             ).order_by('-created_at').first()
             
             unread_count = Message.objects.filter(
@@ -1166,7 +1188,9 @@ class MessageViewSet(viewsets.ModelViewSet):
                 (Q(sender=user) & Q(recipient_id__in=company_user_ids)) |
                 (Q(sender_id__in=company_user_ids) & Q(recipient=user)) |
                 ((Q(sender=user) & Q(recipient_id=partner_id)) if partner_id else Q(pk__in=[])) |
-                ((Q(sender_id=partner_id) & Q(recipient=user)) if partner_id else Q(pk__in=[]))
+                ((Q(sender_id=partner_id) & Q(recipient=user)) if partner_id else Q(pk__in=[])) |
+                ((Q(sender_id=partner_id) & Q(recipient_id__in=company_user_ids)) if partner_id else Q(pk__in=[])) |
+                ((Q(sender_id__in=company_user_ids) & Q(recipient_id=partner_id)) if partner_id else Q(pk__in=[]))
             ).distinct().order_by('created_at')
             serializer = MessageSerializer(messages, many=True, context={'request': request})
             return Response(serializer.data)
@@ -1177,11 +1201,16 @@ class MessageViewSet(viewsets.ModelViewSet):
             if partner_user:
                 partner_company_ids = list(Company.objects.filter(creator=partner_user).values_list('id', flat=True)) + \
                                       list(CompanyMember.objects.filter(user=partner_user).values_list('company_id', flat=True))
+            
+            my_company_ids = list(Company.objects.filter(creator=user).values_list('id', flat=True)) + \
+                             list(CompanyMember.objects.filter(user=user).values_list('company_id', flat=True))
+
+            all_company_ids = set(partner_company_ids + my_company_ids)
 
             messages = Message.objects.filter(
                 (Q(sender=user) & Q(recipient_id=partner_id)) | 
                 (Q(sender_id=partner_id) & Q(recipient=user)) |
-                (Q(company_id__in=partner_company_ids) if partner_company_ids else Q(pk__in=[]))
+                (Q(company_id__in=all_company_ids) & (Q(sender=user) | Q(recipient=user) | Q(sender_id=partner_id) | Q(recipient_id=partner_id)) if all_company_ids else Q(pk__in=[]))
             ).distinct().order_by('created_at')
             serializer = MessageSerializer(messages, many=True, context={'request': request})
             return Response(serializer.data)
@@ -1301,7 +1330,7 @@ class CompanyReviewViewSet(viewsets.ModelViewSet):
                 recipient=admin,
                 sender=request.user,
                 message=f"🚩 New flag on Company Review by {sender_name}: '{reason[:40]}'",
-                target_url="/admin/moderation"
+                target_url="/admin?tab=flagged_reviews"
             )
 
         return Response({"message": "Review flagged successfully"}, status=status.HTTP_200_OK)
@@ -1350,7 +1379,7 @@ class FreelancerReviewViewSet(viewsets.ModelViewSet):
                 recipient=admin,
                 sender=request.user,
                 message=f"🚩 New flag on Freelancer Review by {sender_name}: '{reason[:40]}'",
-                target_url="/admin/moderation"
+                target_url="/admin?tab=flagged_reviews"
             )
 
         return Response({"message": "Review flagged successfully"}, status=status.HTTP_200_OK)
@@ -1377,9 +1406,11 @@ class AdminFlaggedReviewsView(APIView):
             if admin_user and admin_user.id:
                 admin_ids.add(admin_user.id)
 
-            company_id = getattr(item, 'company_id', None)
-            if not company_id and hasattr(item, 'company') and item.company:
-                company_id = item.company.id
+            item_company_id = getattr(item, 'company_id', None)
+            if not item_company_id and hasattr(item, 'company') and item.company:
+                item_company_id = item.company.id
+
+            item_company_name = item.company.name if (hasattr(item, 'company') and item.company) else getattr(item, 'subject_name', '')
 
             for u in item.flagged_by.all():
                 name = f"{u.first_name} {u.last_name}".strip() or u.email
@@ -1389,22 +1420,31 @@ class AdminFlaggedReviewsView(APIView):
                         user_reason = line.split(':', 1)[1].strip() if ':' in line else line.strip()
                         break
                 
+                u_company = Company.objects.filter(Q(creator=u) | Q(members=u)).distinct().first()
+                u_company_id = u_company.id if u_company else None
+                u_company_name = u_company.name if u_company else None
+
                 # Check if admin sent message to u or company FIRST
                 admin_sent_msg = Message.objects.filter(sender_id__in=admin_ids).filter(
-                    Q(recipient=u) | (Q(company_id=company_id) if company_id else Q(pk__in=[]))
+                    Q(recipient=u) | (Q(company_id=item_company_id) if item_company_id else Q(pk__in=[]))
                 ).exists()
                 
                 # Check if u or company replied to admin AFTER admin reached out
                 user_reply_messages = Message.objects.filter(
-                    Q(sender=u) | (Q(company_id=company_id) if company_id else Q(pk__in=[]))
-                ).exclude(sender_id__in=admin_ids)
+                    Q(sender=u) | (Q(company_id=item_company_id) if item_company_id else Q(pk__in=[])),
+                    recipient_id__in=admin_ids
+                )
 
                 has_reply = admin_sent_msg and user_reply_messages.exists()
                 unread_reply_count = user_reply_messages.filter(is_read=False).count() if admin_sent_msg else 0
 
                 users_data.append({
                     'user_id': u.id,
-                    'company_id': company_id,
+                    'company_id': item_company_id,
+                    'user_company_id': u_company_id,
+                    'user_company_name': u_company_name,
+                    'flagged_company_id': item_company_id,
+                    'flagged_company_name': item_company_name,
                     'email': u.email,
                     'name': name,
                     'reason': user_reason or item.flag_reason or 'Flagged by user',
@@ -1507,9 +1547,15 @@ class AdminFlaggedReviewsView(APIView):
                 'id': j.id,
                 'custom_id': j.job_id,
                 'review_type': 'job',
+                'title': j.title,
                 'reviewer_email': reviewer_email,
                 'reviewer_name': "System Job",
                 'subject_name': subject_name,
+                'company_name': j.company.name if j.company else "",
+                'location': j.location or "",
+                'job_type': j.get_job_type_display() if hasattr(j, 'get_job_type_display') else j.job_type,
+                'salary_range': j.salary_range or "",
+                'requirements': j.requirements or "",
                 'owner_id': owner_id,
                 'owner_name': owner_name,
                 'owner_email': owner_email,
@@ -1542,9 +1588,13 @@ class AdminFlaggedReviewsView(APIView):
                 'id': rfp.id,
                 'custom_id': rfp.rfp_id,
                 'review_type': 'rfp',
+                'title': rfp.title,
                 'reviewer_email': reviewer_email,
                 'reviewer_name': "System RFP",
                 'subject_name': subject_name,
+                'company_name': rfp.company.name if rfp.company else "",
+                'budget': getattr(rfp, 'budget', ''),
+                'location': getattr(rfp, 'location', ''),
                 'owner_id': owner_id,
                 'owner_name': owner_name,
                 'owner_email': owner_email,

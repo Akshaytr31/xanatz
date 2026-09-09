@@ -109,7 +109,8 @@ const NotificationsPage = () => {
       await handleMarkAsRead(notif.id);
     }
     if (notif.target_url) {
-      navigate(notif.target_url);
+      const url = notif.target_url === "/admin/moderation" ? "/admin?tab=flagged_reviews" : notif.target_url;
+      navigate(url);
     }
   };
 
@@ -388,8 +389,8 @@ const NotificationsPage = () => {
                     borderColor: notif.is_read ? "rgba(255,255,255,0.2)" : "#3b82f6",
                     boxShadow: "0 8px 24px rgba(0, 0, 0, 0.3)",
                     transform: "translateY(-1px)",
+                    transition: "all 0.25s ease",
                   }}
-                  transition="all 0.25s ease"
                 >
                   {/* Left edge unread indicator bar */}
                   {!notif.is_read && (

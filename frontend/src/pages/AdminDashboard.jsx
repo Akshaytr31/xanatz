@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, CreditCard, ShieldAlert, FileText,
   ArrowUpRight, Briefcase, Search, Bell, Building2, FolderKanban,
@@ -185,11 +185,31 @@ const OverviewPanel = ({ setActiveTab }) => {
 /* ── Admin Dashboard ────────────────────────────────────────── */
 const AdminDashboard = () => {
   const navigate    = useNavigate();
-  const [activeTab, setActiveTab]     = useState("overview");
+  const location    = useLocation();
+
+  const getInitialTab = () => {
+    const params = new URLSearchParams(location.search);
+    const tabParam = params.get("tab");
+    if (tabParam) return tabParam;
+    if (location.state?.activeTab) return location.state.activeTab;
+    return "overview";
+  };
+
+  const [activeTab, setActiveTab]     = useState(getInitialTab);
   const [collapsed, setCollapsed]     = useState(false);
   const [isMobile,  setIsMobile]      = useState(
     typeof window !== "undefined" ? window.innerWidth <= MOBILE_BP : false
   );
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tabParam = params.get("tab");
+    if (tabParam) {
+      setActiveTab(tabParam);
+    } else if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
+  }, [location.search, location.state]);
 
   /* track viewport for margin calc */
   useEffect(() => {
