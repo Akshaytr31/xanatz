@@ -171,49 +171,57 @@ const ReviewCard = ({ review, onDismiss, onReopen, onEdit, onDelete, onOpenChat,
       </div>
 
       {/* Info */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
-        <div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginBottom: 14, alignItems: "start" }}>
+        <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", letterSpacing: "1px", marginBottom: 3 }}>
             {review.review_type === "job" || review.review_type === "rfp" ? "OWNER / POSTER" : "SUBMITTED BY"}
           </div>
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>{review.owner_name || review.reviewer_name}</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 6 }}>{review.owner_email || review.reviewer_email}</div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 600, wordBreak: "break-word" }}>{review.owner_name || review.reviewer_name}</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 6, wordBreak: "break-word" }}>{review.owner_email || review.reviewer_email}</div>
           {(review.company_id || review.owner_id) && (
-            <button
-              type="button"
-              onClick={() => onOpenChat && onOpenChat({
-                is_company_channel: !!review.company_id,
-                company_id: review.company_id || null,
-                company_name: review.subject_name || null,
-                user_id: review.company_id ? null : (review.owner_id || null),
-                owner_name: review.owner_name || review.reviewer_name,
-                owner_email: review.owner_email || review.reviewer_email,
-                reason: `Admin clarification inquiry regarding ${review.subject_name}`
-              }, review)}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 5,
-                padding: "4px 9px",
-                borderRadius: 6,
-                background: "rgba(168, 85, 247, 0.18)",
-                border: "1px solid rgba(168, 85, 247, 0.35)",
-                color: "#c084fc",
-                fontSize: 11,
-                fontWeight: 700,
-                cursor: "pointer",
-                transition: "all 0.2s"
-              }}
-              title={`Contact company channel for ${review.subject_name}`}
-            >
-              <MessageSquare size={12} />
-              <span>{review.company_id ? "Contact Company Channel" : "Contact Poster"}</span>
-            </button>
+            <div style={{ marginTop: 4 }}>
+              <button
+                type="button"
+                onClick={() => onOpenChat && onOpenChat({
+                  is_company_channel: !!review.company_id,
+                  company_id: review.company_id || null,
+                  company_name: review.subject_name || null,
+                  user_id: review.company_id ? null : (review.owner_id || null),
+                  user_name: review.owner_name || review.reviewer_name,
+                  user_email: review.owner_email || review.reviewer_email,
+                  owner_name: review.owner_name || review.reviewer_name,
+                  owner_email: review.owner_email || review.reviewer_email,
+                  reason: `Admin clarification inquiry regarding ${review.subject_name}`
+                }, review)}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "5px 11px",
+                  borderRadius: 6,
+                  background: "rgba(168, 85, 247, 0.18)",
+                  border: "1px solid rgba(168, 85, 247, 0.35)",
+                  color: "#c084fc",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                  maxWidth: "100%",
+                  boxSizing: "border-box"
+                }}
+                title={`Contact company channel for ${review.subject_name}`}
+              >
+                <MessageSquare size={12} style={{ flexShrink: 0 }} />
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {review.company_id ? "Contact Company Channel" : "Contact Poster"}
+                </span>
+              </button>
+            </div>
           )}
         </div>
-        <div>
+        <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", letterSpacing: "1px", marginBottom: 3 }}>ABOUT</div>
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>{review.subject_name}</div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 600, wordBreak: "break-word" }}>{review.subject_name}</div>
         </div>
       </div>
 
@@ -238,19 +246,19 @@ const ReviewCard = ({ review, onDismiss, onReopen, onEdit, onDelete, onOpenChat,
                     fontSize: 12,
                     color: "rgba(255,255,255,0.85)",
                     lineHeight: 1.5,
-                    padding: "8px 12px",
+                    padding: "10px 12px",
                     borderRadius: 8,
                     background: "rgba(0,0,0,0.25)",
                     borderLeft: "3px solid #EF4444",
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    gap: 10,
+                    gap: 12,
                     flexWrap: "wrap"
                   }}
                 >
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#f87171", marginBottom: 2, display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ flex: "1 1 200px", minWidth: 0 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#f87171", marginBottom: 3, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                       <span>👤 {fu.name} <span style={{ opacity: 0.65, fontWeight: 400 }}>({fu.email})</span></span>
                       {fu.unread_reply_count > 0 ? (
                         <span style={{
@@ -289,7 +297,9 @@ const ReviewCard = ({ review, onDismiss, onReopen, onEdit, onDelete, onOpenChat,
                         fontWeight: 700,
                         cursor: "pointer",
                         transition: "all 0.2s",
-                        boxShadow: fu.unread_reply_count > 0 ? "0 0 10px rgba(239, 68, 68, 0.4)" : "none"
+                        boxShadow: fu.unread_reply_count > 0 ? "0 0 10px rgba(239, 68, 68, 0.4)" : "none",
+                        flexShrink: 0,
+                        whiteSpace: "nowrap"
                       }}
                       title={`Chat with ${fu.name} about this flag`}
                     >
@@ -705,12 +715,13 @@ const FlaggedReviewModerator = () => {
         const matchedFu = matchedReview.flagged_users.find(fu => fu.user_id === n.sender);
         if (matchedFu) {
           setChatTarget({
+            is_company_channel: false,
             user_id: matchedFu.user_id,
             user_name: matchedFu.name,
             user_email: matchedFu.email,
             user_company_name: matchedFu.user_company_name || null,
-            company_id: matchedFu.flagged_company_id || matchedReview?.company_id || null,
-            company_name: matchedFu.flagged_company_name || matchedReview?.subject_name || null,
+            company_id: matchedFu.flagged_company_id || null,
+            company_name: matchedFu.flagged_company_name || null,
             reason: matchedFu.reason,
             item_title: matchedReview.subject_name
           });
@@ -1022,14 +1033,17 @@ const FlaggedReviewModerator = () => {
               onDelete={handleDeleteReview}
               onViewPost={setViewingPost}
               onOpenChat={(fu, rev) => setChatTarget({
-                user_id: fu.user_id,
-                user_name: fu.name,
-                user_email: fu.email,
+                is_company_channel: fu.is_company_channel || false,
+                user_id: fu.is_company_channel ? null : (fu.user_id || null),
+                user_name: fu.user_name || fu.name || fu.owner_name || "User",
+                user_email: fu.user_email || fu.email || fu.owner_email || "",
+                owner_name: fu.owner_name || null,
+                owner_email: fu.owner_email || null,
                 user_company_name: fu.user_company_name || null,
-                company_id: fu.flagged_company_id || rev?.company_id || null,
-                company_name: fu.flagged_company_name || rev?.subject_name || null,
+                company_id: fu.is_company_channel ? (fu.company_id || rev?.company_id || null) : (fu.company_id || fu.flagged_company_id || null),
+                company_name: fu.is_company_channel ? (fu.company_name || rev?.subject_name || null) : (fu.company_name || fu.flagged_company_name || null),
                 reason: fu.reason,
-                item_title: rev.subject_name
+                item_title: rev?.subject_name || rev?.title
               })}
             />
           ))}

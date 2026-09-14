@@ -28,15 +28,15 @@ const AdminChatModal = ({ target, onClose }) => {
     if (!target?.company_id && !target?.user_id) return;
     try {
       let res;
-      if (target.company_id && target.user_id) {
-        res = await api.get(`messages/chat/?company_id=${target.company_id}&user_id=${target.user_id}`);
-        await api.post("messages/mark-read/", { company_id: target.company_id, sender_id: target.user_id }).catch(() => {});
+      if (target.is_company_channel && target.company_id) {
+        res = await api.get(`messages/chat/?company_id=${target.company_id}`);
+        await api.post("messages/mark-read/", { company_id: target.company_id }).catch(() => {});
+      } else if (target.user_id) {
+        res = await api.get(`messages/chat/?user_id=${target.user_id}`);
+        await api.post("messages/mark-read/", { sender_id: target.user_id }).catch(() => {});
       } else if (target.company_id) {
         res = await api.get(`messages/chat/?company_id=${target.company_id}`);
         await api.post("messages/mark-read/", { company_id: target.company_id }).catch(() => {});
-      } else {
-        res = await api.get(`messages/chat/?user_id=${target.user_id}`);
-        await api.post("messages/mark-read/", { sender_id: target.user_id }).catch(() => {});
       }
       setMessages(res.data || []);
     } catch (err) {
@@ -66,8 +66,13 @@ const AdminChatModal = ({ target, onClose }) => {
     setSending(true);
     try {
       const payload = { content: inputText.trim() };
-      if (target.company_id) payload.company = target.company_id;
-      if (target.user_id) payload.recipient = target.user_id;
+      if (target.is_company_channel && target.company_id) {
+        payload.company = target.company_id;
+      } else if (target.user_id) {
+        payload.recipient = target.user_id;
+      } else if (target.company_id) {
+        payload.company = target.company_id;
+      }
 
       await api.post("messages/", payload);
       setInputText("");
