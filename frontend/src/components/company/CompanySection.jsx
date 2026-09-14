@@ -75,6 +75,7 @@ const CompanySection = ({ user, refreshTrigger, onCompanyChange }) => {
   const handleAttachUser = async (companyId) => {
     try {
       await api.post(`companies/${companyId}/join/`);
+      window.dispatchEvent(new Event("xanatz_company_updated"));
       fetchCompanies();
       if (onCompanyChange) onCompanyChange();
     } catch (err) {
@@ -113,6 +114,7 @@ const CompanySection = ({ user, refreshTrigger, onCompanyChange }) => {
 
       // 2. Perform leave action
       await api.post(`companies/${company.id}/leave/`);
+      window.dispatchEvent(new Event("xanatz_company_updated"));
 
       setLeaveModalState({
         isOpen: false,

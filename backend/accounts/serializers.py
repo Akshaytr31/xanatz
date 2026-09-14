@@ -233,7 +233,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_companies(self, obj):
         from .models import CompanyMember
-        user_companies = Company.objects.filter(models.Q(members=obj) | models.Q(creator=obj)).distinct()
+        user_companies = Company.objects.filter(
+            models.Q(members=obj) | models.Q(creator=obj) | models.Q(company_members__user=obj)
+        ).distinct()
         result = []
         for c in user_companies:
             is_owner = c.creator_id == obj.id
@@ -241,7 +243,22 @@ class UserSerializer(serializers.ModelSerializer):
             if not is_owner:
                 membership = CompanyMember.objects.filter(company=c, user=obj).first()
                 access_role = membership.access_role if membership else 'user'
-            result.append({"id": c.id, "name": c.name, "is_owner": is_owner, "access_role": access_role})
+            logo_url = None
+            if c.logo:
+                request = self.context.get('request')
+                if request:
+                    logo_url = request.build_absolute_uri(c.logo.url)
+                else:
+                    logo_url = c.logo.url
+            result.append({
+                "id": c.id,
+                "company_id": c.company_id,
+                "public_id": str(c.public_id),
+                "name": c.name,
+                "logo_url": logo_url,
+                "is_owner": is_owner,
+                "access_role": access_role
+            })
         return result
 
     def get_reviews(self, obj):
@@ -564,16 +581,25 @@ class RFPInterestSerializer(serializers.ModelSerializer):
     rfp_title = serializers.ReadOnlyField(source='rfp.title')
     rfp_company_name = serializers.ReadOnlyField(source='rfp.company.name')
     user_email = serializers.ReadOnlyField(source='user.email')
+    applicant_company_name = serializers.ReadOnlyField(source='applicant_company.name', default=None)
+    applicant_company_logo_url = serializers.SerializerMethodField()
     associated_review = serializers.SerializerMethodField()
 
     class Meta:
         model = RFPInterest
         fields = [
             'id', 'quotation_id', 'rfp', 'rfp_title', 'rfp_company_name', 'user', 'user_email',
+            'applicant_company', 'applicant_company_name', 'applicant_company_logo_url',
             'company_name', 'email', 'phone_number', 'proposal_summary',
             'attached_file', 'status', 'is_reviewed', 'associated_review', 'created_at'
         ]
         read_only_fields = ['user', 'quotation_id']
+
+    def get_applicant_company_logo_url(self, obj):
+        request = self.context.get('request')
+        if obj.applicant_company and obj.applicant_company.logo and request:
+            return request.build_absolute_uri(obj.applicant_company.logo.url)
+        return None
 
     def get_associated_review(self, obj):
         company_review = obj.company_reviews.first()

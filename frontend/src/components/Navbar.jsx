@@ -17,11 +17,15 @@ import {
   AlertCircle,
   Calendar,
   ChevronRight,
+  ChevronDown,
   ClipboardList,
   FileText,
   Sun,
   Moon,
   Menu,
+  Building2,
+  Check,
+  Plus,
 } from "lucide-react";
 
 import { useNavigate, useLocation } from "react-router-dom";
@@ -29,6 +33,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import api, { backendUrl } from "../api";
 import { formatDate } from "../utils/dateUtils";
+import { useAccount } from "../context/AccountContext";
 
 /* ─── tiny helpers ─────────────────────────────────────────────────────────── */
 
@@ -215,9 +220,11 @@ const MenuLink = ({ icon: Icon, label, onClick, danger = false }) => (
 
 const Navbar = () => {
   const { theme, setTheme } = useTheme();
+  const { accountMode, activeCompany, userCompanies, switchAccountMode } = useAccount();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isMessagesOpen, setIsMessagesOpen] = useState(false);
+  const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [conversations, setConversations] = useState([]);
   const [user, setUser] = useState(null);
@@ -231,6 +238,7 @@ const Navbar = () => {
   const dropdownRef = useRef(null);
   const notificationsRef = useRef(null);
   const messagesRef = useRef(null);
+  const accountSwitcherRef = useRef(null);
 
   /* scroll detection */
   useEffect(() => {
@@ -265,6 +273,9 @@ const Navbar = () => {
       }
       if (messagesRef.current && !messagesRef.current.contains(e.target)) {
         setIsMessagesOpen(false);
+      }
+      if (accountSwitcherRef.current && !accountSwitcherRef.current.contains(e.target)) {
+        setIsAccountSwitcherOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -847,6 +858,218 @@ const Navbar = () => {
               )}
             </AnimatePresence>
           </motion.div>
+
+          {/* Account Switcher Pill */}
+          {user && (
+            <div ref={accountSwitcherRef} style={{ position: "relative" }}>
+              <motion.button
+                onClick={() => {
+                  setIsAccountSwitcherOpen(!isAccountSwitcherOpen);
+                  setIsProfileOpen(false);
+                  setIsNotificationsOpen(false);
+                  setIsMessagesOpen(false);
+                }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.4rem",
+                  padding: "0.38rem 0.75rem",
+                  borderRadius: "9999px",
+                  border: accountMode === "company"
+                    ? "1px solid rgba(16, 185, 129, 0.4)"
+                    : "1px solid var(--color-card-border)",
+                  background: accountMode === "company"
+                    ? "rgba(16, 185, 129, 0.12)"
+                    : "var(--color-glass)",
+                  color: accountMode === "company"
+                    ? "#34d399"
+                    : "var(--color-text-primary)",
+                  fontSize: "0.75rem",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  boxShadow: accountMode === "company"
+                    ? "0 0 12px rgba(16, 185, 129, 0.2)"
+                    : "none",
+                }}
+              >
+                {accountMode === "company" ? (
+                  <>
+                    <Building2 size={14} color="#10b981" />
+                    <span style={{ maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {activeCompany?.name || "Company"}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <User size={14} color="#60a5fa" />
+                    <span>Personal</span>
+                  </>
+                )}
+                <ChevronDown size={12} style={{ opacity: 0.7 }} />
+              </motion.button>
+
+              <AnimatePresence>
+                {isAccountSwitcherOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 12, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                    transition={{ duration: 0.2, type: "spring", stiffness: 320, damping: 26 }}
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 0.75rem)",
+                      right: 0,
+                      width: "260px",
+                      zIndex: 2000,
+                      borderRadius: "1rem",
+                      overflow: "hidden",
+                      background: "var(--color-dropdown-bg)",
+                      backdropFilter: "blur(40px)",
+                      border: "1px solid var(--color-card-border)",
+                      boxShadow: "0 24px 48px -12px rgba(0,0,0,0.7), inset 0 1px 0 var(--color-glass)",
+                      padding: "0.5rem",
+                    }}
+                  >
+                    <div style={{ padding: "0.5rem 0.75rem 0.4rem", borderBottom: "1px solid var(--color-card-border)" }}>
+                      <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                        Select Active Account
+                      </span>
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem", marginTop: "0.35rem" }}>
+                      {/* Personal Account Option */}
+                      <button
+                        onClick={() => {
+                          switchAccountMode("personal");
+                          setIsAccountSwitcherOpen(false);
+                        }}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          width: "100%",
+                          padding: "0.65rem 0.75rem",
+                          borderRadius: "0.6rem",
+                          border: "none",
+                          background: accountMode === "personal" ? "rgba(59, 130, 246, 0.12)" : "transparent",
+                          color: accountMode === "personal" ? "#60a5fa" : "var(--color-text-secondary)",
+                          fontSize: "0.8rem",
+                          fontWeight: accountMode === "personal" ? 700 : 500,
+                          cursor: "pointer",
+                          transition: "all 0.2s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (accountMode !== "personal") e.currentTarget.style.background = "var(--color-card-border)";
+                        }}
+                        onMouseLeave={(e) => {
+                          if (accountMode !== "personal") e.currentTarget.style.background = "transparent";
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
+                          <User size={16} color="#60a5fa" />
+                          <div style={{ textAlign: "left" }}>
+                            <div style={{ fontWeight: 700, color: "var(--color-text-primary)" }}>Personal Account</div>
+                            <div style={{ fontSize: "0.65rem", color: "var(--color-text-muted)" }}>{user.email}</div>
+                          </div>
+                        </div>
+                        {accountMode === "personal" && <Check size={14} color="#60a5fa" />}
+                      </button>
+
+                      {/* Companies Options */}
+                      {userCompanies.length > 0 ? (
+                        <>
+                          <div style={{ padding: "0.4rem 0.75rem 0.2rem", borderTop: "1px solid var(--color-card-border)", marginTop: "0.2rem" }}>
+                            <span style={{ fontSize: "0.65rem", fontWeight: 800, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                              Company Accounts
+                            </span>
+                          </div>
+
+                          {userCompanies.map((comp) => {
+                            const isSelected = accountMode === "company" && String(activeCompany?.id) === String(comp.id);
+                            return (
+                              <button
+                                key={comp.id}
+                                onClick={() => {
+                                  switchAccountMode("company", comp);
+                                  setIsAccountSwitcherOpen(false);
+                                }}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  width: "100%",
+                                  padding: "0.65rem 0.75rem",
+                                  borderRadius: "0.6rem",
+                                  border: "none",
+                                  background: isSelected ? "rgba(16, 185, 129, 0.12)" : "transparent",
+                                  color: isSelected ? "#34d399" : "var(--color-text-secondary)",
+                                  fontSize: "0.8rem",
+                                  fontWeight: isSelected ? 700 : 500,
+                                  cursor: "pointer",
+                                  transition: "all 0.2s ease",
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (!isSelected) e.currentTarget.style.background = "var(--color-card-border)";
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (!isSelected) e.currentTarget.style.background = "transparent";
+                                }}
+                              >
+                                <div style={{ display: "flex", alignItems: "center", gap: "0.65rem", minWidth: 0 }}>
+                                  <Building2 size={16} color="#10b981" />
+                                  <div style={{ textAlign: "left", minWidth: 0 }}>
+                                    <div style={{ fontWeight: 700, color: "var(--color-text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                      {comp.name}
+                                    </div>
+                                    <div style={{ fontSize: "0.65rem", color: "var(--color-text-muted)" }}>
+                                      {comp.is_owner ? "Owner" : comp.access_role || "Member"}
+                                    </div>
+                                  </div>
+                                </div>
+                                {isSelected && <Check size={14} color="#10b981" />}
+                              </button>
+                            );
+                          })}
+                        </>
+                      ) : (
+                        <div style={{ borderTop: "1px solid var(--color-card-border)", marginTop: "0.35rem", paddingTop: "0.5rem" }}>
+                          <button
+                            onClick={() => {
+                              setIsAccountSwitcherOpen(false);
+                              navigate("/profile");
+                            }}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.5rem",
+                              width: "100%",
+                              padding: "0.6rem 0.75rem",
+                              borderRadius: "0.6rem",
+                              border: "1px dashed var(--color-card-border)",
+                              background: "transparent",
+                              color: "var(--color-accent, #3b82f6)",
+                              fontSize: "0.75rem",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              transition: "all 0.2s ease",
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(59, 130, 246, 0.08)")}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                          >
+                            <Plus size={14} />
+                            <span>Register / Create Company</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
 
           {/* Avatar + dropdown */}
           <div ref={dropdownRef} style={{ position: "relative" }}>

@@ -57,7 +57,8 @@ const JOB_TYPE_LABELS = {
 };
 
 const ApplyJobPage = () => {
-  const { id } = useParams();
+  const { jobId, id: paramId } = useParams();
+  const id = jobId || paramId;
   const navigate = useNavigate();
   const location = useLocation();
 

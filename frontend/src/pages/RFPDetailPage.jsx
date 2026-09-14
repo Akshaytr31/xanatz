@@ -43,7 +43,8 @@ import { formatDate } from "../utils/dateUtils";
 const MotionBox = motion.create(Box);
 
 const RFPDetailPage = () => {
-  const { id } = useParams();
+  const { rfpId, id: paramId } = useParams();
+  const id = rfpId || paramId;
   const navigate = useNavigate();
   const location = useLocation();
 

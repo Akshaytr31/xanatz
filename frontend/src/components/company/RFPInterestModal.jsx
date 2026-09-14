@@ -31,6 +31,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../api";
 import AIEnhancedTextarea from "../AIEnhancedTextarea";
+import { useAccount } from "../../context/AccountContext";
 
 const MotionBox = motion.create(Box);
 
@@ -87,7 +88,8 @@ const SelectField = ({ value, onChange, options, placeholder }) => (
   </Box>
 );
 
-const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
+const RFPInterestModal = ({ isOpen, onClose, rfp, onSubmitSuccess }) => {
+  const { accountMode, activeCompany } = useAccount();
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -100,7 +102,7 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
   });
   const [attachedFile, setAttachedFile] = useState(null);
 
-  const [profileType, setProfileType] = useState("personal"); // 'personal' or 'company'
+  const [profileType, setProfileType] = useState("personal"); // 'personal', 'freelancer', or 'company'
   const [myCompanies, setMyCompanies] = useState([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [userInfo, setUserInfo] = useState(null);
@@ -111,8 +113,6 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
       setSuccess(false);
       setErrorMsg("");
       setAttachedFile(null);
-      setProfileType("personal");
-      setSelectedCompanyId("");
       setSubmittedQuotationId("");
       
       const loadData = async () => {
@@ -125,20 +125,36 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
           const companies = companiesRes.data || [];
           setMyCompanies(companies);
           
-          const name = `${userRes.data.first_name || ""} ${userRes.data.last_name || ""}`.trim();
-          setForm({
-            company_name: name || userRes.data.email.split("@")[0],
-            email: userRes.data.email || "",
-            phone_number: "",
-            proposal_summary: "",
-          });
+          const userName = `${userRes.data.first_name || ""} ${userRes.data.last_name || ""}`.trim();
+          
+          // Preselect profileType and company based on active account context
+          if (accountMode === "company" && (activeCompany || companies.length > 0)) {
+            const targetComp = activeCompany || companies[0];
+            setProfileType("company");
+            setSelectedCompanyId(targetComp.id.toString());
+            setForm({
+              company_name: targetComp.name,
+              email: userRes.data.email || "",
+              phone_number: userRes.data.phone_number || "",
+              proposal_summary: "",
+            });
+          } else {
+            setProfileType("personal");
+            setSelectedCompanyId("");
+            setForm({
+              company_name: userName || userRes.data.email.split("@")[0],
+              email: userRes.data.email || "",
+              phone_number: userRes.data.phone_number || "",
+              proposal_summary: "",
+            });
+          }
         } catch (err) {
           console.error(err);
         }
       };
       loadData();
     }
-  }, [isOpen]);
+  }, [isOpen, accountMode, activeCompany]);
 
   const isOwnCompanyRfp = Boolean(
     rfp && (
@@ -149,7 +165,7 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
   );
 
   const handleSave = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     
     if (isOwnCompanyRfp) {
       setErrorMsg("You cannot express interest in an RFP created by your own company.");
@@ -176,6 +192,9 @@ const RFPInterestModal = ({ isOpen, onClose, rfp }) => {
       formData.append("email", form.email);
       formData.append("phone_number", form.phone_number);
       formData.append("proposal_summary", form.proposal_summary);
+      if (profileType === "company" && selectedCompanyId) {
+        formData.append("applicant_company", selectedCompanyId);
+      }
       if (attachedFile) {
         formData.append("attached_file", attachedFile);
       }

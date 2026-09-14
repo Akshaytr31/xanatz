@@ -29,11 +29,11 @@ import {
 /* ─── Filter option constants ────────────────────────────────────────────── */
 export const SALARY_BUCKETS = [
   { label: "Any Salary",      value: "all" },
-  { label: "Up to $30k",      value: "0-30" },
-  { label: "$30k – $60k",     value: "30-60" },
-  { label: "$60k – $100k",    value: "60-100" },
-  { label: "$100k – $150k",   value: "100-150" },
-  { label: "$150k+",          value: "150-999" },
+  { label: "Up to AED 30k",   value: "0-30" },
+  { label: "AED 30k – 60k",   value: "30-60" },
+  { label: "AED 60k – 100k",  value: "60-100" },
+  { label: "AED 100k – 150k", value: "100-150" },
+  { label: "AED 150k+",       value: "150-999" },
 ];
 
 export const JOB_TYPE_OPTIONS = [

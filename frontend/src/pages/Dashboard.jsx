@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Briefcase, SlidersHorizontal, X as XIcon, LayoutGrid, List } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Briefcase, SlidersHorizontal, X as XIcon, LayoutGrid, List, Building2 } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Box,
   Flex,
@@ -64,12 +64,34 @@ const JOBS_PER_PAGE = 8;
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  const [filters, setFilters] = useState(() => {
+    const compId = searchParams.get("company") || "";
+    const compName = searchParams.get("company_name") || "";
+    return {
+      ...DEFAULT_FILTERS,
+      companyId: compId,
+      companySearch: compName || DEFAULT_FILTERS.companySearch,
+    };
+  });
   const [viewMode, setViewMode] = useState("grid"); // "grid" | "list"
   const [currentPage, setCurrentPage] = useState(1);
+
+  const companyParam = searchParams.get("company");
+  const companyNameParam = searchParams.get("company_name");
+
+  useEffect(() => {
+    if (companyParam || companyNameParam) {
+      setFilters((prev) => ({
+        ...prev,
+        companyId: companyParam || "",
+        companySearch: companyNameParam || prev.companySearch,
+      }));
+    }
+  }, [companyParam, companyNameParam]);
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -77,6 +99,7 @@ const Dashboard = () => {
   };
 
   const handleReset = () => {
+    setSearchParams({});
     setFilters(DEFAULT_FILTERS);
     setCurrentPage(1);
   };
@@ -117,13 +140,20 @@ const Dashboard = () => {
 
   /* ── Filter ── */
   let filteredJobs = jobs.filter((job) => {
-    const { titleSearch, companySearch, locationSearch, jobTypeFilter, salaryBucket, industryFilter } = filters;
+    const { titleSearch, companySearch, companyId, locationSearch, jobTypeFilter, salaryBucket, industryFilter } = filters;
 
     if (titleSearch && !(
       job.title.toLowerCase().includes(titleSearch.toLowerCase()) ||
       (job.job_id && job.job_id.toLowerCase().includes(titleSearch.toLowerCase()))
     )) return false;
-    if (companySearch && !job.company_name.toLowerCase().includes(companySearch.toLowerCase())) return false;
+
+    if (companyId) {
+      const jobCompId = job.company?.id || job.company;
+      if (String(jobCompId) !== String(companyId)) return false;
+    } else if (companySearch && !(job.company_name && job.company_name.toLowerCase().includes(companySearch.toLowerCase()))) {
+      return false;
+    }
+
     if (locationSearch && !(job.location && job.location.toLowerCase().includes(locationSearch.toLowerCase()))) return false;
     if (jobTypeFilter !== "all" && job.job_type !== jobTypeFilter) return false;
     if (industryFilter !== "all" && job.industry !== industryFilter) return false;
@@ -257,6 +287,49 @@ const Dashboard = () => {
               </Box>
             </HStack>
           </Flex>
+
+          {/* Active Company Filter Banner */}
+          {(filters.companyId || (companyNameParam && filters.companySearch)) && (
+            <HStack
+              gap={2.5}
+              px={4}
+              py={2.5}
+              borderRadius="14px"
+              mb={5}
+              style={{
+                background: "rgba(59, 130, 246, 0.12)",
+                border: "1px solid rgba(59, 130, 246, 0.3)",
+                backdropFilter: "blur(12px)",
+              }}
+            >
+              <Building2 size={16} color="#60a5fa" />
+              <Text fontSize="13px" fontWeight="bold" color="white">
+                Showing jobs for:{" "}
+                <Text as="span" color="#60a5fa">
+                  "{companyNameParam || filters.companySearch || `Company #${filters.companyId}`}"
+                </Text>
+              </Text>
+              <Box
+                as="button"
+                onClick={() => {
+                  setSearchParams({});
+                  setFilters((prev) => ({ ...prev, companySearch: "", companyId: "" }));
+                }}
+                ml="auto"
+                px={2.5}
+                py={1}
+                borderRadius="full"
+                fontSize="11px"
+                fontWeight="bold"
+                cursor="pointer"
+                style={{ background: "rgba(239, 68, 68, 0.2)", color: "#f87171", border: "1px solid rgba(239, 68, 68, 0.4)" }}
+                _hover={{ background: "rgba(239, 68, 68, 0.35)" }}
+                transition="all 0.2s"
+              >
+                Show All Jobs ✕
+              </Box>
+            </HStack>
+          )}
 
           {/* Active filter chips */}
           {activeFilterCount > 0 && (

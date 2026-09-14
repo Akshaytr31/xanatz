@@ -320,8 +320,10 @@ class CompanyViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='my-companies')
     def my_companies(self, request):
-        """Returns only companies created by the current user."""
-        companies = Company.objects.filter(creator=request.user)
+        """Returns companies created by or associated with the current user."""
+        companies = Company.objects.filter(
+            Q(creator=request.user) | Q(members=request.user) | Q(company_members__user=request.user)
+        ).distinct()
         serializer = self.get_serializer(companies, many=True)
         return Response(serializer.data)
 
@@ -960,7 +962,20 @@ class RFPInterestViewSet(viewsets.ModelViewSet):
                 from rest_framework.exceptions import ValidationError
                 raise ValidationError({"detail": "You cannot express interest in an RFP created by your own company."})
 
-        rfp_interest = serializer.save(user=self.request.user)
+        # Check for applicant_company passed in request.data
+        applicant_company_id = self.request.data.get('applicant_company') or self.request.data.get('applicant_company_id')
+        applicant_company = None
+        if applicant_company_id:
+            user_companies = Company.objects.filter(Q(creator=user) | Q(members=user)).distinct()
+            applicant_company = user_companies.filter(id=applicant_company_id).first()
+
+        save_kwargs = {'user': self.request.user}
+        if applicant_company:
+            save_kwargs['applicant_company'] = applicant_company
+            if not serializer.validated_data.get('company_name'):
+                save_kwargs['company_name'] = applicant_company.name
+
+        rfp_interest = serializer.save(**save_kwargs)
         
         # Notify the company admins/owner
         company = rfp_interest.rfp.company
@@ -974,12 +989,13 @@ class RFPInterestViewSet(viewsets.ModelViewSet):
             if admin_member.user:
                 recipients.add(admin_member.user)
                 
+        applicant_display_name = rfp_interest.applicant_company.name if rfp_interest.applicant_company else rfp_interest.company_name
         for recipient in recipients:
             if recipient != self.request.user:
                 Notification.objects.create(
                     recipient=recipient,
                     sender=self.request.user,
-                    message=f"{rfp_interest.company_name} showed interest in your RFP '{rfp.title}'.",
+                    message=f"{applicant_display_name} showed interest in your RFP '{rfp.title}'.",
                     target_url=f"/company/{company.id}/rfp-interests"
                 )
 

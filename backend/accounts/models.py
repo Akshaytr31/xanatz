@@ -422,6 +422,7 @@ class RFPInterest(models.Model):
     ]
     rfp = models.ForeignKey(RFP, on_delete=models.CASCADE, related_name='interests')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='rfp_interests')
+    applicant_company = models.ForeignKey('Company', on_delete=models.SET_NULL, null=True, blank=True, related_name='submitted_rfp_interests')
     company_name = models.CharField(max_length=255)
     email = models.EmailField()
     phone_number = models.CharField(max_length=15, blank=True, null=True)
@@ -438,11 +439,12 @@ class RFPInterest(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if not self.quotation_id:
-            company = None
-            if hasattr(self.user, 'created_companies') and self.user.created_companies.exists():
-                company = self.user.created_companies.first()
-            elif hasattr(self.user, 'companies') and self.user.companies.exists():
-                company = self.user.companies.first()
+            company = self.applicant_company
+            if not company:
+                if hasattr(self.user, 'created_companies') and self.user.created_companies.exists():
+                    company = self.user.created_companies.first()
+                elif hasattr(self.user, 'companies') and self.user.companies.exists():
+                    company = self.user.companies.first()
 
             if company:
                 if not company.company_id:

@@ -169,6 +169,7 @@ const CreateCompanySection = ({ onCreated, width, compact }) => {
       await api.post("companies/", data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+      window.dispatchEvent(new Event("xanatz_company_updated"));
       handleClose();
       if (onCreated) onCreated();
     } catch (err) {

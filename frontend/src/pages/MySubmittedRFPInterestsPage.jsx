@@ -207,6 +207,16 @@ const MySubmittedRFPInterestsPage = () => {
                           <Clock size={12} />
                           <Text>{formatDate(item.created_at)}</Text>
                         </HStack>
+                        <Text color="rgba(255,255,255,0.3)">•</Text>
+                        {item.applicant_company_name ? (
+                          <Badge bg="rgba(16, 185, 129, 0.15)" color="#34d399" border="1px solid rgba(16, 185, 129, 0.3)" fontSize="10px" px={2} py={0.5} borderRadius="md" fontWeight="bold">
+                            🏢 {item.applicant_company_name}
+                          </Badge>
+                        ) : (
+                          <Badge bg="rgba(59, 130, 246, 0.15)" color="#93c5fd" border="1px solid rgba(59, 130, 246, 0.3)" fontSize="10px" px={2} py={0.5} borderRadius="md" fontWeight="bold">
+                            👤 Personal Account
+                          </Badge>
+                        )}
                       </HStack>
 
                       {item.proposal_summary && (
