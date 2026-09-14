@@ -695,7 +695,7 @@ const Profile = () => {
               })()}
 
 
-              {/* ── Cell 3: Freelancer ──────────────────────── */}
+              {/* FREELANCER FEATURE (Disabled for now - uncomment to enable)
               <div style={{
                 padding: "22px 20px",
                 borderRight: "1px solid rgba(255,255,255,0.06)",
@@ -770,6 +770,7 @@ const Profile = () => {
                   </div>
                 )}
               </div>
+              */}
 
               {/* ── Cell 4: Company ─────────────────────────── */}
               <div style={{

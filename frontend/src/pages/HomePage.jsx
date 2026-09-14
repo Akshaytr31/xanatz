@@ -1062,6 +1062,7 @@ const HomePage = () => {
            SECTION 3: QUICK SHORTCUTS & PLATFORM LINKS
         ═════════════════════════════════════════════════════════════════════ */}
         <SimpleGrid columns={{ base: 1, sm: 2, md: 3 }} gap={4}>
+          {/* FREELANCER FEATURE (Disabled for now - uncomment to enable)
           <MotionBox
             whileHover={{ y: -3 }}
             onClick={() => navigate("/freelancers")}
@@ -1085,6 +1086,7 @@ const HomePage = () => {
               Browse top independent talent and specialized professionals.
             </Text>
           </MotionBox>
+          */}
 
           <MotionBox
             whileHover={{ y: -3 }}

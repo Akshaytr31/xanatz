@@ -438,7 +438,7 @@ const RFPInterestModal = ({ isOpen, onClose, rfp, onSubmitSuccess }) => {
                             </VStack>
                           </Flex>
 
-                          {/* Freelancer Option */}
+                          {/* FREELANCER FEATURE (Disabled for now - uncomment to enable)
                           <Flex
                             flex={1}
                             align="center"
@@ -490,6 +490,7 @@ const RFPInterestModal = ({ isOpen, onClose, rfp, onSubmitSuccess }) => {
                               </Text>
                             </VStack>
                           </Flex>
+                          */}
 
                           {/* Company Option */}
                           <Flex
@@ -552,7 +553,7 @@ const RFPInterestModal = ({ isOpen, onClose, rfp, onSubmitSuccess }) => {
                         </Flex>
                       </Box>
 
-                      {/* Freelancer Profile Details Preview */}
+                      {/* FREELANCER FEATURE (Disabled for now - uncomment to enable)
                       {profileType === "freelancer" && (
                         <Box
                           p={3.5}
@@ -602,6 +603,7 @@ const RFPInterestModal = ({ isOpen, onClose, rfp, onSubmitSuccess }) => {
                           </Flex>
                         </Box>
                       )}
+                      */}
 
                       {/* Company Selection Dropdown */}
                       {profileType === "company" && (
@@ -610,7 +612,7 @@ const RFPInterestModal = ({ isOpen, onClose, rfp, onSubmitSuccess }) => {
                             <Flex bg="rgba(245, 158, 11, 0.1)" border="1px solid rgba(245, 158, 11, 0.2)" p={3.5} borderRadius="xl" align="center" gap={3}>
                               <AlertCircle size={16} color="#f59e0b" />
                               <Text color="#fbbf24" fontSize="3xs" fontWeight="bold">
-                                You have no company profiles created yet. Please use your Personal or Freelancer Profile, or register a company first.
+                                You have no company profiles created yet. Please use your Personal Profile, or register a company first.
                               </Text>
                             </Flex>
                           ) : (

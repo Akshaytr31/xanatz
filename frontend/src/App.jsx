@@ -76,6 +76,7 @@ function App() {
           />
           <Route path="/profile/:publicId" element={<PublicProfile />} />
           <Route path="/company/:publicId" element={<PublicCompanyProfile />} />
+          {/* FREELANCER FEATURE (Disabled for now - uncomment to enable)
           <Route
             path="/freelancer/dashboard"
             element={
@@ -88,6 +89,7 @@ function App() {
             path="/freelancers"
             element={<FreelancersPage />}
           />
+          */}
           <Route
             path="/company/:id/dashboard"
             element={
