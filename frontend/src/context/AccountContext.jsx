@@ -21,9 +21,22 @@ export const AccountProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const logout = () => {
+    localStorage.clear();
+    setUser(null);
+    setUserCompanies([]);
+    setActiveCompanyState(null);
+    setAccountModeState("personal");
+    window.dispatchEvent(new Event("xanatz_auth_changed"));
+  };
+
   const fetchUserData = async () => {
     const token = localStorage.getItem("access");
     if (!token) {
+      setUser(null);
+      setUserCompanies([]);
+      setActiveCompanyState(null);
+      setAccountModeState("personal");
       setLoading(false);
       return;
     }
@@ -93,13 +106,15 @@ export const AccountProvider = ({ children }) => {
   useEffect(() => {
     fetchUserData();
 
-    const handleCompanyUpdate = () => {
+    const handleUpdate = () => {
       fetchUserData();
     };
 
-    window.addEventListener("xanatz_company_updated", handleCompanyUpdate);
+    window.addEventListener("xanatz_company_updated", handleUpdate);
+    window.addEventListener("xanatz_auth_changed", handleUpdate);
     return () => {
-      window.removeEventListener("xanatz_company_updated", handleCompanyUpdate);
+      window.removeEventListener("xanatz_company_updated", handleUpdate);
+      window.removeEventListener("xanatz_auth_changed", handleUpdate);
     };
   }, []);
 
@@ -145,7 +160,8 @@ export const AccountProvider = ({ children }) => {
         setAccountMode,
         setActiveCompany,
         switchAccountMode,
-        refreshUserData: fetchUserData
+        refreshUserData: fetchUserData,
+        logout
       }}
     >
       {children}

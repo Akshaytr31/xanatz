@@ -4,6 +4,7 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
+from django.core.exceptions import ValidationError
 from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ
 from .serializers import (
     SendOTPSerializer, VerifyOTPSerializer, RegisterUserSerializer, 
@@ -527,13 +528,20 @@ class PublicProfileView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, public_id):
+        profile = None
         try:
-            profile = Profile.objects.get(public_id=public_id)
-            user = profile.user
-            serializer = UserSerializer(user)
+            profile = Profile.objects.filter(public_id=public_id).first()
+        except (ValidationError, ValueError, TypeError):
+            pass
+
+        if not profile and str(public_id).isdigit():
+            profile = Profile.objects.filter(Q(id=int(public_id)) | Q(user_id=int(public_id))).first()
+
+        if profile:
+            serializer = UserSerializer(profile.user)
             return Response(serializer.data)
-        except (Profile.DoesNotExist, ValueError):
-            return Response({"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)
 
 class UserSearchView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -1265,7 +1273,10 @@ class PublicCompanyProfileView(APIView):
         company = None
         
         # 1. Try matching public_id (UUID or string)
-        company = Company.objects.filter(public_id=public_id).first()
+        try:
+            company = Company.objects.filter(public_id=public_id).first()
+        except (ValidationError, ValueError, TypeError):
+            pass
         
         # 2. If not found and public_id is numeric, try matching primary key id
         if not company and str(public_id).isdigit():

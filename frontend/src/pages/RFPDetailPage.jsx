@@ -121,6 +121,10 @@ const RFPDetailPage = () => {
   };
 
   useEffect(() => {
+    if (!id || id === "undefined") {
+      setLoading(false);
+      return;
+    }
     const fetchData = async () => {
       try {
         const [rfpRes, rfpsListRes] = await Promise.all([

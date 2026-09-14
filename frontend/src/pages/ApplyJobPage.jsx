@@ -222,6 +222,11 @@ const ApplyJobPage = () => {
   };
 
   useEffect(() => {
+    if (!id || id === "undefined") {
+      setErrorMsg("Job not found.");
+      setLoading(false);
+      return;
+    }
     setVisibleSimilarCount(3);
     const fetchData = async () => {
       try {

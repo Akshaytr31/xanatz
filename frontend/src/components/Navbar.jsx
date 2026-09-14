@@ -220,14 +220,14 @@ const MenuLink = ({ icon: Icon, label, onClick, danger = false }) => (
 
 const Navbar = () => {
   const { theme, setTheme } = useTheme();
-  const { accountMode, activeCompany, userCompanies, switchAccountMode } = useAccount();
+  const { accountMode, activeCompany, userCompanies, user: contextUser, switchAccountMode, logout: contextLogout } = useAccount();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isMessagesOpen, setIsMessagesOpen] = useState(false);
   const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [conversations, setConversations] = useState([]);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(contextUser);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -247,11 +247,15 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  /* fetch user */
+  /* sync user from context & fetch user */
   useEffect(() => {
+    setUser(contextUser);
     const fetchUser = async () => {
       const token = localStorage.getItem("access");
-      if (!token) return;
+      if (!token) {
+        setUser(null);
+        return;
+      }
       try {
         const res = await api.get("me/");
         setUser(res.data);
@@ -259,8 +263,10 @@ const Navbar = () => {
         console.error("Failed to fetch user in navbar", err);
       }
     };
-    fetchUser();
-  }, []);
+    if (!contextUser && localStorage.getItem("access")) {
+      fetchUser();
+    }
+  }, [contextUser]);
 
   /* close dropdown on outside click */
   useEffect(() => {
@@ -386,7 +392,12 @@ const Navbar = () => {
   };
 
   const handleLogout = () => {
-    localStorage.clear();
+    if (contextLogout) {
+      contextLogout();
+    } else {
+      localStorage.clear();
+      window.dispatchEvent(new Event("xanatz_auth_changed"));
+    }
     navigate("/login");
   };
 
