@@ -521,6 +521,36 @@ class CompanyViewSet(viewsets.ModelViewSet):
         process_items(flagged_rfps, 'rfp')
         process_items(company_reviews, 'company_review')
 
+        # Always include company channel admin inquiry if admin messages exist for this company
+        company_messages = Message.objects.filter(
+            Q(company=company) |
+            (Q(sender_id__in=admin_ids) & Q(recipient_id__in=company_user_ids)) |
+            (Q(sender_id__in=company_user_ids) & Q(recipient_id__in=admin_ids))
+        ).order_by('created_at')
+
+        last_admin_msg = company_messages.filter(Q(sender_id__in=admin_ids) | Q(sender__is_staff=True) | Q(sender__is_superuser=True)).last()
+        last_reply = company_messages.exclude(Q(sender_id__in=admin_ids) | Q(sender__is_staff=True) | Q(sender__is_superuser=True)).last()
+
+        if last_admin_msg and not any(i.get('has_admin_message') for i in items_data):
+            has_company_replied = last_reply is not None and last_reply.created_at > last_admin_msg.created_at
+            items_data.append({
+                'id': f"channel-{company.id}",
+                'item_type': 'company_channel',
+                'title': f"Admin Communication Channel - {company.name}",
+                'custom_id': f"CMP-{company.company_id or company.id}",
+                'flag_reason': 'Direct moderation & clarification inquiry from Platform Administrator',
+                'flag_status': 'inquiry',
+                'created_at': last_admin_msg.created_at,
+                'has_admin_message': True,
+                'last_admin_message': last_admin_msg.content,
+                'last_admin_message_time': last_admin_msg.created_at,
+                'admin_user_id': last_admin_msg.sender_id,
+                'has_company_reply': has_company_replied,
+                'last_company_reply': last_reply.content if has_company_replied else None,
+                'last_company_reply_time': last_reply.created_at if has_company_replied else None,
+                'messages_count': company_messages.count()
+            })
+
         return Response(items_data, status=status.HTTP_200_OK)
 
 
@@ -1153,14 +1183,39 @@ class MessageViewSet(viewsets.ModelViewSet):
         partner_ids.discard(None)
         partner_ids.discard(user.id)
         
-        partners = User.objects.filter(id__in=partner_ids)
         conversations_data = []
         
+        # Add company channels for companies the user belongs to
+        for comp_id in company_ids:
+            try:
+                comp = Company.objects.get(id=comp_id)
+                last_comp_msg = Message.objects.filter(company_id=comp_id).order_by('-created_at').first()
+                unread_comp_count = Message.objects.filter(company_id=comp_id, is_read=False).exclude(sender=user).count()
+
+                logo_url = None
+                if comp.logo:
+                    logo_url = request.build_absolute_uri(comp.logo.url)
+
+                conversations_data.append({
+                    'id': f"company_{comp.id}",
+                    'is_company_channel': True,
+                    'company_id': comp.id,
+                    'email': f"Official Admin Inquiry & Clarification Channel ({comp.name})",
+                    'name': "Xanatz Admin Support",
+                    'company_name': comp.name,
+                    'profile_picture': None,
+                    'last_message': last_comp_msg.content if last_comp_msg else "Official clarification channel with Xanatz Admins",
+                    'last_message_time': last_comp_msg.created_at if last_comp_msg else comp.created_at,
+                    'unread_count': unread_comp_count
+                })
+            except Company.DoesNotExist:
+                pass
+
+        partners = User.objects.filter(id__in=partner_ids)
         for partner in partners:
             last_msg = Message.objects.filter(
                 (Q(sender=user) & Q(recipient=partner)) | 
-                (Q(sender=partner) & Q(recipient=user)) |
-                (Q(company_id__in=company_ids) & (Q(sender=partner) | Q(recipient=partner)) if company_ids else Q(pk__in=[]))
+                (Q(sender=partner) & Q(recipient=user))
             ).order_by('-created_at').first()
             
             unread_count = Message.objects.filter(
@@ -1178,6 +1233,7 @@ class MessageViewSet(viewsets.ModelViewSet):
                 
             conversations_data.append({
                 'id': partner.id,
+                'is_company_channel': False,
                 'email': partner.email,
                 'name': partner_name,
                 'profile_picture': profile_pic_url,
@@ -1198,12 +1254,13 @@ class MessageViewSet(viewsets.ModelViewSet):
         if company_id:
             try:
                 comp = Company.objects.get(id=company_id)
-                if not (user.is_staff or user.is_superuser or can_manage_company_hr(user, comp)):
+                is_company_member = (comp.creator_id == user.id) or CompanyMember.objects.filter(company=comp, user=user).exists()
+                if not (user.is_staff or user.is_superuser or is_company_member):
                     return Response({"error": "Permission denied for company chat"}, status=status.HTTP_403_FORBIDDEN)
             except Company.DoesNotExist:
                 return Response({"error": "Company not found"}, status=status.HTTP_404_NOT_FOUND)
 
-            company_user_ids = set(CompanyMember.objects.filter(company=comp, access_role__in=['super_admin', 'admin', 'hr']).values_list('user_id', flat=True))
+            company_user_ids = set(CompanyMember.objects.filter(company=comp).values_list('user_id', flat=True))
             if comp.creator_id:
                 company_user_ids.add(comp.creator_id)
 

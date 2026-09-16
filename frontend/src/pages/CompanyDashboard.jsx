@@ -11,6 +11,7 @@ import JobOpeningModal from "../components/company/JobOpeningModal";
 import RFPModal from "../components/company/RFPModal";
 import PricingPlansModal from "../components/company/PricingPlansModal";
 import CompanyFAQModal from "../components/company/CompanyFAQModal";
+import CompanyChannelSection from "../components/company/CompanyChannelSection";
 import AdminChatModal from "../components/admin/AdminChatModal";
 import api from "../api";
 import { getMemberPermissions } from "../utils/companyPermissions";
@@ -476,6 +477,19 @@ const CompanyDashboard = () => {
                     <Settings2 size={18} color="var(--color-text-primary)" />
                   </Box>
                 )}
+                <Box as="button" onClick={() => navigate(`/messages?company_id=${company.id}`)}
+                  w="44px" h="44px" borderRadius="full" display="flex" alignItems="center" justifyContent="center"
+                  border="1px solid var(--color-card-border)"
+                  style={{ background: "var(--color-card-bg)", backdropFilter: "blur(10px)", cursor: "pointer", transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" }}
+                  _hover={{ 
+                    borderColor: "#3b82f6", 
+                    background: "rgba(59,130,246,0.1)", 
+                    transform: "translateY(-3px)",
+                  }}
+                  title="Company Channel Messages"
+                >
+                  <MessageSquare size={18} color="#3b82f6" />
+                </Box>
                 <Box as="button" onClick={handleShare}
                   w="44px" h="44px" borderRadius="full" display="flex" alignItems="center" justifyContent="center"
                   border="1px solid var(--color-card-border)"
@@ -543,17 +557,9 @@ const CompanyDashboard = () => {
                           colorScheme="blue"
                           borderRadius="xl"
                           leftIcon={<MessageSquare size={14} />}
-                          onClick={() => setAdminChatTarget({
-                            company_id: company.id,
-                            company_name: company.name,
-                            user_id: item.admin_user_id,
-                            user_name: "Platform Admin",
-                            user_email: "admin@xanatz.com",
-                            reason: `Clarification for ${item.title}`,
-                            item_title: item.title
-                          })}
+                          onClick={() => navigate(`/messages?company_id=${company.id}`)}
                         >
-                          Reply to Admin
+                          {item.has_company_reply ? "View & Reply" : "Reply to Admin"}
                         </Button>
                       </Flex>
                     </Box>

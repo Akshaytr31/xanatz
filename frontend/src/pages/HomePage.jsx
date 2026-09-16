@@ -38,6 +38,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "../components/Navbar";
 import { useAccount } from "../context/AccountContext";
+import CompanyChannelSection from "../components/company/CompanyChannelSection";
 import api from "../api";
 
 const MotionBox = motion.create(Box);
@@ -358,6 +359,30 @@ const HomePage = () => {
                     >
                       <Users size={16} color="#60a5fa" />
                       Team Members
+                    </Box>
+
+                    <Box
+                      as="button"
+                      onClick={() => navigate(`/messages?company_id=${activeCompany.id}`)}
+                      px={4}
+                      py={2.5}
+                      borderRadius="12px"
+                      fontSize="13px"
+                      fontWeight="700"
+                      cursor="pointer"
+                      style={{
+                        background: "rgba(59, 130, 246, 0.15)",
+                        color: "#60a5fa",
+                        border: "1px solid rgba(59, 130, 246, 0.3)",
+                      }}
+                      _hover={{ background: "rgba(59, 130, 246, 0.25)", transform: "translateY(-1px)" }}
+                      transition="all 0.2s"
+                      display="flex"
+                      alignItems="center"
+                      gap={2}
+                    >
+                      <MessageSquare size={16} color="#60a5fa" />
+                      Channel Messages
                     </Box>
                   </HStack>
                 )}

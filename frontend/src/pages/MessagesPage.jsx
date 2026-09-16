@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import api, { backendUrl } from "../api";
-import { MessageSquare, Send, Search, User, Loader2, MessageCircle } from "lucide-react";
+import { MessageSquare, Send, Search, User, Loader2, MessageCircle, Building2, Shield } from "lucide-react";
 
 const MessagesPage = () => {
   const location = useLocation();
@@ -19,6 +19,8 @@ const MessagesPage = () => {
   const [loadingChat, setLoadingChat] = useState(false);
 
   const messagesEndRef = useRef(null);
+  const chatContainerRef = useRef(null);
+  const isInitialChatLoadRef = useRef(true);
   const hasHandledInitialRef = useRef(false);
 
   const getImageUrl = (path) => {
@@ -57,15 +59,42 @@ const MessagesPage = () => {
   };
 
   // Fetch chat history with active partner
-  const fetchChatHistory = async (partnerId, silent = false) => {
-    if (!partnerId) return;
-    if (!silent) setLoadingChat(true);
+  const fetchChatHistory = async (partner, silent = false) => {
+    if (!partner) return;
+    if (!silent) {
+      setLoadingChat(true);
+      setMessages([]);
+    }
     try {
-      const res = await api.get(`messages/chat/?user_id=${partnerId}`);
-      setMessages(res.data);
-      
-      // Mark these messages as read
-      await api.post("messages/mark-read/", { sender_id: partnerId });
+      let res;
+      if (partner.is_company_channel && partner.company_id) {
+        res = await api.get(`messages/chat/?company_id=${partner.company_id}`);
+        await api.post("messages/mark-read/", { company_id: partner.company_id }).catch(() => {});
+      } else {
+        res = await api.get(`messages/chat/?user_id=${partner.id}`);
+        await api.post("messages/mark-read/", { sender_id: partner.id }).catch(() => {});
+      }
+      const newMsgs = res.data || [];
+      if (!silent) {
+        setMessages(newMsgs);
+      } else {
+        setMessages((prev) => {
+          const isDifferent = prev.length !== newMsgs.length || (newMsgs.length > 0 && prev.length > 0 && prev[prev.length - 1].id !== newMsgs[newMsgs.length - 1].id);
+          if (isDifferent) {
+            if (chatContainerRef.current) {
+              const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+              const isNearBottom = scrollHeight - scrollTop - clientHeight < 150;
+              if (isNearBottom) {
+                setTimeout(() => {
+                  messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+                }, 100);
+              }
+            }
+            return newMsgs;
+          }
+          return prev;
+        });
+      }
     } catch (err) {
       console.error("Failed to fetch chat history", err);
     } finally {
@@ -80,31 +109,71 @@ const MessagesPage = () => {
     return () => clearInterval(intervalConv);
   }, []);
 
-  const activePartnerId = activePartner?.id;
+  const activePartnerKey = activePartner?.is_company_channel ? `company_${activePartner.company_id}` : activePartner?.id;
 
   useEffect(() => {
-    if (activePartnerId) {
-      fetchChatHistory(activePartnerId, false);
-      const intervalChat = setInterval(() => fetchChatHistory(activePartnerId, true), 3000);
+    if (activePartner) {
+      isInitialChatLoadRef.current = true;
+      fetchChatHistory(activePartner, false);
+      const intervalChat = setInterval(() => fetchChatHistory(activePartner, true), 4000);
       return () => clearInterval(intervalChat);
     } else {
       setMessages([]);
     }
-  }, [activePartnerId]);
+  }, [activePartnerKey]);
 
-  // If no partner selected, auto-select first conversation once loaded
+  // If no partner selected, auto-select specified company channel or first conversation once loaded
   useEffect(() => {
-    if (!activePartner && conversations.length > 0 && !hasHandledInitialRef.current) {
-      setActivePartner(conversations[0]);
+    if (conversations.length > 0 && !hasHandledInitialRef.current) {
+      const searchParams = new URLSearchParams(location.search);
+      const targetCompId = searchParams.get("company_id") || location.state?.company_id;
+      if (targetCompId) {
+        const foundCompConv = conversations.find(
+          (c) => c.is_company_channel && (String(c.company_id) === String(targetCompId) || String(c.id) === `company_${targetCompId}`)
+        );
+        if (foundCompConv) {
+          setActivePartner(foundCompConv);
+          hasHandledInitialRef.current = true;
+          return;
+        }
+      }
+      if (!activePartner) {
+        setActivePartner(conversations[0]);
+        hasHandledInitialRef.current = true;
+      }
     }
-  }, [conversations, activePartner]);
+  }, [conversations, activePartner, location]);
 
-  // Scroll to bottom helper
-  useEffect(() => {
+  const scrollToBottom = (behavior = "auto") => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = 9999999;
+    }
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      try {
+        messagesEndRef.current.scrollIntoView({ behavior, block: "end", inline: "nearest" });
+      } catch (e) {
+        messagesEndRef.current.scrollIntoView(false);
+      }
     }
-  }, [messages]);
+  };
+
+  // Initial scroll to bottom when chat opens or finishes loading
+  useEffect(() => {
+    if (!loadingChat && messages.length > 0 && isInitialChatLoadRef.current) {
+      scrollToBottom("auto");
+      const t1 = requestAnimationFrame(() => scrollToBottom("auto"));
+      const t2 = setTimeout(() => scrollToBottom("auto"), 50);
+      const t3 = setTimeout(() => scrollToBottom("auto"), 150);
+      const t4 = setTimeout(() => scrollToBottom("auto"), 300);
+      isInitialChatLoadRef.current = false;
+      return () => {
+        cancelAnimationFrame(t1);
+        clearTimeout(t2);
+        clearTimeout(t3);
+        clearTimeout(t4);
+      };
+    }
+  }, [loadingChat, messages, activePartnerKey]);
 
   // Handle Search Input Changes
   useEffect(() => {
@@ -133,16 +202,18 @@ const MessagesPage = () => {
     if (!newMessage.trim() || !activePartner) return;
 
     try {
-      const payload = {
-        recipient: activePartner.id,
-        content: newMessage.trim(),
-      };
+      const payload = { content: newMessage.trim() };
+      if (activePartner.is_company_channel && activePartner.company_id) {
+        payload.company = activePartner.company_id;
+      } else {
+        payload.recipient = activePartner.id;
+      }
+
       const res = await api.post("messages/", payload);
       setMessages((prev) => [...prev, res.data]);
       const sentText = newMessage.trim();
       setNewMessage("");
-      
-      // Update local conversations order and text immediately without showing unread badge
+
       setConversations((prev) => {
         const updated = prev.map((c) => {
           if (String(c.id) === String(activePartner.id)) {
@@ -161,6 +232,9 @@ const MessagesPage = () => {
       });
 
       fetchConversations(true);
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
     } catch (err) {
       console.error("Failed to send message", err);
     }
@@ -360,7 +434,24 @@ const MessagesPage = () => {
                           if (!isActive) e.currentTarget.style.background = unreadCount > 0 ? "rgba(255, 255, 255, 0.02)" : "transparent";
                         }}
                       >
-                        {getImageUrl(conv.profile_picture) ? (
+                        {conv.is_company_channel ? (
+                          <div
+                            style={{
+                              width: "40px",
+                              height: "40px",
+                              borderRadius: "50%",
+                              background: "linear-gradient(135deg, #ef4444, #8b5cf6)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color: "white",
+                              flexShrink: 0,
+                              boxShadow: "0 2px 8px rgba(239,68,68,0.35)",
+                            }}
+                          >
+                            <Shield size={20} color="white" />
+                          </div>
+                        ) : getImageUrl(conv.profile_picture) ? (
                           <img
                             src={getImageUrl(conv.profile_picture)}
                             alt=""
@@ -388,8 +479,13 @@ const MessagesPage = () => {
 
                         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "2px" }}>
-                            <span style={{ fontSize: "0.85rem", fontWeight: unreadCount > 0 ? 700 : 600, color: unreadCount > 0 ? "white" : "var(--color-text-primary)" }}>
-                              {conv.name}
+                            <span style={{ fontSize: "0.85rem", fontWeight: unreadCount > 0 ? 700 : 600, color: unreadCount > 0 ? "white" : "var(--color-text-primary)", display: "flex", alignItems: "center", gap: "4px" }}>
+                              {conv.is_company_channel ? "Xanatz Admin Support" : conv.name}
+                              {conv.is_company_channel && (
+                                <span style={{ background: "rgba(239,68,68,0.2)", color: "#fca5a5", border: "1px solid rgba(239,68,68,0.4)", borderRadius: "4px", fontSize: "9px", padding: "1px 4px", fontWeight: "bold" }}>
+                                  ADMIN
+                                </span>
+                              )}
                             </span>
                             {conv.last_message_time && (
                               <span style={{ fontSize: "0.65rem", color: "#64748b" }}>
@@ -500,7 +596,7 @@ const MessagesPage = () => {
           </div>
 
           {/* RIGHT CHAT AREA */}
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "rgba(15, 23, 42, 0.15)" }}>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden", background: "rgba(15, 23, 42, 0.15)" }}>
             {activePartner ? (
               <>
                 {/* Chat window Header */}
@@ -514,7 +610,24 @@ const MessagesPage = () => {
                     background: "rgba(10, 15, 30, 0.2)",
                   }}
                 >
-                  {getImageUrl(activePartner.profile_picture) ? (
+                  {activePartner.is_company_channel ? (
+                    <div
+                      style={{
+                        width: "36px",
+                        height: "36px",
+                        borderRadius: "50%",
+                        background: "linear-gradient(135deg, #ef4444, #8b5cf6)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
+                        flexShrink: 0,
+                        boxShadow: "0 2px 8px rgba(239,68,68,0.35)",
+                      }}
+                    >
+                      <Shield size={18} color="white" />
+                    </div>
+                  ) : getImageUrl(activePartner.profile_picture) ? (
                     <img
                       src={getImageUrl(activePartner.profile_picture)}
                       alt=""
@@ -539,13 +652,26 @@ const MessagesPage = () => {
                     </div>
                   )}
                   <div>
-                    <h3 style={{ fontSize: "0.95rem", fontWeight: 700, margin: 0 }}>{activePartner.name}</h3>
-                    <span style={{ fontSize: "0.7rem", color: "#64748b" }}>{activePartner.email}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <h3 style={{ fontSize: "0.95rem", fontWeight: 700, margin: 0 }}>
+                        {activePartner.is_company_channel ? "Xanatz Admin Support" : activePartner.name}
+                      </h3>
+                      {activePartner.is_company_channel && (
+                        <span style={{ background: "rgba(239,68,68,0.2)", color: "#fca5a5", border: "1px solid rgba(239,68,68,0.4)", borderRadius: "4px", fontSize: "9px", padding: "1px 5px", fontWeight: "bold" }}>
+                          ADMIN SUPPORT
+                        </span>
+                      )}
+                    </div>
+                    <span style={{ fontSize: "0.7rem", color: "#64748b" }}>
+                      {activePartner.is_company_channel
+                        ? `Official Admin Inquiry & Clarification Channel ${activePartner.company_name ? `(${activePartner.company_name})` : ""}`
+                        : activePartner.email}
+                    </span>
                   </div>
                 </div>
 
                 {/* Message Log */}
-                <div style={{ flex: 1, overflowY: "auto", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div ref={chatContainerRef} style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "12px" }}>
                   {loadingChat ? (
                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
                       <Loader2 className="animate-spin" size={24} style={{ color: "#3b82f6" }} />
@@ -553,12 +679,17 @@ const MessagesPage = () => {
                   ) : messages.length === 0 ? (
                     <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%", color: "#64748b" }}>
                       <MessageCircle size={40} style={{ opacity: 0.3, marginBottom: "8px" }} />
-                      <p style={{ fontSize: "0.8rem" }}>Say hello to {activePartner.name}!</p>
+                      <p style={{ fontSize: "0.8rem" }}>
+                        {activePartner.is_company_channel
+                          ? "No messages yet. Send an inquiry or clarification to Xanatz Admins."
+                          : `Say hello to ${activePartner.name}!`}
+                      </p>
                     </div>
                   ) : (
                     messages.map((msg, index) => {
                       const senderId = typeof msg.sender === "object" ? msg.sender?.id : msg.sender;
                       const isMe = currentUser && (Number(senderId) === Number(currentUser.id) || String(senderId) === String(currentUser.id));
+                      const isAdminMsg = msg.is_xanatz_admin === true || msg.sender_role === "Xanatz Admin" || (msg.sender_email && (msg.sender_email.toLowerCase().includes("admin") || msg.sender_email.toLowerCase().includes("xanatz")));
                       const timeStr = msg.created_at
                         ? new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
                         : "";
@@ -573,21 +704,50 @@ const MessagesPage = () => {
                         >
                           <div
                             style={{
-                              maxWidth: "65%",
+                              maxWidth: "68%",
                               background: isMe
-                                ? "linear-gradient(135deg, #2563eb, #1d4ed8)"
-                                : "rgba(255, 255, 255, 0.05)",
+                                ? (isAdminMsg ? "linear-gradient(135deg, #dc2626, #991b1b)" : "linear-gradient(135deg, #2563eb, #1d4ed8)")
+                                : isAdminMsg
+                                ? "linear-gradient(135deg, rgba(153, 27, 27, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%)"
+                                : "rgba(30, 41, 59, 0.8)",
                               border: isMe
-                                ? "none"
-                                : "1px solid var(--color-card-border, rgba(255, 255, 255, 0.08))",
+                                ? (isAdminMsg ? "1px solid rgba(239, 68, 68, 0.5)" : "none")
+                                : isAdminMsg
+                                ? "1px solid rgba(239, 68, 68, 0.4)"
+                                : "1px solid rgba(255, 255, 255, 0.08)",
                               borderRadius: isMe ? "1.25rem 1.25rem 0.25rem 1.25rem" : "1.25rem 1.25rem 1.25rem 0.25rem",
                               padding: "10px 14px",
                               color: isMe ? "white" : "var(--color-text-primary)",
-                              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                               textAlign: "left",
                             }}
                           >
-                            <p style={{ margin: 0, fontSize: "0.85rem", lineHeight: "1.4", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                            {/* Sender Info Bar */}
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: isMe ? "flex-end" : "flex-start", gap: "6px", marginBottom: "4px", flexWrap: "wrap" }}>
+                              <span style={{ fontSize: "0.74rem", fontWeight: "bold", color: isMe ? "#fecdd3" : isAdminMsg ? "#fca5a5" : "#cbd5e1" }}>
+                                {isAdminMsg
+                                  ? (isMe ? "You (Xanatz Admin)" : (msg.sender_name || "Xanatz Admin"))
+                                  : (isMe ? "You" : (msg.sender_name || "Company Member"))}
+                              </span>
+
+                              {!isAdminMsg && msg.sender_role && (
+                                <span style={{ fontSize: "0.68rem", color: isMe ? "rgba(255,255,255,0.7)" : "#94a3b8" }}>
+                                  ({msg.sender_role}{msg.sender_position ? ` • ${msg.sender_position}` : ""})
+                                </span>
+                              )}
+
+                              {isAdminMsg ? (
+                                <span style={{ background: "rgba(239,68,68,0.25)", color: "#fca5a5", border: "1px solid rgba(239,68,68,0.45)", borderRadius: "4px", fontSize: "8px", padding: "1px 5px", fontWeight: "bold", display: "inline-flex", alignItems: "center", gap: "3px" }}>
+                                  <Shield size={10} /> XANATZ ADMIN
+                                </span>
+                              ) : (
+                                <span style={{ background: isMe ? "rgba(255,255,255,0.2)" : "rgba(59, 130, 246, 0.2)", color: isMe ? "white" : "#60a5fa", border: isMe ? "1px solid rgba(255,255,255,0.3)" : "1px solid rgba(59, 130, 246, 0.3)", borderRadius: "4px", fontSize: "8px", padding: "1px 5px", fontWeight: "bold", display: "inline-flex", alignItems: "center", gap: "3px" }}>
+                                  <Building2 size={9} /> {(msg.sender_role || "COMPANY MEMBER").toUpperCase()}
+                                </span>
+                              )}
+                            </div>
+
+                            <p style={{ margin: 0, fontSize: "0.85rem", lineHeight: "1.5", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
                               {msg.content}
                             </p>
                             {timeStr && (

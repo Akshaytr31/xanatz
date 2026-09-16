@@ -5,7 +5,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 import random
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import PrivacyPolicy, Profile, Experience, Education, Company, OTP, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ
+from .models import PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, OTP, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ
 
 User = get_user_model()
 
@@ -671,13 +671,37 @@ class MessageSerializer(serializers.ModelSerializer):
     company_name = serializers.ReadOnlyField(source='company.name', default=None)
     sender_name = serializers.SerializerMethodField()
     recipient_name = serializers.SerializerMethodField()
+    sender_role = serializers.SerializerMethodField()
+    sender_position = serializers.SerializerMethodField()
+    is_xanatz_admin = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
-        fields = ['id', 'sender', 'sender_email', 'sender_name', 'recipient', 'recipient_email', 'recipient_name', 'company', 'company_name', 'content', 'is_read', 'created_at']
+        fields = [
+            'id', 'sender', 'sender_email', 'sender_name',
+            'sender_role', 'sender_position', 'is_xanatz_admin',
+            'recipient', 'recipient_email', 'recipient_name',
+            'company', 'company_name', 'content', 'is_read', 'created_at'
+        ]
         read_only_fields = ['id', 'sender', 'created_at']
 
+    def get_is_xanatz_admin(self, obj):
+        if not obj.sender:
+            return False
+        if obj.sender.is_staff or obj.sender.is_superuser:
+            return True
+        if obj.sender.email and ('xanatz' in obj.sender.email.lower() or 'admin' in obj.sender.email.lower()):
+            return True
+        if obj.company and not CompanyMember.objects.filter(company=obj.company, user=obj.sender).exists() and obj.company.creator_id != obj.sender.id:
+            return True
+        return False
+
     def get_sender_name(self, obj):
+        if not obj.sender:
+            return "System"
+        if self.get_is_xanatz_admin(obj):
+            name = f"{obj.sender.first_name or ''} {obj.sender.last_name or ''}".strip()
+            return f"Xanatz Admin ({name})" if name else "Xanatz Admin"
         name = f"{obj.sender.first_name or ''} {obj.sender.last_name or ''}".strip()
         return name or obj.sender.email
 
@@ -686,6 +710,50 @@ class MessageSerializer(serializers.ModelSerializer):
             return obj.company.name if obj.company else "Company"
         name = f"{obj.recipient.first_name or ''} {obj.recipient.last_name or ''}".strip()
         return name or obj.recipient.email
+
+    def get_sender_role(self, obj):
+        if not obj.sender:
+            return None
+        if self.get_is_xanatz_admin(obj):
+            return "Xanatz Admin"
+        if obj.company:
+            if obj.company.creator_id == obj.sender.id:
+                return "Company Owner"
+            member = CompanyMember.objects.filter(company=obj.company, user=obj.sender).first()
+            if member:
+                role_map = {
+                    'super_admin': 'Company Super Admin',
+                    'admin': 'Company Admin',
+                    'hr': 'Company HR Manager',
+                    'accountant': 'Company Accountant',
+                    'user': 'Company Member',
+                }
+                return role_map.get(member.access_role, 'Company Member')
+        member = CompanyMember.objects.filter(user=obj.sender).first()
+        if member:
+            role_map = {
+                'super_admin': 'Company Super Admin',
+                'admin': 'Company Admin',
+                'hr': 'Company HR Manager',
+                'accountant': 'Company Accountant',
+                'user': 'Company Member',
+            }
+            return role_map.get(member.access_role, 'Company Member')
+        return "Company Member"
+
+    def get_sender_position(self, obj):
+        if not obj.sender:
+            return None
+        if self.get_is_xanatz_admin(obj):
+            return None
+        if obj.company:
+            member = CompanyMember.objects.filter(company=obj.company, user=obj.sender).first()
+            if member and member.position:
+                return member.position
+        member = CompanyMember.objects.filter(user=obj.sender).first()
+        if member and member.position:
+            return member.position
+        return None
 
 
 class PublicCompanySerializer(serializers.ModelSerializer):
