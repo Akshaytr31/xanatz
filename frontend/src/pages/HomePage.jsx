@@ -291,7 +291,7 @@ const HomePage = () => {
                   <HStack gap={3} pt={2} wrap="wrap">
                     <Box
                       as="button"
-                      onClick={() => navigate(`/company/${activeCompany.id}/openings`)}
+                      onClick={() => navigate(`/company/${activeCompany.id}/dashboard`)}
                       px={4}
                       py={2.5}
                       borderRadius="12px"
@@ -299,8 +299,8 @@ const HomePage = () => {
                       fontWeight="700"
                       cursor="pointer"
                       style={{
-                        background: "#10b981",
-                        color: "#022c22",
+                        background: "linear-gradient(135deg, #10b981, #059669)",
+                        color: "white",
                         boxShadow: "0 4px 14px rgba(16, 185, 129, 0.35)",
                       }}
                       _hover={{ background: "#34d399", transform: "translateY(-1px)" }}
@@ -309,7 +309,31 @@ const HomePage = () => {
                       alignItems="center"
                       gap={2}
                     >
-                      <Plus size={16} />
+                      <Building2 size={16} />
+                      View Company Profile
+                    </Box>
+
+                    <Box
+                      as="button"
+                      onClick={() => navigate(`/company/${activeCompany.id}/openings`)}
+                      px={4}
+                      py={2.5}
+                      borderRadius="12px"
+                      fontSize="13px"
+                      fontWeight="700"
+                      cursor="pointer"
+                      style={{
+                        background: "rgba(255,255,255,0.08)",
+                        color: "white",
+                        border: "1px solid rgba(255,255,255,0.15)",
+                      }}
+                      _hover={{ background: "rgba(255,255,255,0.15)" }}
+                      transition="all 0.2s"
+                      display="flex"
+                      alignItems="center"
+                      gap={2}
+                    >
+                      <Plus size={16} color="#34d399" />
                       Post New Job
                     </Box>
 
