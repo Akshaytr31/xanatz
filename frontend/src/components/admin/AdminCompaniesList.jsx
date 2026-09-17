@@ -147,7 +147,7 @@ const AdminCompaniesList = () => {
 
                   {c.public_id && (
                     <Link
-                      to={`/c/${c.public_id}`}
+                      to={`/company/${c.public_id}`}
                       target="_blank"
                       style={{ color: "#3b82f6", display: "flex", alignItems: "center", gap: 4, fontSize: 11, textDecoration: "none", fontWeight: 600 }}
                     >

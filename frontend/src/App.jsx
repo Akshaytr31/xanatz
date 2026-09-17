@@ -21,6 +21,7 @@ import RFPsPage from "./pages/RFPsPage";
 import RFPDetailPage from "./pages/RFPDetailPage";
 import ManageRFPsPage from "./pages/ManageRFPsPage";
 import ManageRFPInterestsPage from "./pages/ManageRFPInterestsPage";
+import ManageCompanyMediaPage from "./pages/ManageCompanyMediaPage";
 import MySubmittedRFPInterestsPage from "./pages/MySubmittedRFPInterestsPage";
 import MessagesPage from "./pages/MessagesPage";
 import NotificationsPage from "./pages/NotificationsPage";
@@ -75,7 +76,9 @@ function App() {
             }
           />
           <Route path="/profile/:publicId" element={<PublicProfile />} />
+          <Route path="/p/:publicId" element={<PublicProfile />} />
           <Route path="/company/:publicId" element={<PublicCompanyProfile />} />
+          <Route path="/c/:publicId" element={<PublicCompanyProfile />} />
           {/* FREELANCER FEATURE (Disabled for now - uncomment to enable)
           <Route
             path="/freelancer/dashboard"
@@ -167,6 +170,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ManageRFPInterestsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/company/:id/media"
+            element={
+              <ProtectedRoute>
+                <ManageCompanyMediaPage />
               </ProtectedRoute>
             }
           />

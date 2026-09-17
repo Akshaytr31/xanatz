@@ -34,6 +34,7 @@ import {
   ClipboardList,
   Layers,
   MessageSquare,
+  Film,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "../components/Navbar";
@@ -359,6 +360,30 @@ const HomePage = () => {
                     >
                       <FileText size={16} color="#34d399" />
                       Manage RFPs
+                    </Box>
+
+                    <Box
+                      as="button"
+                      onClick={() => navigate(`/company/${activeCompany.id}/media`)}
+                      px={4}
+                      py={2.5}
+                      borderRadius="12px"
+                      fontSize="13px"
+                      fontWeight="700"
+                      cursor="pointer"
+                      style={{
+                        background: "rgba(16, 185, 129, 0.15)",
+                        color: "#34d399",
+                        border: "1px solid rgba(16, 185, 129, 0.3)",
+                      }}
+                      _hover={{ background: "rgba(16, 185, 129, 0.25)" }}
+                      transition="all 0.2s"
+                      display="flex"
+                      alignItems="center"
+                      gap={2}
+                    >
+                      <Film size={16} color="#34d399" />
+                      Manage Media Showcase
                     </Box>
 
                     <Box

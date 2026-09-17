@@ -5,7 +5,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 import random
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, OTP, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ
+from .models import PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, OTP, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ, CompanyMedia
 
 User = get_user_model()
 
@@ -330,6 +330,23 @@ class CompanyReviewSerializer(serializers.ModelSerializer):
         return False
 
 
+class CompanyMediaSerializer(serializers.ModelSerializer):
+    file_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CompanyMedia
+        fields = ['id', 'company', 'media_type', 'title', 'caption', 'file', 'file_url', 'media_url', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+    def get_file_url(self, obj):
+        if obj.file:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.file.url)
+            return obj.file.url
+        return None
+
+
 class CompanyFAQSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyFAQ
@@ -355,6 +372,7 @@ class CompanySerializer(serializers.ModelSerializer):
     partner_average_rating = serializers.SerializerMethodField()
     partner_reviews_count = serializers.SerializerMethodField()
     faqs = CompanyFAQSerializer(many=True, read_only=True)
+    media_items = CompanyMediaSerializer(many=True, read_only=True)
 
     class Meta:
         model = Company
@@ -367,7 +385,7 @@ class CompanySerializer(serializers.ModelSerializer):
             'reviews', 'average_rating', 'reviews_count',
             'employee_reviews', 'employee_average_rating', 'employee_reviews_count',
             'partner_reviews', 'partner_average_rating', 'partner_reviews_count',
-            'faqs'
+            'faqs', 'media_items'
         ]
 
     def get_members_details(self, obj):
@@ -771,6 +789,7 @@ class PublicCompanySerializer(serializers.ModelSerializer):
     partner_average_rating = serializers.SerializerMethodField()
     partner_reviews_count = serializers.SerializerMethodField()
     faqs = CompanyFAQSerializer(many=True, read_only=True)
+    media_items = CompanyMediaSerializer(many=True, read_only=True)
 
     class Meta:
         model = Company
@@ -781,7 +800,7 @@ class PublicCompanySerializer(serializers.ModelSerializer):
             'reviews', 'average_rating', 'reviews_count',
             'employee_reviews', 'employee_average_rating', 'employee_reviews_count',
             'partner_reviews', 'partner_average_rating', 'partner_reviews_count',
-            'faqs'
+            'faqs', 'media_items'
         ]
 
     def get_members_details(self, obj):

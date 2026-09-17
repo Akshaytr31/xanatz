@@ -37,7 +37,9 @@ const VisualHeader = ({ user, onUpdate }) => {
   const currentExperience = user?.profile?.experiences?.find(exp => exp.current);
 
   const handleShare = () => {
-    const publicLink = `${window.location.origin}/p/${user.profile.public_id}`;
+    const publicId = user?.profile?.public_id || user?.id;
+    if (!publicId) return;
+    const publicLink = `${window.location.origin}/profile/${publicId}`;
     navigator.clipboard.writeText(publicLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

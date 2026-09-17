@@ -5,14 +5,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
 from django.core.exceptions import ValidationError
-from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ
+from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ, CompanyMedia
 from .serializers import (
     SendOTPSerializer, VerifyOTPSerializer, RegisterUserSerializer, 
     PrivacyPolicySerializer, UserSerializer, ProfileSerializer,
     ExperienceSerializer, EducationSerializer, CompanySerializer,
     UserSearchSerializer, JobOpeningSerializer, JobApplicationSerializer,
     RFPSerializer, RFPInterestSerializer, JobPostPlanSerializer, CompanySubscriptionSerializer, NotificationSerializer, MessageSerializer,
-    PortfolioProjectSerializer, PublicCompanySerializer, CompanyReviewSerializer, FreelancerReviewSerializer, CompanyFAQSerializer
+    PortfolioProjectSerializer, PublicCompanySerializer, CompanyReviewSerializer, FreelancerReviewSerializer, CompanyFAQSerializer, CompanyMediaSerializer
 )
 from .utils import (
     get_user_company_role,
@@ -1779,6 +1779,37 @@ class CompanyFAQViewSet(viewsets.ModelViewSet):
         if not can_manage_company_profile(self.request.user, company):
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("You do not have permission to manage this company's FAQs.")
+
+    def perform_create(self, serializer):
+        company = serializer.validated_data.get('company')
+        self.check_company_access(company)
+        serializer.save()
+
+    def perform_update(self, serializer):
+        company = self.get_object().company
+        self.check_company_access(company)
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        self.check_company_access(instance.company)
+        instance.delete()
+
+
+class CompanyMediaViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    serializer_class = CompanyMediaSerializer
+
+    def get_queryset(self):
+        queryset = CompanyMedia.objects.all()
+        company_id = self.request.query_params.get('company_id')
+        if company_id:
+            queryset = queryset.filter(company_id=company_id)
+        return queryset.order_by('-created_at')
+
+    def check_company_access(self, company):
+        if not can_manage_company_profile(self.request.user, company):
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You do not have permission to manage this company's media items.")
 
     def perform_create(self, serializer):
         company = serializer.validated_data.get('company')

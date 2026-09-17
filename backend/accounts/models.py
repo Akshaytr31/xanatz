@@ -612,3 +612,25 @@ class CompanyFAQ(models.Model):
         return f"{self.question} - {self.company.name}"
 
 
+class CompanyMedia(models.Model):
+    MEDIA_TYPE_CHOICES = [
+        ('image', 'Image'),
+        ('video', 'Video'),
+    ]
+
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='media_items')
+    media_type = models.CharField(max_length=10, choices=MEDIA_TYPE_CHOICES, default='image')
+    title = models.CharField(max_length=255, blank=True, null=True)
+    caption = models.TextField(blank=True, null=True)
+    file = models.FileField(upload_to='company_media/', blank=True, null=True)
+    media_url = models.URLField(max_length=500, blank=True, null=True, help_text="External image URL or Video URL (YouTube, Vimeo, MP4)")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.media_type.upper()} - {self.title or 'Untitled'} ({self.company.name})"
+
+
+

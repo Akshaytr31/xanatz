@@ -12,6 +12,8 @@ import RFPModal from "../components/company/RFPModal";
 import PricingPlansModal from "../components/company/PricingPlansModal";
 import CompanyFAQModal from "../components/company/CompanyFAQModal";
 import CompanyChannelSection from "../components/company/CompanyChannelSection";
+import CompanyMediaSection from "../components/company/CompanyMediaSection";
+import UploadCompanyMediaModal from "../components/company/UploadCompanyMediaModal";
 import AdminChatModal from "../components/admin/AdminChatModal";
 import api from "../api";
 import { getMemberPermissions } from "../utils/companyPermissions";
@@ -99,6 +101,7 @@ const CompanyDashboard = () => {
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [isFaqModalOpen, setIsFaqModalOpen] = useState(false);
   const [selectedFaq, setSelectedFaq] = useState(null);
+  const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
   const [expandedFaqId, setExpandedFaqId] = useState(null);
   const [copied, setCopied] = useState(false);
   const [reviewTab, setReviewTab] = useState("employee");
@@ -126,7 +129,7 @@ const CompanyDashboard = () => {
   const handleShare = () => {
     if (!company) return;
     const publicId = company.public_id || company.id;
-    const shareUrl = `${window.location.origin}/c/${publicId}`;
+    const shareUrl = `${window.location.origin}/company/${publicId}`;
     navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -1350,6 +1353,17 @@ const CompanyDashboard = () => {
               </MotionBox>
             </GridItem>
 
+            {/* Company Showcase & Media Section */}
+            <GridItem colSpan={2}>
+              <CompanyMediaSection
+                mediaItems={company.media_items || []}
+                canEdit={hasAccess}
+                onOpenUploadModal={() => setIsMediaModalOpen(true)}
+                onNavigateToManage={() => navigate(`/company/${company.id}/media`)}
+                accentColor={accentColor}
+              />
+            </GridItem>
+
             {/* Frequently Asked Questions */}
             <GridItem colSpan={2}>
               <MotionBox
@@ -1540,6 +1554,13 @@ const CompanyDashboard = () => {
         onClose={() => setIsFaqModalOpen(false)}
         companyId={company.id}
         faq={selectedFaq}
+        onSaved={fetchCompany}
+      />
+
+      <UploadCompanyMediaModal
+        isOpen={isMediaModalOpen}
+        onClose={() => setIsMediaModalOpen(false)}
+        companyId={company.id}
         onSaved={fetchCompany}
       />
 

@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import api from "../api";
 import { formatDate } from "../utils/dateUtils";
 import FlagConfirmationModal from "../components/FlagConfirmationModal";
+import CompanyMediaSection from "../components/company/CompanyMediaSection";
 import { ArrowRight, Globe, MapPin, Users, Calendar, Link2, AtSign, Briefcase, ExternalLink, Share2, Check, Mail, ArrowUpRight, Star, Flag, ShieldAlert, CheckCircle2, HelpCircle, ChevronDown, MessageSquare } from "lucide-react";
 import { motion, useScroll, useSpring, useTransform, AnimatePresence } from "framer-motion";
 
@@ -934,7 +935,23 @@ const PublicCompanyProfile = () => {
               </div>
             </div>
           </section>
-        )}        {/* Frequently Asked Questions Section */}
+        )}
+
+        {/* Company Media Showcase Section */}
+        {company.media_items && company.media_items.length > 0 && (
+          <section className="pub-section">
+            <div className="pub-inner" style={{ maxWidth: "72rem", margin: "0 auto", padding: "0 1.5rem" }}>
+              <div style={{ height: "1px", width: "100%", marginBottom: "3rem", background: "linear-gradient(90deg, transparent, var(--color-card-border), transparent)" }} />
+              <CompanyMediaSection
+                mediaItems={company.media_items}
+                canEdit={false}
+                accentColor={accentColor}
+              />
+            </div>
+          </section>
+        )}
+
+        {/* Frequently Asked Questions Section */}
         {company.faqs && company.faqs.length > 0 && (
           <section className="pub-section">
             <div className="pub-inner">
