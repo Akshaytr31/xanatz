@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
-import { Check, Edit2, Trash2, Star, AlertCircle, ShieldAlert, Filter, Loader, CheckCircle, RotateCcw, Clock, Flag, MessageSquare, Send, Bell, Eye, Briefcase, FileText } from "lucide-react";
+import { Check, Edit2, Trash2, Star, AlertCircle, ShieldAlert, Filter, Loader, CheckCircle, RotateCcw, Clock, Flag, MessageSquare, Send, Bell, Eye, Briefcase, FileText, Search, X as XIcon, Building2 } from "lucide-react";
 import api from "../../api";
 import { formatDate } from "../../utils/dateUtils";
 
@@ -655,6 +655,7 @@ const FlaggedReviewModerator = () => {
   const [savingEdit, setSavingEdit] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("unresolved");
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const [companySearch, setCompanySearch] = useState("");
 
   useEffect(() => {
     fetchFlaggedReviews();
@@ -802,13 +803,23 @@ const FlaggedReviewModerator = () => {
     return true; // "all"
   });
 
-  const finalFiltered = statusFiltered
+  const typeFiltered = statusFiltered.filter(r => {
+    if (selectedFilter === "all") return true;
+    if (selectedFilter === "job") return r.review_type === "job";
+    if (selectedFilter === "rfp") return r.review_type === "rfp";
+    if (selectedFilter === "reviews") return r.review_type === "company" || r.review_type === "freelancer";
+    return true;
+  });
+
+  const finalFiltered = typeFiltered
     .filter(r => {
-      if (selectedFilter === "all") return true;
-      if (selectedFilter === "job") return r.review_type === "job";
-      if (selectedFilter === "rfp") return r.review_type === "rfp";
-      if (selectedFilter === "reviews") return r.review_type === "company" || r.review_type === "freelancer";
-      return true;
+      const q = companySearch.trim().toLowerCase();
+      if (!q) return true;
+      return (
+        String(r.company_id || "").includes(q) ||
+        (r.company_name || "").toLowerCase().includes(q) ||
+        (r.subject_name || "").toLowerCase().includes(q)
+      );
     })
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
@@ -826,6 +837,17 @@ const FlaggedReviewModerator = () => {
     if (typeKey === "reviews") return statusFiltered.filter(r => r.review_type === "company" || r.review_type === "freelancer").length;
     return 0;
   };
+
+  const companyMatchCount = companySearch.trim()
+    ? typeFiltered.filter(r => {
+        const q = companySearch.trim().toLowerCase();
+        return (
+          String(r.company_id || "").includes(q) ||
+          (r.company_name || "").toLowerCase().includes(q) ||
+          (r.subject_name || "").toLowerCase().includes(q)
+        );
+      }).length
+    : typeFiltered.length;
 
   if (loading) return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 60, gap: 10, color: "rgba(255,255,255,0.4)" }}>
@@ -982,6 +1004,73 @@ const FlaggedReviewModerator = () => {
             </button>
           );
         })}
+      </div>
+
+      {/* Company / Company ID Search Filter */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 10,
+        background: companySearch.trim() ? "rgba(16,185,129,0.06)" : "rgba(255,255,255,0.02)",
+        border: companySearch.trim() ? "1px solid rgba(16,185,129,0.3)" : "1px solid rgba(255,255,255,0.07)",
+        borderRadius: 14, padding: "10px 14px",
+        transition: "all 0.25s",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+          <Building2 size={14} color={companySearch.trim() ? "#34d399" : "rgba(255,255,255,0.35)"} />
+          <span style={{
+            fontSize: 11, fontWeight: 700, letterSpacing: "1px",
+            color: companySearch.trim() ? "#34d399" : "rgba(255,255,255,0.35)",
+          }}>COMPANY:</span>
+        </div>
+
+        <div style={{ position: "relative", flex: 1, maxWidth: 320 }}>
+          <Search
+            size={13}
+            color="rgba(255,255,255,0.3)"
+            style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}
+          />
+          <input
+            type="text"
+            value={companySearch}
+            onChange={e => setCompanySearch(e.target.value)}
+            placeholder="Filter by company name or ID…"
+            style={{
+              width: "100%",
+              padding: "7px 32px 7px 30px",
+              background: "rgba(0,0,0,0.25)",
+              border: companySearch.trim() ? "1px solid rgba(16,185,129,0.4)" : "1px solid rgba(255,255,255,0.09)",
+              borderRadius: 9,
+              color: "white",
+              fontSize: 12,
+              outline: "none",
+              transition: "border-color 0.2s",
+              boxSizing: "border-box",
+            }}
+          />
+          {companySearch && (
+            <button
+              type="button"
+              onClick={() => setCompanySearch("")}
+              style={{
+                position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
+                background: "none", border: "none", cursor: "pointer",
+                color: "rgba(255,255,255,0.4)", padding: 0, display: "flex", alignItems: "center",
+              }}
+              title="Clear company filter"
+            >
+              <XIcon size={13} />
+            </button>
+          )}
+        </div>
+
+        <span style={{
+          fontSize: 10, fontWeight: 700, borderRadius: 99, padding: "3px 9px", flexShrink: 0,
+          background: companySearch.trim() ? "rgba(16,185,129,0.25)" : "rgba(255,255,255,0.07)",
+          color: companySearch.trim() ? "#34d399" : "rgba(255,255,255,0.35)",
+          border: companySearch.trim() ? "1px solid rgba(16,185,129,0.4)" : "1px solid transparent",
+          transition: "all 0.2s",
+        }}>
+          {companyMatchCount} match{companyMatchCount !== 1 ? "es" : ""}
+        </span>
       </div>
 
       {/* Alerts */}

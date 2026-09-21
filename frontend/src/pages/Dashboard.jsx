@@ -21,6 +21,7 @@ import FilterSidebar, {
   SORT_OPTIONS,
   DEFAULT_FILTERS,
 } from "../components/FilterSidebar";
+import { ALL_CATEGORY_LABELS, ALL_SUBCATEGORY_LABELS } from "../components/company/JobOpeningModal";
 import api from "../api";
 
 /* ─── helper: parse salary string like "$120k – $150k" ─────────────────── */
@@ -140,7 +141,10 @@ const Dashboard = () => {
 
   /* ── Filter ── */
   let filteredJobs = jobs.filter((job) => {
-    const { titleSearch, companySearch, companyId, locationSearch, jobTypeFilter, salaryBucket, industryFilter } = filters;
+    const {
+      titleSearch, companySearch, companyId, locationSearch,
+      jobTypeFilter, salaryBucket, industryFilter, categoryFilter, subCategoryFilter
+    } = filters;
 
     if (titleSearch && !(
       job.title.toLowerCase().includes(titleSearch.toLowerCase()) ||
@@ -157,6 +161,8 @@ const Dashboard = () => {
     if (locationSearch && !(job.location && job.location.toLowerCase().includes(locationSearch.toLowerCase()))) return false;
     if (jobTypeFilter !== "all" && job.job_type !== jobTypeFilter) return false;
     if (industryFilter !== "all" && job.industry !== industryFilter) return false;
+    if (categoryFilter && categoryFilter !== "all" && job.category !== categoryFilter) return false;
+    if (subCategoryFilter && subCategoryFilter !== "all" && job.sub_category !== subCategoryFilter) return false;
 
     if (salaryBucket !== "all") {
       const [minK, maxK] = salaryBucket.split("-").map(Number);
@@ -359,6 +365,21 @@ const Dashboard = () => {
                 <FilterChip
                   label={INDUSTRY_OPTIONS.find((o) => o.value === filters.industryFilter)?.label}
                   onRemove={() => handleFilterChange("industryFilter", "all")}
+                />
+              )}
+              {filters.categoryFilter && filters.categoryFilter !== "all" && (
+                <FilterChip
+                  label={`Category: ${ALL_CATEGORY_LABELS[filters.categoryFilter] || filters.categoryFilter}`}
+                  onRemove={() => {
+                    handleFilterChange("categoryFilter", "all");
+                    handleFilterChange("subCategoryFilter", "all");
+                  }}
+                />
+              )}
+              {filters.subCategoryFilter && filters.subCategoryFilter !== "all" && (
+                <FilterChip
+                  label={`Sub-category: ${ALL_SUBCATEGORY_LABELS[filters.subCategoryFilter] || filters.subCategoryFilter}`}
+                  onRemove={() => handleFilterChange("subCategoryFilter", "all")}
                 />
               )}
               {filters.sortBy !== "newest" && (

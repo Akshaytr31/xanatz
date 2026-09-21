@@ -26,6 +26,13 @@ import {
   Badge,
 } from "@chakra-ui/react";
 
+import {
+  CATEGORY_OPTIONS,
+  SUBCATEGORY_OPTIONS,
+  ALL_CATEGORY_LABELS,
+  ALL_SUBCATEGORY_LABELS,
+} from "./company/JobOpeningModal";
+
 /* ─── Filter option constants ────────────────────────────────────────────── */
 export const SALARY_BUCKETS = [
   { label: "Any Salary",      value: "all" },
@@ -72,13 +79,15 @@ export const SORT_OPTIONS = [
 
 /** Default filter state — import this wherever you initialise filter state. */
 export const DEFAULT_FILTERS = {
-  titleSearch:    "",
-  companySearch:  "",
-  locationSearch: "",
-  jobTypeFilter:  "all",
-  salaryBucket:   "all",
-  industryFilter: "all",
-  sortBy:         "newest",
+  titleSearch:       "",
+  companySearch:     "",
+  locationSearch:    "",
+  jobTypeFilter:     "all",
+  salaryBucket:      "all",
+  industryFilter:    "all",
+  categoryFilter:    "all",
+  subCategoryFilter: "all",
+  sortBy:            "newest",
 };
 
 /* ─── FilterSection accordion ────────────────────────────────────────────── */
@@ -194,7 +203,7 @@ const FilterSidebar = ({
 }) => {
   const {
     titleSearch, companySearch, locationSearch,
-    jobTypeFilter, salaryBucket, industryFilter, sortBy,
+    jobTypeFilter, salaryBucket, industryFilter, categoryFilter, subCategoryFilter, sortBy,
   } = filters;
 
   const inputStyle = {
@@ -403,6 +412,55 @@ const FilterSidebar = ({
                 onChange={(v) => onChange("industryFilter", v)}
               />
             </Box>
+          </FilterSection>
+
+          {/* Job Category */}
+          <FilterSection title="JOB CATEGORY" icon={Briefcase}>
+            <Box
+              maxH="220px"
+              overflowY="auto"
+              css={{
+                "&::-webkit-scrollbar": { width: "4px" },
+                "&::-webkit-scrollbar-thumb": { background: "var(--color-card-border)", borderRadius: "4px" },
+              }}
+            >
+              <PillGroup
+                options={[
+                  { value: "all", label: "All Categories" },
+                  ...CATEGORY_OPTIONS
+                ]}
+                value={categoryFilter || "all"}
+                onChange={(v) => {
+                  onChange("categoryFilter", v);
+                  onChange("subCategoryFilter", "all");
+                }}
+              />
+            </Box>
+
+            {categoryFilter && categoryFilter !== "all" && SUBCATEGORY_OPTIONS[categoryFilter] && (
+              <Box pt={3}>
+                <Text fontSize="10px" fontWeight="black" color="var(--color-text-muted)" letterSpacing="widest" mb={2}>
+                  SUB-CATEGORY
+                </Text>
+                <Box
+                  maxH="180px"
+                  overflowY="auto"
+                  css={{
+                    "&::-webkit-scrollbar": { width: "4px" },
+                    "&::-webkit-scrollbar-thumb": { background: "var(--color-card-border)", borderRadius: "4px" },
+                  }}
+                >
+                  <PillGroup
+                    options={[
+                      { value: "all", label: "All Sub-categories" },
+                      ...(SUBCATEGORY_OPTIONS[categoryFilter] || [])
+                    ]}
+                    value={subCategoryFilter || "all"}
+                    onChange={(v) => onChange("subCategoryFilter", v)}
+                  />
+                </Box>
+              </Box>
+            )}
           </FilterSection>
 
           {/* Sort By */}

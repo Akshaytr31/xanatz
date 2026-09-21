@@ -475,6 +475,8 @@ const JobOpeningModal = ({ isOpen, onClose, companyId, company, job, onSaved, on
     job_type: "full_time",
     location: "",
     salary_range: "",
+    category: "",
+    sub_category: "",
     description: "",
     requirements: "",
     is_active: true,
@@ -488,6 +490,8 @@ const JobOpeningModal = ({ isOpen, onClose, companyId, company, job, onSaved, on
         job_type: job.job_type || "full_time",
         location: job.location || "",
         salary_range: job.salary_range || "",
+        category: job.category || "",
+        sub_category: job.sub_category || "",
         description: job.description || "",
         requirements: job.requirements || "",
         is_active: job.is_active !== undefined ? job.is_active : true,
@@ -499,6 +503,8 @@ const JobOpeningModal = ({ isOpen, onClose, companyId, company, job, onSaved, on
         job_type: "full_time",
         location: "",
         salary_range: "",
+        category: "",
+        sub_category: "",
         description: "",
         requirements: "",
         is_active: true,
@@ -740,6 +746,29 @@ const JobOpeningModal = ({ isOpen, onClose, companyId, company, job, onSaved, on
                           <Text fontSize="10px" fontWeight="black" color="var(--color-text-muted)">AED</Text>
                         </Box>
                       </Box>
+                    </Box>
+                  </Flex>
+
+                  {/* Category & Sub-category */}
+                  <Flex gap={4} direction={{ base: "column", sm: "row" }}>
+                    <Box flex={1}>
+                      <Text {...labelStyle}>CATEGORY</Text>
+                      <SearchableSelect
+                        value={form.category}
+                        onChange={(val) => setForm(prev => ({ ...prev, category: val, sub_category: "" }))}
+                        options={CATEGORY_OPTIONS}
+                        placeholder="Select category..."
+                      />
+                    </Box>
+                    <Box flex={1}>
+                      <Text {...labelStyle}>SUB-CATEGORY</Text>
+                      <SearchableSelect
+                        value={form.sub_category}
+                        onChange={set("sub_category")}
+                        options={form.category ? (SUBCATEGORY_OPTIONS[form.category] || []) : []}
+                        placeholder="Select sub-category..."
+                        isDisabled={!form.category}
+                      />
                     </Box>
                   </Flex>
 
