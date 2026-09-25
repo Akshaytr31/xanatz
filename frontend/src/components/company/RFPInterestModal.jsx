@@ -572,7 +572,7 @@ const RFPInterestModal = ({ isOpen, onClose, rfp, onSubmitSuccess }) => {
                                 align="center"
                                 justify="center"
                               >
-                                <Sparkles size={14} color={userInfo?.profile?.is_freelancer ? "#10b981" : "#f59e0b"} />
+                                <CheckCircle2 size={14} color={userInfo?.profile?.is_freelancer ? "#10b981" : "#f59e0b"} />
                               </Flex>
                               <VStack align="start" gap={0}>
                                 <Text color="white" fontSize="xs" fontWeight="bold">

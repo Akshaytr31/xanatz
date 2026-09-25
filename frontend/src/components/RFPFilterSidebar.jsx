@@ -1,59 +1,23 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Flex, Box, Text, Button, VStack, HStack, Input } from "@chakra-ui/react";
-import { SlidersHorizontal, ChevronRight, ChevronDown, Search } from "lucide-react";
+import { Flex, Box, Text, Button, VStack, HStack, Input, Badge } from "@chakra-ui/react";
+import {
+  SlidersHorizontal, ChevronDown, Search, X, RotateCcw, Check,
+  TrendingUp, Layers, DollarSign, Building2, Calendar, Clock, Filter, ArrowUpDown
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CATEGORY_OPTIONS } from "./company/JobOpeningModal";
 
-const FilterSelect = ({ label, value, onChange, options, placeholder }) => (
-  <VStack align="stretch" gap={1.5} w="full">
-    <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="black" letterSpacing="wider">
-      {label.toUpperCase()}
-    </Text>
-    <Box position="relative">
-      <Box
-        as="select"
-        value={value || ""}
-        onChange={(e) => onChange(e.target.value)}
-        w="full"
-        h="9"
-        px={3}
-        bg="var(--color-input-bg)"
-        color="white"
-        borderRadius="lg"
-        border="1px solid var(--color-card-border)"
-        fontSize="xs"
-        cursor="pointer"
-        outline="none"
-        style={{
-          appearance: "none",
-          WebkitAppearance: "none",
-        }}
-        _focus={{ borderColor: "#8b5cf6" }}
-      >
-        <option value="" style={{ background: "#0f172a", color: "var(--color-text-muted)" }}>
-          {placeholder || "All"}
-        </option>
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value} style={{ background: "#0f172a", color: "white" }}>
-            {opt.label}
-          </option>
-        ))}
-      </Box>
-      <Box
-        position="absolute"
-        right="3"
-        top="50%"
-        transform="translateY(-50%)"
-        pointerEvents="none"
-        color="var(--color-text-secondary)"
-      >
-        <ChevronRight size={12} style={{ transform: "rotate(90deg)" }} />
-      </Box>
-    </Box>
-  </VStack>
-);
-
-const SearchableFilterSelect = ({ label, value, onChange, options, placeholder }) => {
+/* ─── Premium Animated Custom Dropdown Component ─────────────────────────── */
+const CustomDropdown = ({
+  label,
+  value,
+  onChange,
+  options,
+  placeholder = "Select...",
+  icon: Icon = Filter,
+  searchable = false,
+  accentColor = "#8b5cf6"
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const containerRef = useRef(null);
@@ -69,169 +33,211 @@ const SearchableFilterSelect = ({ label, value, onChange, options, placeholder }
   }, []);
 
   useEffect(() => {
-    if (!isOpen) {
-      setSearch("");
-    }
+    if (!isOpen) setSearch("");
   }, [isOpen]);
 
   const selectedOption = options.find((opt) => opt.value === value);
-  const filteredOptions = options.filter((opt) =>
-    opt.label.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredOptions = searchable
+    ? options.filter((opt) => opt.label.toLowerCase().includes(search.toLowerCase()))
+    : options;
 
   return (
     <VStack align="stretch" gap={1.5} w="full" ref={containerRef} position="relative">
-      <Text color="var(--color-text-muted)" fontSize="3xs" fontWeight="black" letterSpacing="wider">
-        {label.toUpperCase()}
-      </Text>
-      
+      {label && (
+        <HStack gap={1.5}>
+          {Icon && <Icon size={12} color={accentColor} />}
+          <Text color="var(--color-text-muted)" fontSize="10px" fontWeight="black" letterSpacing="widest">
+            {label.toUpperCase()}
+          </Text>
+        </HStack>
+      )}
+
+      {/* Button Trigger */}
       <Box
         as="button"
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         w="full"
-        h="9"
-        px={3}
-        bg="var(--color-input-bg)"
-        color={selectedOption ? "white" : "var(--color-text-muted)"}
-        borderRadius="lg"
-        border="1px solid var(--color-card-border)"
-        fontSize="xs"
-        cursor="pointer"
-        outline="none"
+        h="42px"
+        px={3.5}
+        borderRadius="xl"
         display="flex"
         alignItems="center"
         justifyContent="space-between"
-        _focus={{ borderColor: "#8b5cf6" }}
-        transition="all 0.2s"
+        outline="none"
+        cursor="pointer"
+        style={{
+          background: selectedOption
+            ? "linear-gradient(135deg, rgba(139,92,246,0.12) 0%, rgba(30,41,59,0.8) 100%)"
+            : "var(--color-glass)",
+          border: selectedOption
+            ? `1px solid ${accentColor}66`
+            : "1px solid var(--color-card-border)",
+          boxShadow: isOpen ? `0 0 16px ${accentColor}33` : "none",
+        }}
+        _hover={{
+          borderColor: accentColor,
+          background: selectedOption
+            ? "linear-gradient(135deg, rgba(139,92,246,0.18) 0%, rgba(30,41,59,0.9) 100%)"
+            : "var(--color-card-hover-bg)",
+        }}
+        transition="all 0.2s cubic-bezier(0.4,0,0.2,1)"
       >
-        <Text noOfLines={1} fontSize="xs">
-          {selectedOption ? selectedOption.label : placeholder || "All"}
-        </Text>
-        <ChevronDown size={12} style={{ opacity: 0.5, transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+        <HStack gap={2.5} flex={1} overflow="hidden">
+          <Text
+            fontSize="xs"
+            fontWeight={selectedOption ? "bold" : "medium"}
+            color={selectedOption ? "white" : "var(--color-text-muted)"}
+            noOfLines={1}
+          >
+            {selectedOption ? selectedOption.label : placeholder}
+          </Text>
+        </HStack>
+
+        <ChevronDown
+          size={14}
+          color={selectedOption ? accentColor : "var(--color-text-secondary)"}
+          style={{
+            transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+            transition: "transform 0.25s ease",
+            flexShrink: 0,
+            marginLeft: "8px",
+          }}
+        />
       </Box>
 
+      {/* Animated Dropdown Menu */}
       <AnimatePresence>
         {isOpen && (
-          <Box
-            position="absolute"
-            top="105%"
-            left="0"
-            right="0"
-            zIndex={1000}
-            borderRadius="lg"
-            border="1px solid var(--color-card-border)"
-            p={2}
+          <motion.div
+            initial={{ opacity: 0, y: -8, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.97 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
             style={{
-              background: "linear-gradient(135deg, rgba(15,23,42,0.98) 0%, rgba(20,30,55,0.98) 100%)",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
-              backdropFilter: "blur(20px)"
+              position: "absolute",
+              top: "108%",
+              left: 0,
+              right: 0,
+              zIndex: 1000,
             }}
           >
-            {/* Search Input */}
-            <Box mb={2} position="relative" display="flex" alignItems="center" px={1} pt={1}>
-              <Input
-                placeholder="Search..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                size="sm"
-                bg="rgba(255,255,255,0.05)"
-                color="white"
-                borderColor="var(--color-card-border)"
-                _hover={{ borderColor: "var(--color-card-border)" }}
-                _focus={{ borderColor: "#8b5cf6", boxShadow: "0 0 0 1px #8b5cf6" }}
-                borderRadius="md"
-                autoFocus
-                height="28px"
-                fontSize="xs"
-                pl="8"
-              />
-              <Box position="absolute" left="3.5" pointerEvents="none" color="var(--color-text-muted)">
-                <Search size={12} />
-              </Box>
-            </Box>
+            <Box
+              borderRadius="xl"
+              border={`1px solid ${accentColor}44`}
+              p={2}
+              style={{
+                background: "linear-gradient(145deg, rgba(15,23,42,0.98) 0%, rgba(20,30,55,0.98) 100%)",
+                boxShadow: "0 20px 45px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06)",
+                backdropFilter: "blur(24px)",
+              }}
+            >
+              {/* Optional Search Input */}
+              {searchable && (
+                <Box mb={2} position="relative" display="flex" alignItems="center">
+                  <Input
+                    placeholder="Search options..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    size="sm"
+                    bg="rgba(255,255,255,0.06)"
+                    color="white"
+                    borderColor="var(--color-card-border)"
+                    _hover={{ borderColor: accentColor }}
+                    _focus={{ borderColor: accentColor, boxShadow: `0 0 0 1px ${accentColor}` }}
+                    borderRadius="lg"
+                    autoFocus
+                    height="32px"
+                    fontSize="xs"
+                    pl="8"
+                  />
+                  <Box position="absolute" left="2.5" pointerEvents="none" color="var(--color-text-muted)">
+                    <Search size={13} />
+                  </Box>
+                </Box>
+              )}
 
-            {/* Options List */}
-            <Box maxH="160px" overflowY="auto">
-              {/* Option "All" */}
+              {/* Options Scroll Container */}
               <Box
-                tabIndex={0}
-                role="option"
-                aria-selected={!value}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
+                maxH="200px"
+                overflowY="auto"
+                css={{
+                  "&::-webkit-scrollbar": { width: "4px" },
+                  "&::-webkit-scrollbar-thumb": { background: `${accentColor}44`, borderRadius: "4px" },
+                }}
+              >
+                {/* Default "All" option if placeholder exists */}
+                <Box
+                  onClick={() => {
                     onChange("");
                     setIsOpen(false);
-                  }
-                }}
-                onClick={() => {
-                  onChange("");
-                  setIsOpen(false);
-                }}
-                py={1.5}
-                px={2.5}
-                borderRadius="md"
-                cursor="pointer"
-                _hover={{ bg: "rgba(139,92,246,0.15)", color: "white" }}
-                bg={!value ? "rgba(139,92,246,0.1)" : "transparent"}
-                color={!value ? "#8b5cf6" : "var(--color-text-muted)"}
-                transition="all 0.15s"
-                mb={0.5}
-              >
-                <Text fontSize="xs" fontWeight={!value ? "bold" : "normal"}>
-                  {placeholder || "All"}
-                </Text>
-              </Box>
-
-              {filteredOptions.length === 0 ? (
-                <Box py={2} px={3}>
-                  <Text color="var(--color-text-muted)" fontSize="xs" textAlign="center">
-                    No results found
+                  }}
+                  py={2}
+                  px={3}
+                  borderRadius="lg"
+                  cursor="pointer"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  bg={!value ? `${accentColor}22` : "transparent"}
+                  color={!value ? accentColor : "var(--color-text-muted)"}
+                  _hover={{ bg: `${accentColor}18`, color: "white" }}
+                  transition="all 0.15s"
+                  mb={1}
+                >
+                  <Text fontSize="xs" fontWeight={!value ? "bold" : "normal"}>
+                    {placeholder}
                   </Text>
+                  {!value && <Check size={14} color={accentColor} />}
                 </Box>
-              ) : (
-                filteredOptions.map((opt) => (
-                  <Box
-                    key={opt.value}
-                    tabIndex={0}
-                    role="option"
-                    aria-selected={opt.value === value}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        onChange(opt.value);
-                        setIsOpen(false);
-                      }
-                    }}
-                    onClick={() => {
-                      onChange(opt.value);
-                      setIsOpen(false);
-                    }}
-                    py={1.5}
-                    px={2.5}
-                    borderRadius="md"
-                    cursor="pointer"
-                    _hover={{ bg: "rgba(139,92,246,0.15)", color: "white" }}
-                    bg={opt.value === value ? "rgba(139,92,246,0.1)" : "transparent"}
-                    color={opt.value === value ? "#8b5cf6" : "var(--color-text-primary)"}
-                    transition="all 0.15s"
-                    mb={0.5}
-                  >
-                    <Text fontSize="xs" fontWeight={opt.value === value ? "bold" : "normal"}>
-                      {opt.label}
+
+                {filteredOptions.length === 0 ? (
+                  <Box py={3} px={3}>
+                    <Text color="var(--color-text-muted)" fontSize="xs" textAlign="center">
+                      No matching options
                     </Text>
                   </Box>
-                ))
-              )}
+                ) : (
+                  filteredOptions.map((opt) => {
+                    const isSelected = opt.value === value;
+                    return (
+                      <Box
+                        key={opt.value}
+                        onClick={() => {
+                          onChange(opt.value);
+                          setIsOpen(false);
+                        }}
+                        py={2}
+                        px={3}
+                        borderRadius="lg"
+                        cursor="pointer"
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="space-between"
+                        bg={isSelected ? `${accentColor}25` : "transparent"}
+                        color={isSelected ? "white" : "var(--color-text-primary)"}
+                        _hover={{ bg: `${accentColor}18`, color: "white" }}
+                        transition="all 0.15s"
+                        mb={1}
+                      >
+                        <Text fontSize="xs" fontWeight={isSelected ? "bold" : "normal"} noOfLines={1}>
+                          {opt.label}
+                        </Text>
+                        {isSelected && <Check size={14} color={accentColor} />}
+                      </Box>
+                    );
+                  })
+                )}
+              </Box>
             </Box>
-          </Box>
+          </motion.div>
         )}
       </AnimatePresence>
     </VStack>
   );
 };
 
+/* ─── Options Constants ─────────────────────────────────────────────────── */
 const sortOptions = [
   { value: "newest", label: "Newest First" },
   { value: "oldest", label: "Oldest First" },
@@ -253,7 +259,8 @@ const dateOptions = [
   { value: "past-month", label: "Past Month" },
 ];
 
-const RFPFilterSidebar = ({
+/* ─── Sidebar Content Component ─────────────────────────────────────────── */
+const RFPFilterSidebarContent = ({
   selectedSort,
   setSelectedSort,
   selectedCategory,
@@ -268,101 +275,224 @@ const RFPFilterSidebar = ({
   onResetFilters,
   companyOptions = [],
   accentColor = "#8b5cf6",
+  activeCount = 0,
+  onCloseMobile,
 }) => {
   const isAnyFilterActive =
     selectedCategory ||
     selectedBudget ||
     selectedOwner ||
     selectedDatePosted ||
-    searchQuery;
+    searchQuery ||
+    (selectedSort && selectedSort !== "newest");
 
   return (
     <Box
-      display={{ base: "none", lg: "block" }}
-      position="sticky"
-      top="88px"
-      alignSelf="start"
-      w="280px"
-      zIndex={10}
+      borderRadius="2xl"
+      border={`1px solid ${accentColor}33`}
+      p={5}
+      style={{
+        background: "linear-gradient(145deg, rgba(15,23,42,0.95) 0%, rgba(20,30,55,0.95) 100%)",
+        backdropFilter: "blur(24px)",
+        boxShadow: "0 20px 50px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)",
+      }}
     >
-      <VStack align="stretch" gap={5}>
-        <Box
-          borderRadius="2xl"
-          border="1px solid var(--color-card-border)"
-          p={5}
-          style={{ background: "var(--color-glass)", backdropFilter: "blur(20px)" }}
-        >
-          <Flex justify="space-between" align="center" mb={4}>
-            <HStack gap={2}>
-              <SlidersHorizontal size={15} color={accentColor} />
-              <Text color="var(--color-text-primary)" fontWeight="black" fontSize="sm" letterSpacing="tight">
-                Filters
+      {/* Sidebar Header */}
+      <Flex justify="space-between" align="center" mb={5}>
+        <HStack gap={2.5}>
+          <Box
+            w="34px"
+            h="34px"
+            borderRadius="xl"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            style={{
+              background: `${accentColor}20`,
+              border: `1px solid ${accentColor}44`,
+            }}
+          >
+            <SlidersHorizontal size={16} color={accentColor} />
+          </Box>
+          <VStack align="start" gap={0}>
+            <HStack gap={1.5}>
+              <Text color="white" fontWeight="black" fontSize="sm" letterSpacing="tight">
+                Filter Tenders
               </Text>
+              {activeCount > 0 && (
+                <Badge
+                  px={2} py={0.5} borderRadius="full" fontSize="10px" fontWeight="black"
+                  bg={accentColor} color="white"
+                >
+                  {activeCount}
+                </Badge>
+              )}
             </HStack>
-            {isAnyFilterActive && (
-              <Button
-                variant="link"
-                size="xs"
-                color={accentColor}
-                fontWeight="black"
-                fontSize="3xs"
-                letterSpacing="wider"
-                onClick={onResetFilters}
-              >
-                RESET ALL
-              </Button>
-            )}
-          </Flex>
-
-          <VStack align="stretch" gap={4}>
-            {/* Sort By */}
-            <FilterSelect
-              label="Sort By"
-              value={selectedSort}
-              onChange={setSelectedSort}
-              options={sortOptions}
-              placeholder="Default"
-            />
-
-            {/* Category */}
-            <FilterSelect
-              label="Category"
-              value={selectedCategory}
-              onChange={setSelectedCategory}
-              options={CATEGORY_OPTIONS}
-              placeholder="All Categories"
-            />
-
-            {/* Budget Range */}
-            <FilterSelect
-              label="Budget Range"
-              value={selectedBudget}
-              onChange={setSelectedBudget}
-              options={budgetOptions}
-              placeholder="All Budgets"
-            />
-
-            {/* Published By */}
-            <SearchableFilterSelect
-              label="Published By"
-              value={selectedOwner}
-              onChange={setSelectedOwner}
-              options={companyOptions}
-              placeholder="Anyone"
-            />
-
-            {/* Date Posted */}
-            <FilterSelect
-              label="Date Posted"
-              value={selectedDatePosted}
-              onChange={setSelectedDatePosted}
-              options={dateOptions}
-              placeholder="Anytime"
-            />
           </VStack>
-        </Box>
+        </HStack>
+
+        <HStack gap={2}>
+          {isAnyFilterActive && (
+            <Button
+              variant="ghost"
+              size="xs"
+              color="var(--color-text-muted)"
+              fontWeight="bold"
+              fontSize="11px"
+              h="7"
+              px={2.5}
+              borderRadius="lg"
+              _hover={{ color: accentColor, bg: `${accentColor}18` }}
+              onClick={onResetFilters}
+              display="flex"
+              alignItems="center"
+              gap={1}
+            >
+              <RotateCcw size={12} />
+              Reset
+            </Button>
+          )}
+
+          {onCloseMobile && (
+            <Box
+              as="button"
+              onClick={onCloseMobile}
+              w="7"
+              h="7"
+              borderRadius="lg"
+              display={{ base: "flex", lg: "none" }}
+              alignItems="center"
+              justifyContent="center"
+              bg="var(--color-card-border)"
+              color="white"
+            >
+              <X size={14} />
+            </Box>
+          )}
+        </HStack>
+      </Flex>
+
+      {/* Filter Dropdowns List */}
+      <VStack align="stretch" gap={4.5}>
+        {/* Sort By */}
+        <CustomDropdown
+          label="Sort By"
+          value={selectedSort}
+          onChange={setSelectedSort}
+          options={sortOptions}
+          placeholder="Newest First"
+          icon={ArrowUpDown}
+          accentColor={accentColor}
+        />
+
+        {/* Category */}
+        <CustomDropdown
+          label="Category"
+          value={selectedCategory}
+          onChange={setSelectedCategory}
+          options={CATEGORY_OPTIONS}
+          placeholder="All Categories"
+          icon={Layers}
+          searchable={true}
+          accentColor={accentColor}
+        />
+
+        {/* Budget Range */}
+        <CustomDropdown
+          label="Budget Range"
+          value={selectedBudget}
+          onChange={setSelectedBudget}
+          options={budgetOptions}
+          placeholder="All Budgets"
+          icon={DollarSign}
+          accentColor={accentColor}
+        />
+
+        {/* Published By Company */}
+        <CustomDropdown
+          label="Published By"
+          value={selectedOwner}
+          onChange={setSelectedOwner}
+          options={companyOptions}
+          placeholder="All Companies"
+          icon={Building2}
+          searchable={true}
+          accentColor={accentColor}
+        />
+
+        {/* Date Posted */}
+        <CustomDropdown
+          label="Date Posted"
+          value={selectedDatePosted}
+          onChange={setSelectedDatePosted}
+          options={dateOptions}
+          placeholder="Anytime"
+          icon={Calendar}
+          accentColor={accentColor}
+        />
       </VStack>
     </Box>
+  );
+};
+
+/* ─── Main RFPFilterSidebar Export Component ──────────────────────────────── */
+const RFPFilterSidebar = (props) => {
+  const { mobileOpen, onMobileClose } = props;
+
+  const activeCount = [
+    props.selectedCategory,
+    props.selectedBudget,
+    props.selectedOwner,
+    props.selectedDatePosted,
+    props.searchQuery,
+    props.selectedSort && props.selectedSort !== "newest" ? props.selectedSort : "",
+  ].filter(Boolean).length;
+
+  return (
+    <>
+      {/* Mobile Drawer Backdrop & Modal */}
+      {mobileOpen && (
+        <Box
+          display={{ base: "block", lg: "none" }}
+          position="fixed"
+          inset={0}
+          bg="rgba(0,0,0,0.8)"
+          backdropFilter="blur(10px)"
+          zIndex={99990}
+          onClick={onMobileClose}
+        />
+      )}
+
+      {/* Mobile Slide-out sidebar container */}
+      <Box
+        display={{ base: "block", lg: "none" }}
+        position="fixed"
+        top="0"
+        bottom="0"
+        left={mobileOpen ? "0" : "-320px"}
+        w="300px"
+        zIndex={99995}
+        transition="left 0.3s ease"
+        p={4}
+        pt={6}
+        overflowY="auto"
+        bg="#0f172a"
+      >
+        <RFPFilterSidebarContent {...props} activeCount={activeCount} onCloseMobile={onMobileClose} />
+      </Box>
+
+      {/* Desktop Sticky Sidebar */}
+      <Box
+        display={{ base: "none", lg: "block" }}
+        position="sticky"
+        top="88px"
+        alignSelf="start"
+        w="280px"
+        zIndex={10}
+      >
+        <RFPFilterSidebarContent {...props} activeCount={activeCount} />
+      </Box>
+    </>
   );
 };
 
