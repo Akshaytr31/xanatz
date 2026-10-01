@@ -38,6 +38,27 @@
   --color-dropdown-bg: rgba(8, 12, 28, 0.96);
 }
 
+/* ── Mode-Specific Visual Identity Tokens ── */
+:root, body.mode-personal {
+  --mode-accent: #10b981;
+  --mode-accent-rgb: 16, 185, 129;
+  --mode-accent-gradient: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+  --mode-badge-bg: rgba(16, 185, 129, 0.15);
+  --mode-badge-border: rgba(16, 185, 129, 0.3);
+  --mode-badge-color: #34d399;
+}
+
+body.mode-company {
+  --mode-accent: #8b5cf6;
+  --mode-accent-rgb: 139, 92, 246;
+  --mode-accent-gradient: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  --mode-badge-bg: rgba(139, 92, 246, 0.15);
+  --mode-badge-border: rgba(139, 92, 246, 0.3);
+  --mode-badge-color: #c4b5fd;
+}
+
+/* ── Ambient Top Mode Tokens ── */
+
 .light {
   /* Theme variables for light mode */
   --color-primary: #f1f5f9; /* premium cool slate-100 background */

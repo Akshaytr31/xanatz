@@ -41,6 +41,7 @@ import Navbar from "../components/Navbar";
 import { useAccount } from "../context/AccountContext";
 import CompanyChannelSection from "../components/company/CompanyChannelSection";
 import api from "../api";
+import { formatDate } from "../utils/dateUtils";
 
 const MotionBox = motion.create(Box);
 
@@ -157,17 +158,17 @@ const HomePage = () => {
             style={{
               background:
                 accountMode === "company"
-                  ? "linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(6, 78, 59, 0.25) 50%, rgba(17, 24, 39, 0.8) 100%)"
-                  : "linear-gradient(135deg, rgba(59, 130, 246, 0.14) 0%, rgba(139, 92, 246, 0.18) 50%, rgba(17, 24, 39, 0.8) 100%)",
+                  ? "linear-gradient(135deg, rgba(139, 92, 246, 0.16) 0%, rgba(88, 28, 135, 0.3) 50%, rgba(17, 24, 39, 0.85) 100%)"
+                  : "linear-gradient(135deg, rgba(16, 185, 129, 0.16) 0%, rgba(6, 78, 59, 0.3) 50%, rgba(17, 24, 39, 0.85) 100%)",
               border:
                 accountMode === "company"
-                  ? "1px solid rgba(16, 185, 129, 0.3)"
-                  : "1px solid rgba(59, 130, 246, 0.25)",
+                  ? "1px solid rgba(139, 92, 246, 0.35)"
+                  : "1px solid rgba(16, 185, 129, 0.35)",
               backdropFilter: "blur(20px)",
               boxShadow:
                 accountMode === "company"
-                  ? "0 20px 50px -15px rgba(16, 185, 129, 0.15)"
-                  : "0 20px 50px -15px rgba(59, 130, 246, 0.15)",
+                  ? "0 20px 50px -15px rgba(139, 92, 246, 0.2)"
+                  : "0 20px 50px -15px rgba(16, 185, 129, 0.2)",
             }}
           >
             {/* Background Decorative Glow */}
@@ -181,8 +182,8 @@ const HomePage = () => {
               style={{
                 background:
                   accountMode === "company"
-                    ? "radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, transparent 70%)"
-                    : "radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, transparent 70%)",
+                    ? "radial-gradient(circle, rgba(139, 92, 246, 0.25) 0%, transparent 70%)"
+                    : "radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 70%)",
                 filter: "blur(50px)",
                 pointerEvents: "none",
               }}
@@ -208,13 +209,13 @@ const HomePage = () => {
                     style={{
                       background:
                         accountMode === "company"
-                          ? "rgba(16, 185, 129, 0.2)"
-                          : "rgba(59, 130, 246, 0.2)",
-                      color: accountMode === "company" ? "#34d399" : "#60a5fa",
+                          ? "rgba(139, 92, 246, 0.25)"
+                          : "rgba(16, 185, 129, 0.25)",
+                      color: accountMode === "company" ? "#c084fc" : "#34d399",
                       border:
                         accountMode === "company"
-                          ? "1px solid rgba(16, 185, 129, 0.4)"
-                          : "1px solid rgba(59, 130, 246, 0.4)",
+                          ? "1px solid rgba(139, 92, 246, 0.45)"
+                          : "1px solid rgba(16, 185, 129, 0.45)",
                     }}
                   >
                     {accountMode === "company" ? (
@@ -223,7 +224,7 @@ const HomePage = () => {
                       </Flex>
                     ) : (
                       <Flex align="center" gap={1.5}>
-                        <User size={13} /> PERSONAL ACCOUNT MODE
+                        <User size={13} /> PERSONAL PROFILE MODE
                       </Flex>
                     )}
                   </Badge>
@@ -234,7 +235,7 @@ const HomePage = () => {
                       borderRadius="full"
                       fontSize="10px"
                       fontWeight="bold"
-                      style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.6)" }}
+                      style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.7)" }}
                     >
                       {userCompanies.length} Connected Company Account{userCompanies.length > 1 ? "s" : ""}
                     </Badge>
@@ -254,12 +255,12 @@ const HomePage = () => {
                       <Text
                         as="span"
                         style={{
-                          background: "linear-gradient(135deg, #34d399, #10b981)",
+                          background: "linear-gradient(135deg, #c084fc, #a855f7)",
                           WebkitBackgroundClip: "text",
                           WebkitTextFillColor: "transparent",
                         }}
                       >
-                        {activeCompany?.name || "Company Portal"}
+                        {activeCompany?.name || "Corporate Hub"}
                       </Text>
                     </>
                   ) : (
@@ -268,12 +269,12 @@ const HomePage = () => {
                       <Text
                         as="span"
                         style={{
-                          background: "linear-gradient(135deg, #60a5fa, #a78bfa)",
+                          background: "linear-gradient(135deg, #34d399, #10b981)",
                           WebkitBackgroundClip: "text",
                           WebkitTextFillColor: "transparent",
                         }}
                       >
-                        {user?.first_name || "Professional"}
+                        {user?.first_name || "Candidate"}
                       </Text>{" "}
                       👋
                     </>
@@ -1004,7 +1005,7 @@ const HomePage = () => {
 
                     <Flex justify="space-between" align="center" pt={3} style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                       <Text fontSize="11px" color="gray.500">
-                        Posted {new Date(job.created_at).toLocaleDateString()}
+                        Posted {formatDate(job.created_at)}
                       </Text>
                       <Box
                         as="button"

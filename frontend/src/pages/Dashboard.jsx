@@ -12,6 +12,7 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 import Navbar from "../components/Navbar";
+import PageModeHeader from "../components/PageModeHeader";
 import JobOpeningCard from "../components/JobOpeningCard";
 import Pagination from "../components/Pagination";
 import FilterSidebar, {
@@ -209,6 +210,12 @@ const Dashboard = () => {
 
         {/* ── Main content ── */}
         <Box flex={1} p={{ base: 4, md: 6, lg: 8 }} minW={0}>
+
+          {/* Mode Header */}
+          <PageModeHeader
+            title="Explore Open Positions & Opportunities"
+            subtitle="Browse verified job listings from leading tech companies and startups."
+          />
 
           {/* Top bar */}
           <Flex align="center" justify="space-between" mb={6} gap={3}>

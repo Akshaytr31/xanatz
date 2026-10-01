@@ -16,7 +16,8 @@ const CustomDropdown = ({
   placeholder = "Select...",
   icon: Icon = Filter,
   searchable = false,
-  accentColor = "#8b5cf6"
+  accentColor = "#8b5cf6",
+  dropUp = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -110,13 +111,13 @@ const CustomDropdown = ({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -8, scale: 0.97 }}
+            initial={{ opacity: 0, y: dropUp ? 8 : -8, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.97 }}
+            exit={{ opacity: 0, y: dropUp ? 8 : -8, scale: 0.97 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
             style={{
               position: "absolute",
-              top: "108%",
+              ...(dropUp ? { bottom: "108%" } : { top: "108%" }),
               left: 0,
               right: 0,
               zIndex: 1000,
@@ -159,7 +160,7 @@ const CustomDropdown = ({
 
               {/* Options Scroll Container */}
               <Box
-                maxH="200px"
+                maxH="180px"
                 overflowY="auto"
                 css={{
                   "&::-webkit-scrollbar": { width: "4px" },
@@ -383,6 +384,7 @@ const RFPFilterSidebarContent = ({
           placeholder="Newest First"
           icon={ArrowUpDown}
           accentColor={accentColor}
+          dropUp={false}
         />
 
         {/* Category */}
@@ -395,6 +397,7 @@ const RFPFilterSidebarContent = ({
           icon={Layers}
           searchable={true}
           accentColor={accentColor}
+          dropUp={false}
         />
 
         {/* Budget Range */}
@@ -406,6 +409,7 @@ const RFPFilterSidebarContent = ({
           placeholder="All Budgets"
           icon={DollarSign}
           accentColor={accentColor}
+          dropUp={false}
         />
 
         {/* Published By Company */}
@@ -418,6 +422,7 @@ const RFPFilterSidebarContent = ({
           icon={Building2}
           searchable={true}
           accentColor={accentColor}
+          dropUp={true}
         />
 
         {/* Date Posted */}
@@ -429,6 +434,7 @@ const RFPFilterSidebarContent = ({
           placeholder="Anytime"
           icon={Calendar}
           accentColor={accentColor}
+          dropUp={true}
         />
       </VStack>
     </Box>

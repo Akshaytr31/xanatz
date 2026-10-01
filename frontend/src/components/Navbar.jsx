@@ -26,6 +26,8 @@ import {
   Building2,
   Check,
   Plus,
+  Send,
+  Sparkles,
 } from "lucide-react";
 
 import { useNavigate, useLocation } from "react-router-dom";
@@ -240,10 +242,22 @@ const Navbar = () => {
   const messagesRef = useRef(null);
   const accountSwitcherRef = useRef(null);
 
-  /* scroll detection */
+  /* scroll detection & progress */
+  const [scrollProgress, setScrollProgress] = useState(0);
+
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 12);
+      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (totalHeight > 0) {
+        const pct = (window.scrollY / totalHeight) * 100;
+        setScrollProgress(Math.min(100, Math.max(0, pct)));
+      } else {
+        setScrollProgress(100);
+      }
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
@@ -439,6 +453,49 @@ const Navbar = () => {
         willChange: "background-color, backdrop-filter, border-color, box-shadow",
       }}
     >
+      {/* ── Dynamic Top Progress Bar ── */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: "3.5px",
+          overflow: "hidden",
+          pointerEvents: "none",
+          zIndex: 1005,
+        }}
+      >
+        <motion.div
+          animate={{ width: `${Math.max(scrollProgress, 5)}%` }}
+          transition={{ duration: 0.15, ease: "easeOut" }}
+          style={{
+            height: "100%",
+            background:
+              accountMode === "company"
+                ? "linear-gradient(90deg, #8b5cf6 0%, #6366f1 50%, #ec4899 100%)"
+                : "linear-gradient(90deg, #10b981 0%, #06b6d4 50%, #34d399 100%)",
+            boxShadow:
+              accountMode === "company"
+                ? "0 0 14px rgba(139, 92, 246, 0.9), 0 0 6px rgba(236, 72, 153, 0.9)"
+                : "0 0 14px rgba(16, 185, 129, 0.9), 0 0 6px rgba(6, 182, 212, 0.9)",
+            position: "relative",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              right: 0,
+              top: "-2px",
+              bottom: "-2px",
+              width: "12px",
+              borderRadius: "50%",
+              background: accountMode === "company" ? "#ec4899" : "#34d399",
+              boxShadow: accountMode === "company" ? "0 0 14px #ec4899" : "0 0 14px #34d399",
+            }}
+          />
+        </motion.div>
+      </div>
       <div
         style={{
           display: "flex",
@@ -477,39 +534,67 @@ const Navbar = () => {
 
         {/* ── Center Nav Items ── */}
         <nav className="display-desktop" style={{ alignItems: "center", gap: "0.15rem" }}>
-          <NavItem
-            icon={Home}
-            label="Home"
-            active={location.pathname === "/dashboard"}
-            onClick={() => navigate("/dashboard")}
-          />
-          {/* FREELANCER FEATURE (Disabled for now - uncomment to enable)
-          <NavItem
-            icon={Users}
-            label="Freelancers"
-            active={location.pathname === "/freelancers"}
-            onClick={() => navigate("/freelancers")}
-          />
-          */}
-          <NavItem
-            icon={Briefcase}
-            label="Jobs"
-            active={location.pathname === "/jobs"}
-            onClick={() => navigate("/jobs")}
-          />
-          <NavItem
-            icon={FileText}
-            label="RFPs"
-            active={location.pathname === "/rfps"}
-            onClick={() => navigate("/rfps")}
-          />
-
-          <NavItem
-            icon={ClipboardList}
-            label="Applications"
-            active={location.pathname === "/my-applications"}
-            onClick={() => navigate("/my-applications")}
-          />
+          {accountMode === "company" ? (
+            <>
+              <NavItem
+                icon={Building2}
+                label="Workspace"
+                active={location.pathname === "/dashboard"}
+                onClick={() => navigate("/dashboard")}
+              />
+              <NavItem
+                icon={Briefcase}
+                label="Openings"
+                active={location.pathname.includes("/openings")}
+                onClick={() => navigate(activeCompany?.id ? `/company/${activeCompany.id}/openings` : "/dashboard")}
+              />
+              <NavItem
+                icon={FileText}
+                label="RFPs"
+                active={location.pathname.includes("/rfps") && location.pathname.includes("/company")}
+                onClick={() => navigate(activeCompany?.id ? `/company/${activeCompany.id}/rfps` : "/rfps")}
+              />
+              <NavItem
+                icon={Users}
+                label="Team"
+                active={location.pathname.includes("/members")}
+                onClick={() => navigate(activeCompany?.id ? `/company/${activeCompany.id}/members` : "/dashboard")}
+              />
+            </>
+          ) : (
+            <>
+              <NavItem
+                icon={Home}
+                label="Home"
+                active={location.pathname === "/dashboard"}
+                onClick={() => navigate("/dashboard")}
+              />
+              <NavItem
+                icon={Briefcase}
+                label="Jobs"
+                active={location.pathname === "/jobs"}
+                onClick={() => navigate("/jobs")}
+              />
+              <NavItem
+                icon={FileText}
+                label="RFPs"
+                active={location.pathname === "/rfps"}
+                onClick={() => navigate("/rfps")}
+              />
+              <NavItem
+                icon={ClipboardList}
+                label="Applications"
+                active={location.pathname === "/my-applications"}
+                onClick={() => navigate("/my-applications")}
+              />
+              <NavItem
+                icon={Send}
+                label="Proposals"
+                active={location.pathname === "/my-rfp-interests"}
+                onClick={() => navigate("/my-rfp-interests")}
+              />
+            </>
+          )}
           
           {/* Chats / Messages Dropdown */}
           <div ref={messagesRef} style={{ position: "relative" }}>
@@ -887,41 +972,44 @@ const Navbar = () => {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "0.4rem",
-                  padding: "0.38rem 0.75rem",
+                  gap: "0.45rem",
+                  padding: "0.38rem 0.85rem",
                   borderRadius: "9999px",
                   border: accountMode === "company"
-                    ? "1px solid rgba(16, 185, 129, 0.4)"
-                    : "1px solid var(--color-card-border)",
+                    ? "1px solid rgba(139, 92, 246, 0.5)"
+                    : "1px solid rgba(16, 185, 129, 0.5)",
                   background: accountMode === "company"
-                    ? "rgba(16, 185, 129, 0.12)"
-                    : "var(--color-glass)",
+                    ? "linear-gradient(135deg, rgba(139, 92, 246, 0.18), rgba(88, 28, 135, 0.25))"
+                    : "linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(6, 78, 59, 0.25))",
                   color: accountMode === "company"
-                    ? "#34d399"
-                    : "var(--color-text-primary)",
+                    ? "#c084fc"
+                    : "#34d399",
                   fontSize: "0.75rem",
-                  fontWeight: 700,
+                  fontWeight: 800,
+                  letterSpacing: "0.03em",
                   cursor: "pointer",
-                  transition: "all 0.2s ease",
+                  transition: "all 0.25s ease",
                   boxShadow: accountMode === "company"
-                    ? "0 0 12px rgba(16, 185, 129, 0.2)"
-                    : "none",
+                    ? "0 0 16px rgba(139, 92, 246, 0.3)"
+                    : "0 0 16px rgba(16, 185, 129, 0.3)",
                 }}
               >
                 {accountMode === "company" ? (
                   <>
-                    <Building2 size={14} color="#10b981" />
+                    <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#a855f7", boxShadow: "0 0 8px #a855f7" }} />
+                    <Building2 size={14} color="#c084fc" />
                     <span style={{ maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {activeCompany?.name || "Company"}
+                      COMPANY: {activeCompany?.name || "Company"}
                     </span>
                   </>
                 ) : (
                   <>
-                    <User size={14} color="#60a5fa" />
-                    <span>Personal</span>
+                    <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#10b981", boxShadow: "0 0 8px #10b981" }} />
+                    <User size={14} color="#34d399" />
+                    <span>PERSONAL MODE</span>
                   </>
                 )}
-                <ChevronDown size={12} style={{ opacity: 0.7 }} />
+                <ChevronDown size={12} style={{ opacity: 0.8 }} />
               </motion.button>
 
               <AnimatePresence>
@@ -935,25 +1023,25 @@ const Navbar = () => {
                       position: "absolute",
                       top: "calc(100% + 0.75rem)",
                       right: 0,
-                      width: "260px",
+                      width: "290px",
                       zIndex: 2000,
-                      borderRadius: "1rem",
+                      borderRadius: "1.2rem",
                       overflow: "hidden",
                       background: "var(--color-dropdown-bg)",
                       backdropFilter: "blur(40px)",
                       border: "1px solid var(--color-card-border)",
-                      boxShadow: "0 24px 48px -12px rgba(0,0,0,0.7), inset 0 1px 0 var(--color-glass)",
-                      padding: "0.5rem",
+                      boxShadow: "0 24px 48px -12px rgba(0,0,0,0.8), inset 0 1px 0 var(--color-glass)",
+                      padding: "0.6rem",
                     }}
                   >
                     <div style={{ padding: "0.5rem 0.75rem 0.4rem", borderBottom: "1px solid var(--color-card-border)" }}>
                       <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                        Select Active Account
+                        Active Profile Context
                       </span>
                     </div>
 
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem", marginTop: "0.35rem" }}>
-                      {/* Personal Account Option */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", marginTop: "0.4rem" }}>
+                      {/* Personal Account Card */}
                       <button
                         onClick={() => {
                           switchAccountMode("personal");
@@ -964,11 +1052,15 @@ const Navbar = () => {
                           alignItems: "center",
                           justifyContent: "space-between",
                           width: "100%",
-                          padding: "0.65rem 0.75rem",
-                          borderRadius: "0.6rem",
-                          border: "none",
-                          background: accountMode === "personal" ? "rgba(59, 130, 246, 0.12)" : "transparent",
-                          color: accountMode === "personal" ? "#60a5fa" : "var(--color-text-secondary)",
+                          padding: "0.75rem",
+                          borderRadius: "0.75rem",
+                          border: accountMode === "personal"
+                            ? "1px solid rgba(16, 185, 129, 0.4)"
+                            : "1px solid var(--color-card-border)",
+                          background: accountMode === "personal"
+                            ? "linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 78, 59, 0.2))"
+                            : "transparent",
+                          color: accountMode === "personal" ? "#34d399" : "var(--color-text-secondary)",
                           fontSize: "0.8rem",
                           fontWeight: accountMode === "personal" ? 700 : 500,
                           cursor: "pointer",
@@ -981,14 +1073,35 @@ const Navbar = () => {
                           if (accountMode !== "personal") e.currentTarget.style.background = "transparent";
                         }}
                       >
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
-                          <User size={16} color="#60a5fa" />
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                          <div
+                            style={{
+                              width: "32px",
+                              height: "32px",
+                              borderRadius: "50%",
+                              background: "rgba(16, 185, 129, 0.2)",
+                              border: "1px solid rgba(16, 185, 129, 0.3)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <User size={16} color="#34d399" />
+                          </div>
                           <div style={{ textAlign: "left" }}>
-                            <div style={{ fontWeight: 700, color: "var(--color-text-primary)" }}>Personal Account</div>
-                            <div style={{ fontSize: "0.65rem", color: "var(--color-text-muted)" }}>{user.email}</div>
+                            <div style={{ fontWeight: 700, color: "var(--color-text-primary)", fontSize: "0.82rem" }}>
+                              Personal Profile
+                            </div>
+                            <div style={{ fontSize: "0.68rem", color: "var(--color-text-muted)" }}>
+                              {user.email}
+                            </div>
                           </div>
                         </div>
-                        {accountMode === "personal" && <Check size={14} color="#60a5fa" />}
+                        {accountMode === "personal" && (
+                          <div style={{ display: "flex", alignItems: "center", gap: "4px", background: "rgba(16,185,129,0.2)", color: "#34d399", padding: "2px 8px", borderRadius: "9999px", fontSize: "10px", fontWeight: "bold" }}>
+                            <Check size={12} /> Active
+                          </div>
+                        )}
                       </button>
 
                       {/* Companies Options */}
@@ -996,7 +1109,7 @@ const Navbar = () => {
                         <>
                           <div style={{ padding: "0.4rem 0.75rem 0.2rem", borderTop: "1px solid var(--color-card-border)", marginTop: "0.2rem" }}>
                             <span style={{ fontSize: "0.65rem", fontWeight: 800, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                              Company Accounts
+                              Company Workspaces ({userCompanies.length})
                             </span>
                           </div>
 
@@ -1014,11 +1127,15 @@ const Navbar = () => {
                                   alignItems: "center",
                                   justifyContent: "space-between",
                                   width: "100%",
-                                  padding: "0.65rem 0.75rem",
-                                  borderRadius: "0.6rem",
-                                  border: "none",
-                                  background: isSelected ? "rgba(16, 185, 129, 0.12)" : "transparent",
-                                  color: isSelected ? "#34d399" : "var(--color-text-secondary)",
+                                  padding: "0.75rem",
+                                  borderRadius: "0.75rem",
+                                  border: isSelected
+                                    ? "1px solid rgba(139, 92, 246, 0.4)"
+                                    : "1px solid var(--color-card-border)",
+                                  background: isSelected
+                                    ? "linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(88, 28, 135, 0.2))"
+                                    : "transparent",
+                                  color: isSelected ? "#c084fc" : "var(--color-text-secondary)",
                                   fontSize: "0.8rem",
                                   fontWeight: isSelected ? 700 : 500,
                                   cursor: "pointer",
@@ -1031,18 +1148,40 @@ const Navbar = () => {
                                   if (!isSelected) e.currentTarget.style.background = "transparent";
                                 }}
                               >
-                                <div style={{ display: "flex", alignItems: "center", gap: "0.65rem", minWidth: 0 }}>
-                                  <Building2 size={16} color="#10b981" />
+                                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", minWidth: 0 }}>
+                                  <div
+                                    style={{
+                                      width: "32px",
+                                      height: "32px",
+                                      borderRadius: "50%",
+                                      background: "rgba(139, 92, 246, 0.2)",
+                                      border: "1px solid rgba(139, 92, 246, 0.3)",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      flexShrink: 0,
+                                    }}
+                                  >
+                                    <Building2 size={16} color="#c084fc" />
+                                  </div>
                                   <div style={{ textAlign: "left", minWidth: 0 }}>
-                                    <div style={{ fontWeight: 700, color: "var(--color-text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                    <div style={{ fontWeight: 700, color: "var(--color-text-primary)", fontSize: "0.82rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                                       {comp.name}
                                     </div>
-                                    <div style={{ fontSize: "0.65rem", color: "var(--color-text-muted)" }}>
+                                    <div style={{ fontSize: "0.68rem", color: "var(--color-text-muted)" }}>
                                       {comp.is_owner ? "Owner" : comp.access_role || "Member"}
                                     </div>
                                   </div>
                                 </div>
-                                {isSelected && <Check size={14} color="#10b981" />}
+                                {isSelected ? (
+                                  <div style={{ display: "flex", alignItems: "center", gap: "4px", background: "rgba(139,92,246,0.2)", color: "#c084fc", padding: "2px 8px", borderRadius: "9999px", fontSize: "10px", fontWeight: "bold" }}>
+                                    <Check size={12} /> Active
+                                  </div>
+                                ) : (
+                                  <span style={{ fontSize: "0.7rem", color: "var(--color-accent, #3b82f6)", fontWeight: 600 }}>
+                                    Switch
+                                  </span>
+                                )}
                               </button>
                             );
                           })}
@@ -1059,7 +1198,7 @@ const Navbar = () => {
                               alignItems: "center",
                               gap: "0.5rem",
                               width: "100%",
-                              padding: "0.6rem 0.75rem",
+                              padding: "0.65rem 0.75rem",
                               borderRadius: "0.6rem",
                               border: "1px dashed var(--color-card-border)",
                               background: "transparent",
@@ -1073,7 +1212,7 @@ const Navbar = () => {
                             onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                           >
                             <Plus size={14} />
-                            <span>Register / Create Company</span>
+                            <span>Create Company Workspace</span>
                           </button>
                         </div>
                       )}
@@ -1352,13 +1491,22 @@ const Navbar = () => {
             }}
             className="display-mobile"
           >
-            <MobileNavItem icon={Home} label="Home" active={location.pathname === "/dashboard"} onClick={() => { navigate("/dashboard"); setIsMobileMenuOpen(false); }} />
-            {/* FREELANCER FEATURE (Disabled for now - uncomment to enable)
-            <MobileNavItem icon={Users} label="Freelancers" active={location.pathname === "/freelancers"} onClick={() => { navigate("/freelancers"); setIsMobileMenuOpen(false); }} />
-            */}
-            <MobileNavItem icon={Briefcase} label="Jobs" active={location.pathname === "/jobs"} onClick={() => { navigate("/jobs"); setIsMobileMenuOpen(false); }} />
-            <MobileNavItem icon={FileText} label="RFPs" active={location.pathname === "/rfps"} onClick={() => { navigate("/rfps"); setIsMobileMenuOpen(false); }} />
-            <MobileNavItem icon={ClipboardList} label="Applications" active={location.pathname === "/my-applications"} onClick={() => { navigate("/my-applications"); setIsMobileMenuOpen(false); }} />
+            {accountMode === "company" ? (
+              <>
+                <MobileNavItem icon={Building2} label="Workspace" active={location.pathname === "/dashboard"} onClick={() => { navigate("/dashboard"); setIsMobileMenuOpen(false); }} />
+                <MobileNavItem icon={Briefcase} label="Manage Openings" active={location.pathname.includes("/openings")} onClick={() => { navigate(activeCompany?.id ? `/company/${activeCompany.id}/openings` : "/dashboard"); setIsMobileMenuOpen(false); }} />
+                <MobileNavItem icon={FileText} label="Manage RFPs" active={location.pathname.includes("/rfps") && location.pathname.includes("/company")} onClick={() => { navigate(activeCompany?.id ? `/company/${activeCompany.id}/rfps` : "/rfps"); setIsMobileMenuOpen(false); }} />
+                <MobileNavItem icon={Users} label="Team Members" active={location.pathname.includes("/members")} onClick={() => { navigate(activeCompany?.id ? `/company/${activeCompany.id}/members` : "/dashboard"); setIsMobileMenuOpen(false); }} />
+              </>
+            ) : (
+              <>
+                <MobileNavItem icon={Home} label="Home" active={location.pathname === "/dashboard"} onClick={() => { navigate("/dashboard"); setIsMobileMenuOpen(false); }} />
+                <MobileNavItem icon={Briefcase} label="Jobs" active={location.pathname === "/jobs"} onClick={() => { navigate("/jobs"); setIsMobileMenuOpen(false); }} />
+                <MobileNavItem icon={FileText} label="RFPs" active={location.pathname === "/rfps"} onClick={() => { navigate("/rfps"); setIsMobileMenuOpen(false); }} />
+                <MobileNavItem icon={ClipboardList} label="Applications" active={location.pathname === "/my-applications"} onClick={() => { navigate("/my-applications"); setIsMobileMenuOpen(false); }} />
+                <MobileNavItem icon={Send} label="Proposals" active={location.pathname === "/my-rfp-interests"} onClick={() => { navigate("/my-rfp-interests"); setIsMobileMenuOpen(false); }} />
+              </>
+            )}
             <MobileNavItem icon={MessageSquare} label="Chats" active={location.pathname === "/messages"} onClick={() => { navigate("/messages"); setIsMobileMenuOpen(false); }} />
             <MobileNavItem icon={Bell} label="Notifications" active={location.pathname === "/notifications"} onClick={() => { navigate("/notifications"); setIsMobileMenuOpen(false); }} badgeCount={notifications.filter((n) => !n.is_read).length} />
           </motion.div>

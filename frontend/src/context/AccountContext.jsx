@@ -118,9 +118,16 @@ export const AccountProvider = ({ children }) => {
     };
   }, []);
 
+  useEffect(() => {
+    document.body.classList.remove("mode-personal", "mode-company");
+    document.body.classList.add(accountMode === "company" ? "mode-company" : "mode-personal");
+  }, [accountMode]);
+
   const setAccountMode = (mode) => {
     setAccountModeState(mode);
     localStorage.setItem("xanatz_account_mode", mode);
+    document.body.classList.remove("mode-personal", "mode-company");
+    document.body.classList.add(mode === "company" ? "mode-company" : "mode-personal");
     
     // Broadcast event so other tabs or non-react components update if needed
     window.dispatchEvent(new Event("xanatz_account_mode_change"));
