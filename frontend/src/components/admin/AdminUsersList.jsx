@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Search, Users, Shield, Calendar, Mail, Phone, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Search, Users, Shield, Calendar, Mail, Phone, CheckCircle2, XCircle, Clock, History } from "lucide-react";
 import api from "../../api";
 import { formatDate } from "../../utils/dateUtils";
 
-const AdminUsersList = () => {
+const AdminUsersList = ({ onViewLogs }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -79,7 +79,7 @@ const AdminUsersList = () => {
             <Search size={15} color="rgba(255,255,255,0.4)" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
             <input
               type="text"
-              placeholder="Search name, email, phone..."
+              placeholder="Search name, email, phone, ID..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               style={{
@@ -121,7 +121,12 @@ const AdminUsersList = () => {
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: "white" }}>{fullName}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ fontSize: 15, fontWeight: 700, color: "white" }}>{fullName}</span>
+                      <span style={{ fontSize: 10, color: "#a5b4fc", background: "rgba(99,102,241,0.12)", padding: "1px 6px", borderRadius: 6, fontWeight: 700 }}>
+                        ID: #{u.id}
+                      </span>
+                    </div>
                     <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
                       <Mail size={12} /> {u.email}
                     </div>
@@ -154,6 +159,23 @@ const AdminUsersList = () => {
                     {isUserActive ? "Active (≤30d)" : "Inactive"}
                   </div>
                 </div>
+
+                {onViewLogs && (
+                  <button
+                    onClick={() => onViewLogs(u)}
+                    style={{
+                      width: "100%", padding: "7px 10px", borderRadius: 8,
+                      border: "1px solid rgba(99,102,241,0.3)", background: "rgba(99,102,241,0.1)",
+                      color: "#a5b4fc", fontSize: 11, fontWeight: 600, cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                      transition: "all 0.2s"
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = "rgba(99,102,241,0.25)"}
+                    onMouseLeave={e => e.currentTarget.style.background = "rgba(99,102,241,0.1)"}
+                  >
+                    <History size={12} /> View Activity Logs
+                  </button>
+                )}
               </div>
             );
           })}
@@ -164,3 +186,5 @@ const AdminUsersList = () => {
 };
 
 export default AdminUsersList;
+
+

@@ -5,7 +5,8 @@ from django.core.mail import send_mail
 from django.conf import settings
 import random
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, OTP, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ, CompanyMedia
+from .models import PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, OTP, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ, CompanyMedia, UserActivityLog
+from .utils import log_user_activity
 
 User = get_user_model()
 
@@ -18,7 +19,17 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
         data = super().validate(attrs)
         from django.contrib.auth.models import update_last_login
         update_last_login(None, self.user)
+        request = self.context.get('request')
+        if self.user:
+            log_user_activity(
+                request=request,
+                user=self.user,
+                action_type='LOGIN',
+                action_title='User logged in with email & password',
+                details={'login_method': 'password', 'email': self.user.email}
+            )
         return data
+
 
 
 class SendOTPSerializer(serializers.Serializer):
@@ -887,3 +898,16 @@ class PublicCompanySerializer(serializers.ModelSerializer):
 
     def get_partner_reviews_count(self, obj):
         return obj.reviews.filter(rfp_interest__isnull=False).count()
+
+
+class UserActivityLogSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(source='user.id', read_only=True)
+
+    class Meta:
+        model = UserActivityLog
+        fields = [
+            'id', 'user_id', 'user_email', 'user_name',
+            'action_type', 'action_title', 'details',
+            'ip_address', 'user_agent', 'created_at'
+        ]
+

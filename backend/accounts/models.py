@@ -635,4 +635,40 @@ class CompanyMedia(models.Model):
         return f"{self.media_type.upper()} - {self.title or 'Untitled'} ({self.company.name})"
 
 
+class UserActivityLog(models.Model):
+    ACTION_TYPES = [
+        ('LOGIN', 'User Login'),
+        ('LOGOUT', 'User Logout'),
+        ('PROFILE_SWITCH', 'Switched Profile/Mode'),
+        ('COMPANY_SWITCH', 'Switched Active Company'),
+        ('JOB_APPLY', 'Applied for Job'),
+        ('JOB_CREATE', 'Posted Job Opening'),
+        ('JOB_UPDATE', 'Updated Job Opening'),
+        ('RFP_CREATE', 'Posted RFP'),
+        ('RFP_UPDATE', 'Updated RFP'),
+        ('RFP_INTEREST', 'Submitted RFP Proposal/Interest'),
+        ('REVIEW_POST', 'Posted Review'),
+        ('PROFILE_UPDATE', 'Updated Profile Information'),
+        ('PAGE_VIEW', 'Page View / Navigation'),
+        ('OTHER', 'Other Action'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='activity_logs')
+    user_email = models.EmailField(blank=True, null=True, db_index=True)
+    user_name = models.CharField(max_length=255, blank=True, null=True, db_index=True)
+    action_type = models.CharField(max_length=50, choices=ACTION_TYPES, db_index=True)
+    action_title = models.CharField(max_length=255)
+    details = models.JSONField(default=dict, blank=True)
+    ip_address = models.CharField(max_length=45, blank=True, null=True, db_index=True)
+    user_agent = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user_name or self.user_email or 'User'} - {self.action_type}: {self.action_title} ({self.created_at})"
+
+
+
 

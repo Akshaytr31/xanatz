@@ -10,7 +10,7 @@ from .views import (
     PublicCompanyProfileView, CompanyReviewViewSet, FreelancerReviewViewSet, AdminFlaggedReviewsView,
     CompanyFAQViewSet, CompanyMediaViewSet, AIEnhanceView, AdminStatsView,
     AdminUsersListView, AdminCompaniesListView, AdminJobsListView, AdminRFPsListView,
-    FreelancersListView
+    FreelancersListView, UserActivityLogCreateView, AdminUserLogsListView, LogoutView
 )
 
 router = DefaultRouter()
@@ -36,6 +36,8 @@ urlpatterns = [
     path('auth/verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),
     path('auth/register/', RegisterUserView.as_view(), name='register'),
     path('auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('auth/logout/', LogoutView.as_view(), name='logout'),
+
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/google/', GoogleLoginView.as_view(), name='google_login'),
     path('auth/set-password/', SetPasswordView.as_view(), name='set_password'),
@@ -47,6 +49,8 @@ urlpatterns = [
     path('public-company/<str:public_id>/', PublicCompanyProfileView.as_view(), name='public_company_profile'),
     path('users/search/', UserSearchView.as_view(), name='user_search'),
     path('freelancers/', FreelancersListView.as_view(), name='freelancers_list'),
+    path('user-activity/log/', UserActivityLogCreateView.as_view(), name='user-activity-log'),
+    path('admin/user-logs/', AdminUserLogsListView.as_view(), name='admin-user-logs'),
     path('admin/reviews/flagged/', AdminFlaggedReviewsView.as_view(), name='admin_reviews_flagged'),
     path('admin/stats/', AdminStatsView.as_view(), name='admin_stats'),
     path('admin/users/', AdminUsersListView.as_view(), name='admin_users'),
@@ -56,3 +60,4 @@ urlpatterns = [
     path('ai/enhance/', AIEnhanceView.as_view(), name='ai-enhance'),
     path('', include(router.urls)),
 ]
+

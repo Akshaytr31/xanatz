@@ -3,12 +3,13 @@ import { useNavigate, Link as RouterLink } from "react-router-dom";
 import api from "../../api";
 import {
   LayoutDashboard, Shield, FileText, LogOut, CreditCard,
-  ShieldAlert, ChevronRight, Menu, X, Users, Building2, Briefcase, FolderKanban,
+  ShieldAlert, ChevronRight, Menu, X, Users, Building2, Briefcase, FolderKanban, History
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Overview",        tab: "overview" },
   { icon: Users,           label: "Users List",      tab: "users" },
+  { icon: History,         label: "User Logs",       tab: "user_logs" },
   { icon: Building2,       label: "Companies List",  tab: "companies" },
   { icon: Briefcase,       label: "Jobs List",       tab: "jobs" },
   { icon: FolderKanban,    label: "RFPs List",       tab: "rfps" },
@@ -16,6 +17,7 @@ const NAV_ITEMS = [
   { icon: FileText,        label: "Privacy Policy",  tab: "policy" },
   { icon: ShieldAlert,     label: "Flagged Content", tab: "flagged_reviews" },
 ];
+
 
 const SIDEBAR_FULL    = 240;
 const SIDEBAR_MINI    = 68;

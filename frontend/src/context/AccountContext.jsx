@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import api from "../api";
+import { logUserActivity } from "../utils/activityLogger";
 
 const AccountContext = createContext();
 
@@ -21,14 +22,23 @@ export const AccountProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const logout = () => {
-    localStorage.clear();
-    setUser(null);
-    setUserCompanies([]);
-    setActiveCompanyState(null);
-    setAccountModeState("personal");
-    window.dispatchEvent(new Event("xanatz_auth_changed"));
+  const logout = async () => {
+    try {
+      await api.post("auth/logout/").catch(() => {});
+      await logUserActivity("LOGOUT", "User logged out from platform");
+    } catch (err) {
+      console.warn("Error logging out", err);
+    } finally {
+      localStorage.clear();
+      setUser(null);
+      setUserCompanies([]);
+      setActiveCompanyState(null);
+      setAccountModeState("personal");
+      window.dispatchEvent(new Event("xanatz_auth_changed"));
+    }
   };
+
+
 
   const fetchUserData = async () => {
     const token = localStorage.getItem("access");
@@ -137,6 +147,10 @@ export const AccountProvider = ({ children }) => {
     setActiveCompanyState(companyObj);
     if (companyObj) {
       localStorage.setItem("xanatz_active_company", JSON.stringify(companyObj));
+      logUserActivity("COMPANY_SWITCH", `Switched active company to ${companyObj.name}`, {
+        company_id: companyObj.id,
+        company_name: companyObj.name,
+      });
     } else {
       localStorage.removeItem("xanatz_active_company");
     }
@@ -151,10 +165,19 @@ export const AccountProvider = ({ children }) => {
       }
       setActiveCompany(targetCompany);
       setAccountMode("company");
+      logUserActivity("PROFILE_SWITCH", `Switched workspace mode to COMPANY (${targetCompany.name})`, {
+        mode: "company",
+        company_id: targetCompany.id,
+        company_name: targetCompany.name,
+      });
     } else {
       setAccountMode("personal");
+      logUserActivity("PROFILE_SWITCH", "Switched workspace mode to PERSONAL (Candidate)", {
+        mode: "personal",
+      });
     }
   };
+
 
   return (
     <AccountContext.Provider

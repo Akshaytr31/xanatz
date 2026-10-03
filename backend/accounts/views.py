@@ -5,14 +5,15 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
 from django.core.exceptions import ValidationError
-from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ, CompanyMedia
+from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ, CompanyMedia, UserActivityLog
 from .serializers import (
     SendOTPSerializer, VerifyOTPSerializer, RegisterUserSerializer, 
     PrivacyPolicySerializer, UserSerializer, ProfileSerializer,
     ExperienceSerializer, EducationSerializer, CompanySerializer,
     UserSearchSerializer, JobOpeningSerializer, JobApplicationSerializer,
     RFPSerializer, RFPInterestSerializer, JobPostPlanSerializer, CompanySubscriptionSerializer, NotificationSerializer, MessageSerializer,
-    PortfolioProjectSerializer, PublicCompanySerializer, CompanyReviewSerializer, FreelancerReviewSerializer, CompanyFAQSerializer, CompanyMediaSerializer
+    PortfolioProjectSerializer, PublicCompanySerializer, CompanyReviewSerializer, FreelancerReviewSerializer, CompanyFAQSerializer, CompanyMediaSerializer,
+    UserActivityLogSerializer
 )
 from .utils import (
     get_user_company_role,
@@ -21,8 +22,10 @@ from .utils import (
     can_manage_company_profile,
     can_manage_company_hr,
     can_manage_company_accounting,
-    can_manage_company_rfp
+    can_manage_company_rfp,
+    log_user_activity
 )
+
 
 class SendOTPView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -2086,4 +2089,109 @@ class AdminRFPsListView(APIView):
                 'created_at': r.created_at,
             })
         return Response(data, status=status.HTTP_200_OK)
+
+
+class UserActivityLogCreateView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        action_type = request.data.get('action_type', 'OTHER')
+        action_title = request.data.get('action_title', 'User action')
+        details = request.data.get('details', {})
+
+        log_user_activity(
+            request=request,
+            user=request.user,
+            action_type=action_type,
+            action_title=action_title,
+            details=details
+        )
+        return Response({"message": "Activity logged successfully"}, status=status.HTTP_201_CREATED)
+
+
+class AdminUserLogsListView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        query = request.query_params.get('q', '').strip()
+        user_id = request.query_params.get('user_id', '').strip()
+        action_type = request.query_params.get('action_type', '').strip()
+        date_range = request.query_params.get('date_range', '').strip()
+        ip_address = request.query_params.get('ip_address', '').strip()
+
+        logs = UserActivityLog.objects.select_related('user').all().order_by('-created_at')
+
+        # User search (by ID, Name, Email, or IP)
+        if query:
+            if query.isdigit():
+                logs = logs.filter(
+                    Q(user__id=int(query)) |
+                    Q(user_email__icontains=query) |
+                    Q(user_name__icontains=query) |
+                    Q(action_title__icontains=query) |
+                    Q(ip_address__icontains=query)
+                )
+            else:
+                logs = logs.filter(
+                    Q(user_name__icontains=query) |
+                    Q(user_email__icontains=query) |
+                    Q(action_title__icontains=query) |
+                    Q(ip_address__icontains=query)
+                )
+
+        if user_id and user_id.isdigit():
+            logs = logs.filter(user__id=int(user_id))
+
+        if action_type and action_type != 'all':
+            logs = logs.filter(action_type=action_type)
+
+        if ip_address:
+            logs = logs.filter(ip_address__icontains=ip_address)
+
+        if date_range and date_range != 'all':
+            now = timezone.now()
+            if date_range == 'today':
+                logs = logs.filter(created_at__gte=now.replace(hour=0, minute=0, second=0, microsecond=0))
+            elif date_range == '7d':
+                logs = logs.filter(created_at__gte=now - datetime.timedelta(days=7))
+            elif date_range == '30d':
+                logs = logs.filter(created_at__gte=now - datetime.timedelta(days=30))
+
+        total_logs = logs.count()
+        login_count = logs.filter(action_type='LOGIN').count()
+        job_count = logs.filter(action_type__in=['JOB_APPLY', 'JOB_CREATE', 'JOB_UPDATE']).count()
+        rfp_count = logs.filter(action_type__in=['RFP_CREATE', 'RFP_UPDATE', 'RFP_INTEREST']).count()
+        switch_count = logs.filter(action_type__in=['PROFILE_SWITCH', 'COMPANY_SWITCH']).count()
+        unique_users = logs.values('user_email').distinct().count()
+
+        serialized_logs = UserActivityLogSerializer(logs[:300], many=True).data
+
+        return Response({
+            'logs': serialized_logs,
+            'stats': {
+                'total_logs': total_logs,
+                'login_count': login_count,
+                'job_count': job_count,
+                'rfp_count': rfp_count,
+                'switch_count': switch_count,
+                'unique_users': unique_users,
+            }
+        }, status=status.HTTP_200_OK)
+
+
+class LogoutView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        user = request.user if (request.user and request.user.is_authenticated) else None
+        log_user_activity(
+            request=request,
+            user=user,
+            action_type='LOGOUT',
+            action_title='User logged out from platform',
+            details={'logout_method': 'api'}
+        )
+        return Response({"message": "Successfully logged out"}, status=status.HTTP_200_OK)
+
+
 

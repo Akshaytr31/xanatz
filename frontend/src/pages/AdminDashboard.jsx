@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, CreditCard, ShieldAlert, FileText,
-  ArrowUpRight, Briefcase, Search, Bell, Building2, FolderKanban,
+  ArrowUpRight, Briefcase, Search, Bell, Building2, FolderKanban, History
 } from "lucide-react";
 import AdminNavbar from "../components/admin/AdminNavbar";
 import PrivacyPolicyEditor from "../components/admin/PrivacyPolicyEditor";
@@ -12,7 +12,9 @@ import AdminUsersList from "../components/admin/AdminUsersList";
 import AdminCompaniesList from "../components/admin/AdminCompaniesList";
 import AdminJobsList from "../components/admin/AdminJobsList";
 import AdminRFPsList from "../components/admin/AdminRFPsList";
+import AdminUserLogsList from "../components/admin/AdminUserLogsList";
 import api from "../api";
+
 
 /* ── Constants ──────────────────────────────────────────────── */
 const SIDEBAR_FULL = 240;
@@ -200,6 +202,13 @@ const AdminDashboard = () => {
   const [isMobile,  setIsMobile]      = useState(
     typeof window !== "undefined" ? window.innerWidth <= MOBILE_BP : false
   );
+  const [userLogsSearch, setUserLogsSearch] = useState("");
+
+  const handleViewUserLogs = (u) => {
+    const searchVal = u.email || `${u.first_name || ""} ${u.last_name || ""}`.trim() || String(u.id);
+    setUserLogsSearch(searchVal);
+    setActiveTab("user_logs");
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -222,11 +231,22 @@ const AdminDashboard = () => {
     if (!localStorage.getItem("access")) navigate("/login");
   }, [navigate]);
 
-  const handleLogout = () => { localStorage.clear(); navigate("/login"); };
+  const handleLogout = async () => {
+    try {
+      await api.post("auth/logout/").catch(() => {});
+    } catch (e) {
+      // fail silently
+    } finally {
+      localStorage.clear();
+      navigate("/login");
+    }
+  };
+
 
   const TAB_META = {
     overview:        { icon: LayoutDashboard, label: "Overview",          desc: "System overview and quick access to all modules" },
     users:           { icon: Users,           label: "Users List",        desc: "All registered users across the platform" },
+    user_logs:       { icon: History,         label: "User Activity Logs",desc: "Track user login times, IP addresses, profile switches, and site actions" },
     companies:       { icon: Building2,       label: "Companies List",    desc: "All registered companies on the platform" },
     jobs:            { icon: Briefcase,       label: "Jobs List",         desc: "All active and closed job openings" },
     rfps:            { icon: FolderKanban,    label: "RFPs List",         desc: "All active and draft RFPs (Request for Proposals)" },
@@ -234,6 +254,7 @@ const AdminDashboard = () => {
     policy:          { icon: FileText,        label: "Privacy Policy",    desc: "Edit the privacy policy shown to users during registration" },
     flagged_reviews: { icon: ShieldAlert,     label: "Flagged Content",   desc: "Moderate flagged content submitted by users" },
   };
+
 
   const current = TAB_META[activeTab] || TAB_META.overview;
 
@@ -371,6 +392,7 @@ const AdminDashboard = () => {
             }}>
               <TabButton icon={LayoutDashboard} label="Overview"     isActive={activeTab === "overview"}        onClick={() => setActiveTab("overview")} />
               <TabButton icon={Users}           label="Users"        isActive={activeTab === "users"}           onClick={() => setActiveTab("users")} />
+              <TabButton icon={History}         label="User Logs"    isActive={activeTab === "user_logs"}       onClick={() => setActiveTab("user_logs")} />
               <TabButton icon={Building2}       label="Companies"    isActive={activeTab === "companies"}       onClick={() => setActiveTab("companies")} />
               <TabButton icon={Briefcase}       label="Jobs"         isActive={activeTab === "jobs"}            onClick={() => setActiveTab("jobs")} />
               <TabButton icon={FolderKanban}    label="RFPs"         isActive={activeTab === "rfps"}            onClick={() => setActiveTab("rfps")} />
@@ -383,7 +405,8 @@ const AdminDashboard = () => {
           {/* Content */}
           <div key={activeTab} style={{ animation: "fadeSlideUp 0.3s ease both" }}>
             {activeTab === "overview"        && <OverviewPanel setActiveTab={setActiveTab} />}
-            {activeTab === "users"           && <AdminUsersList />}
+            {activeTab === "users"           && <AdminUsersList onViewLogs={handleViewUserLogs} />}
+            {activeTab === "user_logs"       && <AdminUserLogsList initialSearch={userLogsSearch} />}
             {activeTab === "companies"       && <AdminCompaniesList />}
             {activeTab === "jobs"            && <AdminJobsList />}
             {activeTab === "rfps"            && <AdminRFPsList />}
@@ -391,6 +414,7 @@ const AdminDashboard = () => {
             {activeTab === "policy"          && <PrivacyPolicyEditor />}
             {activeTab === "flagged_reviews" && <FlaggedReviewModerator />}
           </div>
+
         </div>
       </main>
 
