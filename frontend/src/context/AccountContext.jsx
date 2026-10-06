@@ -25,7 +25,6 @@ export const AccountProvider = ({ children }) => {
   const logout = async () => {
     try {
       await api.post("auth/logout/").catch(() => {});
-      await logUserActivity("LOGOUT", "User logged out from platform");
     } catch (err) {
       console.warn("Error logging out", err);
     } finally {
@@ -143,14 +142,16 @@ export const AccountProvider = ({ children }) => {
     window.dispatchEvent(new Event("xanatz_account_mode_change"));
   };
 
-  const setActiveCompany = (companyObj) => {
+  const setActiveCompany = (companyObj, skipLog = false) => {
     setActiveCompanyState(companyObj);
     if (companyObj) {
       localStorage.setItem("xanatz_active_company", JSON.stringify(companyObj));
-      logUserActivity("COMPANY_SWITCH", `Switched active company to ${companyObj.name}`, {
-        company_id: companyObj.id,
-        company_name: companyObj.name,
-      });
+      if (!skipLog) {
+        logUserActivity("COMPANY_SWITCH", `Switched active company to ${companyObj.name}`, {
+          company_id: companyObj.id,
+          company_name: companyObj.name,
+        });
+      }
     } else {
       localStorage.removeItem("xanatz_active_company");
     }
@@ -163,7 +164,7 @@ export const AccountProvider = ({ children }) => {
         console.warn("Cannot switch to company mode: User has no registered companies");
         return;
       }
-      setActiveCompany(targetCompany);
+      setActiveCompany(targetCompany, true);
       setAccountMode("company");
       logUserActivity("PROFILE_SWITCH", `Switched workspace mode to COMPANY (${targetCompany.name})`, {
         mode: "company",
