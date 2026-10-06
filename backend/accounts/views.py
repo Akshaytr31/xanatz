@@ -248,6 +248,7 @@ class UserProfileView(APIView):
             serializer = ProfileSerializer(profile, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
+                log_user_activity(request, user, "PROFILE_UPDATE", "Updated personal profile")
                 return Response(UserSerializer(user).data)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
@@ -320,7 +321,8 @@ class CompanyViewSet(viewsets.ModelViewSet):
         if not can_manage_company_profile(self.request.user, company):
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Only Super Admin or Admin can edit company profile.")
-        serializer.save()
+        company = serializer.save()
+        log_user_activity(self.request, self.request.user, "PROFILE_UPDATE", f"Updated company profile: {company.name}")
 
     @action(detail=False, methods=['get'], url_path='my-companies')
     def my_companies(self, request):
@@ -773,16 +775,32 @@ class JobOpeningViewSet(viewsets.ModelViewSet):
         expires_at = timezone.now() + datetime.timedelta(days=subscription.plan.job_duration_days)
 
         # Save the job with expiration
-        serializer.save(expires_at=expires_at)
+        job = serializer.save(expires_at=expires_at)
 
         # Increment jobs_used
         subscription.jobs_used += 1
         subscription.save()
 
+        log_user_activity(
+            request=self.request,
+            user=self.request.user,
+            action_type='JOB_CREATE',
+            action_title=f"Posted job opening: {job.title}",
+            details={'job_id': job.id, 'job_title': job.title, 'company': company.name if company else ''}
+        )
+
     def perform_update(self, serializer):
         company = self.get_object().company
         self.check_company_access(company)
-        serializer.save()
+        job = serializer.save()
+        log_user_activity(
+            request=self.request,
+            user=self.request.user,
+            action_type='JOB_UPDATE',
+            action_title=f"Updated job opening: {job.title}",
+            details={'job_id': job.id, 'job_title': job.title}
+        )
+
 
     def perform_destroy(self, instance):
         self.check_company_access(instance.company)
@@ -848,7 +866,21 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
                     from rest_framework.exceptions import ValidationError
                     raise ValidationError({"detail": "You cannot apply to a job opening posted by your own company."})
 
-        serializer.save(applicant=self.request.user, status='applied')
+        app = serializer.save(applicant=self.request.user, status='applied')
+        job = app.job_opening
+        log_user_activity(
+            request=self.request,
+            user=self.request.user,
+            action_type='JOB_APPLY',
+            action_title=f"Applied for job: {job.title if job else 'Job'}",
+            details={
+                'job_id': job.id if job else None,
+                'job_title': job.title if job else '',
+                'company': job.company.name if (job and job.company) else '',
+                'application_id': app.id
+            }
+        )
+
 
     def perform_update(self, serializer):
         instance = self.get_object()
@@ -939,12 +971,14 @@ class RFPViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         company = serializer.validated_data.get('company')
         self.check_company_access(company)
-        serializer.save()
+        rfp = serializer.save()
+        log_user_activity(self.request, self.request.user, "RFP_CREATE", f"Created RFP: {rfp.title}")
 
     def perform_update(self, serializer):
         company = self.get_object().company
         self.check_company_access(company)
-        serializer.save()
+        rfp = serializer.save()
+        log_user_activity(self.request, self.request.user, "RFP_UPDATE", f"Updated RFP: {rfp.title}")
 
     def perform_destroy(self, instance):
         self.check_company_access(instance.company)
@@ -1018,6 +1052,8 @@ class RFPInterestViewSet(viewsets.ModelViewSet):
 
         rfp_interest = serializer.save(**save_kwargs)
         
+        log_user_activity(self.request, self.request.user, "RFP_INTEREST", f"Submitted Proposal for RFP: {rfp_interest.rfp.title}")
+        
         # Notify the company admins/owner
         company = rfp_interest.rfp.company
         
@@ -1052,6 +1088,8 @@ class RFPInterestViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         old_instance = self.get_object()
         new_instance = serializer.save()
+        
+        log_user_activity(self.request, self.request.user, "RFP_UPDATE", f"Updated Proposal for RFP: {new_instance.rfp.title}")
         
         # Check if status has changed
         if old_instance.status != new_instance.status:
@@ -1393,7 +1431,8 @@ class CompanyReviewViewSet(viewsets.ModelViewSet):
                     membership = CompanyMember.objects.filter(user=candidate_user, company__is_active=True).first()
                     if membership:
                         company = membership.company
-        serializer.save(reviewer=self.request.user, company=company, company_name=company_name, rfp_interest=rfp_interest)
+        review = serializer.save(reviewer=self.request.user, company=company, company_name=company_name, rfp_interest=rfp_interest)
+        log_user_activity(self.request, self.request.user, "REVIEW_POST", f"Posted review for company: {company.name if company else company_name}")
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def flag(self, request, pk=None):
@@ -1442,7 +1481,8 @@ class FreelancerReviewViewSet(viewsets.ModelViewSet):
         rfp_interest = None
         if rfp_interest_id:
             rfp_interest = RFPInterest.objects.filter(id=rfp_interest_id).first()
-        serializer.save(reviewer=self.request.user, freelancer=freelancer, rfp_interest=rfp_interest)
+        review = serializer.save(reviewer=self.request.user, freelancer=freelancer, rfp_interest=rfp_interest)
+        log_user_activity(self.request, self.request.user, "REVIEW_POST", f"Posted review for freelancer: {freelancer.email}")
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def flag(self, request, pk=None):
