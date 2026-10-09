@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   Search, History, Shield, Calendar, Mail, User, Clock,
   Filter, Download, ArrowUpRight, CheckCircle2, Eye,
@@ -414,9 +415,9 @@ const AdminUserLogsList = ({ initialSearch = "" }) => {
       )}
 
       {/* ── JSON Details Modal ── */}
-      {selectedLogModal && (
+      {selectedLogModal && createPortal(
         <div style={{
-          position: "fixed", inset: 0, zIndex: 1000,
+          position: "fixed", inset: 0, zIndex: 9999,
           background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)",
           display: "flex", alignItems: "center", justifyContent: "center", padding: 20
         }}>
@@ -494,7 +495,8 @@ const AdminUserLogsList = ({ initialSearch = "" }) => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
