@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Image, Button } from "@chakra-ui/react";
 import {
   Search,
+  Activity,
   Home,
   Users,
   Briefcase,
@@ -27,7 +28,6 @@ import {
   Check,
   Plus,
   Send,
-  Sparkles,
 } from "lucide-react";
 
 import { useNavigate, useLocation } from "react-router-dom";
@@ -543,6 +543,12 @@ const Navbar = () => {
                 onClick={() => navigate("/dashboard")}
               />
               <NavItem
+                icon={Activity}
+                label="Feeds"
+                active={location.pathname === "/feeds"}
+                onClick={() => navigate("/feeds")}
+              />
+              <NavItem
                 icon={Briefcase}
                 label="Openings"
                 active={location.pathname.includes("/openings")}
@@ -568,6 +574,12 @@ const Navbar = () => {
                 label="Home"
                 active={location.pathname === "/dashboard"}
                 onClick={() => navigate("/dashboard")}
+              />
+              <NavItem
+                icon={Activity}
+                label="Feeds"
+                active={location.pathname === "/feeds"}
+                onClick={() => navigate("/feeds")}
               />
               <NavItem
                 icon={Briefcase}

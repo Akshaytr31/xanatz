@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
 from django.core.exceptions import ValidationError
-from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ, CompanyMedia, UserActivityLog
+from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ, CompanyMedia, UserActivityLog, FeedPost
 from .serializers import (
     SendOTPSerializer, VerifyOTPSerializer, RegisterUserSerializer, 
     PrivacyPolicySerializer, UserSerializer, ProfileSerializer,
@@ -13,7 +13,7 @@ from .serializers import (
     UserSearchSerializer, JobOpeningSerializer, JobApplicationSerializer,
     RFPSerializer, RFPInterestSerializer, JobPostPlanSerializer, CompanySubscriptionSerializer, NotificationSerializer, MessageSerializer,
     PortfolioProjectSerializer, PublicCompanySerializer, CompanyReviewSerializer, FreelancerReviewSerializer, CompanyFAQSerializer, CompanyMediaSerializer,
-    UserActivityLogSerializer
+    UserActivityLogSerializer, FeedPostSerializer
 )
 from .utils import (
     get_user_company_role,
@@ -2234,4 +2234,34 @@ class LogoutView(APIView):
         return Response({"message": "Successfully logged out"}, status=status.HTTP_200_OK)
 
 
+from rest_framework.decorators import action
 
+class FeedPostViewSet(viewsets.ModelViewSet):
+    serializer_class = FeedPostSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    queryset = FeedPost.objects.all().order_by('-created_at')
+
+    def perform_create(self, serializer):
+        company_id = self.request.data.get('company_id')
+        company = None
+        if company_id:
+            company = Company.objects.filter(id=company_id).first()
+        serializer.save(author=self.request.user, company=company)
+
+    def perform_destroy(self, instance):
+        if instance.author != self.request.user and not self.request.user.is_staff:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You can only delete your own posts.")
+        instance.delete()
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def toggle_like(self, request, pk=None):
+        post = self.get_object()
+        user = request.user
+        if post.likes.filter(id=user.id).exists():
+            post.likes.remove(user)
+            liked = False
+        else:
+            post.likes.add(user)
+            liked = True
+        return Response({'liked': liked, 'likes_count': post.likes.count()})

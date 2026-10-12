@@ -670,5 +670,20 @@ class UserActivityLog(models.Model):
         return f"{self.user_name or self.user_email or 'User'} - {self.action_type}: {self.action_title} ({self.created_at})"
 
 
+class FeedPost(models.Model):
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='feed_posts')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='feed_posts', null=True, blank=True)
+    content = models.TextField(blank=True, null=True)
+    media = models.FileField(upload_to='feed_media/', blank=True, null=True)
+    likes = models.ManyToManyField(User, related_name='liked_feed_posts', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Post by {self.author.email} at {self.created_at}"
+
 
 

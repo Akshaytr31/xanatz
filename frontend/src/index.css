@@ -36,6 +36,8 @@
   
   --color-nav-bg: rgba(2, 6, 23, 0.85);
   --color-dropdown-bg: rgba(8, 12, 28, 0.96);
+  --color-bg-primary: var(--color-primary);
+  --color-bg-secondary: var(--color-surface);
 }
 
 /* ── Mode-Specific Visual Identity Tokens ── */
@@ -80,6 +82,8 @@ body.mode-company {
   
   --color-nav-bg: rgba(241, 245, 249, 0.85);
   --color-dropdown-bg: rgba(255, 255, 255, 0.98);
+  --color-bg-primary: var(--color-primary);
+  --color-bg-secondary: var(--color-surface);
   
   color-scheme: light;
 }
@@ -498,5 +502,37 @@ body {
 
 .scrollable-tabs-container::-webkit-scrollbar {
   display: none !important; /* Safari and Chrome */
+}
+
+/* Dedicated Feed Stream Scrollbar */
+.feed-scrollable-stream {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-glass-border, rgba(255, 255, 255, 0.12)) transparent;
+}
+
+.feed-scrollable-stream::-webkit-scrollbar {
+  width: 6px;
+}
+
+.feed-scrollable-stream::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.feed-scrollable-stream::-webkit-scrollbar-thumb {
+  background: var(--color-glass-border, rgba(255, 255, 255, 0.12));
+  border-radius: 9999px;
+}
+
+.feed-scrollable-stream::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 

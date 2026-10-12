@@ -26,7 +26,6 @@ import {
   AlertCircle,
   Briefcase,
   Building2,
-  Sparkles,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../api";

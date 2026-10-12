@@ -10,7 +10,7 @@ from .views import (
     PublicCompanyProfileView, CompanyReviewViewSet, FreelancerReviewViewSet, AdminFlaggedReviewsView,
     CompanyFAQViewSet, CompanyMediaViewSet, AIEnhanceView, AdminStatsView,
     AdminUsersListView, AdminCompaniesListView, AdminJobsListView, AdminRFPsListView,
-    FreelancersListView, UserActivityLogCreateView, AdminUserLogsListView, LogoutView
+    FreelancersListView, UserActivityLogCreateView, AdminUserLogsListView, LogoutView, FeedPostViewSet
 )
 
 router = DefaultRouter()
@@ -29,6 +29,7 @@ router.register(r'reviews', CompanyReviewViewSet, basename='reviews')
 router.register(r'freelancer-reviews', FreelancerReviewViewSet, basename='freelancer-reviews')
 router.register(r'faqs', CompanyFAQViewSet, basename='faqs')
 router.register(r'company-media', CompanyMediaViewSet, basename='company-media')
+router.register(r'feed', FeedPostViewSet, basename='feed')
 
 
 urlpatterns = [

@@ -5,7 +5,7 @@ import {
 import {
   FileText, Search, Clock, DollarSign, Calendar, Building2, ChevronRight, AlertCircle,
   TrendingUp, User as UserIcon, Briefcase, Award, Info, MapPin, Users, CheckCircle2,
-  Share2, Flag, LayoutGrid, List, SlidersHorizontal, Zap, Globe, ShieldCheck, ArrowUpRight, Sparkles, X as XIcon, RotateCcw
+  Share2, Flag, LayoutGrid, List, SlidersHorizontal, Zap, Globe, ShieldCheck, ArrowUpRight, X as XIcon, RotateCcw
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation, useParams } from "react-router-dom";

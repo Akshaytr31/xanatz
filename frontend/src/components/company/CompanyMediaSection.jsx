@@ -23,7 +23,6 @@ import {
   Plus,
   X,
   Maximize2,
-  Sparkles,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 

@@ -18,7 +18,6 @@ import {
   FileText,
   Search,
   ArrowRight,
-  Sparkles,
   Plus,
   CheckCircle2,
   MapPin,

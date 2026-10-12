@@ -26,8 +26,7 @@ import MySubmittedRFPInterestsPage from "./pages/MySubmittedRFPInterestsPage";
 import MessagesPage from "./pages/MessagesPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import FreelancersPage from "./pages/FreelancersPage";
-
-
+import FeedPage from "./pages/FeedPage";
 function App() {
   return (
     <AccountProvider>
@@ -64,6 +63,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <HomePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/feeds"
+            element={
+              <ProtectedRoute>
+                <FeedPage />
               </ProtectedRoute>
             }
           />

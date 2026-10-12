@@ -5,7 +5,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 import random
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, OTP, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ, CompanyMedia, UserActivityLog
+from .models import PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, OTP, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ, CompanyMedia, UserActivityLog, FeedPost
 from .utils import log_user_activity
 
 User = get_user_model()
@@ -911,3 +911,48 @@ class UserActivityLogSerializer(serializers.ModelSerializer):
             'ip_address', 'user_agent', 'created_at'
         ]
 
+
+class FeedPostSerializer(serializers.ModelSerializer):
+    author_name = serializers.CharField(source='author.get_full_name', read_only=True)
+    author_email = serializers.CharField(source='author.email', read_only=True)
+    author_profile_picture = serializers.SerializerMethodField()
+    company_name = serializers.CharField(source='company.name', read_only=True)
+    company_logo = serializers.SerializerMethodField()
+    likes_count = serializers.SerializerMethodField()
+    has_liked = serializers.SerializerMethodField()
+
+    class Meta:
+        model = FeedPost
+        fields = [
+            'id', 'author', 'author_name', 'author_email', 'author_profile_picture',
+            'company', 'company_name', 'company_logo', 'content', 'media',
+            'likes_count', 'has_liked', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['author', 'company']
+
+    def get_author_profile_picture(self, obj):
+        request = self.context.get('request')
+        if hasattr(obj.author, 'profile') and obj.author.profile.profile_picture:
+            url = obj.author.profile.profile_picture.url
+            if request:
+                return request.build_absolute_uri(url)
+            return url
+        return None
+
+    def get_company_logo(self, obj):
+        request = self.context.get('request')
+        if obj.company and obj.company.logo:
+            url = obj.company.logo.url
+            if request:
+                return request.build_absolute_uri(url)
+            return url
+        return None
+
+    def get_likes_count(self, obj):
+        return obj.likes.count()
+
+    def get_has_liked(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.likes.filter(id=request.user.id).exists()
+        return False
