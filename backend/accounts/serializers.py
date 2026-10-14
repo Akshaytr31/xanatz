@@ -5,7 +5,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 import random
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, OTP, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ, CompanyMedia, UserActivityLog, FeedPost
+from .models import PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, OTP, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ, CompanyMedia, UserActivityLog, FeedPost, FeedComment
 from .utils import log_user_activity
 
 User = get_user_model()
@@ -912,6 +912,45 @@ class UserActivityLogSerializer(serializers.ModelSerializer):
         ]
 
 
+class FeedCommentSerializer(serializers.ModelSerializer):
+    author_name = serializers.SerializerMethodField()
+    author_email = serializers.CharField(source='author.email', read_only=True)
+    author_profile_picture = serializers.SerializerMethodField()
+    author_id = serializers.IntegerField(source='author.id', read_only=True)
+    company_name = serializers.CharField(source='company.name', read_only=True, default=None)
+    company_id = serializers.IntegerField(source='company.id', read_only=True, default=None)
+    is_company = serializers.SerializerMethodField()
+
+    class Meta:
+        model = FeedComment
+        fields = [
+            'id', 'post', 'author_id', 'author_name', 'author_email', 'author_profile_picture',
+            'company_id', 'company_name', 'is_company',
+            'text', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['post', 'author_id', 'author_name', 'author_email', 'author_profile_picture',
+                             'company_id', 'company_name', 'is_company', 'created_at', 'updated_at']
+
+    def get_author_name(self, obj):
+        if obj.company:
+            return obj.company.name
+        name = obj.author.get_full_name().strip()
+        return name if name else obj.author.email
+
+    def get_author_profile_picture(self, obj):
+        request = self.context.get('request')
+        if obj.company and obj.company.logo:
+            url = obj.company.logo.url
+            return request.build_absolute_uri(url) if request else url
+        if hasattr(obj.author, 'profile') and obj.author.profile.profile_picture:
+            url = obj.author.profile.profile_picture.url
+            return request.build_absolute_uri(url) if request else url
+        return None
+
+    def get_is_company(self, obj):
+        return obj.company is not None
+
+
 class FeedPostSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source='author.get_full_name', read_only=True)
     author_email = serializers.CharField(source='author.email', read_only=True)
@@ -920,13 +959,14 @@ class FeedPostSerializer(serializers.ModelSerializer):
     company_logo = serializers.SerializerMethodField()
     likes_count = serializers.SerializerMethodField()
     has_liked = serializers.SerializerMethodField()
+    comments_count = serializers.SerializerMethodField()
 
     class Meta:
         model = FeedPost
         fields = [
             'id', 'author', 'author_name', 'author_email', 'author_profile_picture',
             'company', 'company_name', 'company_logo', 'content', 'media',
-            'likes_count', 'has_liked', 'created_at', 'updated_at'
+            'likes_count', 'has_liked', 'comments_count', 'created_at', 'updated_at'
         ]
         read_only_fields = ['author', 'company']
 
@@ -956,3 +996,6 @@ class FeedPostSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return obj.likes.filter(id=request.user.id).exists()
         return False
+
+    def get_comments_count(self, obj):
+        return obj.comments.count()

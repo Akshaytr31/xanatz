@@ -16,16 +16,18 @@ import {
   Building2,
   User,
   Activity,
-  TrendingUp,
   Search,
   Trash2,
   Bookmark,
   Compass,
-  Flame,
-  ArrowRight,
   Maximize2,
   CheckCircle2,
-  RotateCcw
+  RotateCcw,
+  Pencil,
+  Check,
+  Flame,
+  TrendingUp,
+  ArrowRight
 } from "lucide-react";
 
 // Helper to safely format relative timestamps
@@ -121,16 +123,16 @@ const FeedPage = () => {
     setBookmarkedIds(nextBookmarks);
   }
 
-  // Comments state per post
-  const [postComments, setPostComments] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("xanatz_feed_comments") || "{}");
-    } catch {
-      return {};
-    }
-  });
+  // Comments state: { [postId]: Comment[] }
+  const [postComments, setPostComments] = useState({});
+  const [commentsLoading, setCommentsLoading] = useState({});
   const [expandedComments, setExpandedComments] = useState({});
   const [commentInput, setCommentInput] = useState({});
+  // Edit comment state
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editCommentText, setEditCommentText] = useState("");
+  // Delete confirm modal state
+  const [deleteCommentPending, setDeleteCommentPending] = useState(null); // { postId, commentId }
 
   // Media Lightbox modal
   const [lightboxMedia, setLightboxMedia] = useState(null);
@@ -301,50 +303,94 @@ const FeedPage = () => {
     });
   };
 
-  const toggleCommentsSection = (postId) => {
-    setExpandedComments((prev) => ({
-      ...prev,
-      [postId]: !prev[postId],
-    }));
+  const toggleCommentsSection = async (postId) => {
+    const isOpening = !expandedComments[postId];
+    setExpandedComments((prev) => ({ ...prev, [postId]: isOpening }));
+    // Fetch comments from API when opening for the first time or if not loaded
+    if (isOpening && !postComments[postId]) {
+      try {
+        setCommentsLoading((prev) => ({ ...prev, [postId]: true }));
+        const res = await api.get(`feed/${postId}/comments/`);
+        setPostComments((prev) => ({ ...prev, [postId]: res.data || [] }));
+      } catch (err) {
+        console.error("Failed to fetch comments", err);
+      } finally {
+        setCommentsLoading((prev) => ({ ...prev, [postId]: false }));
+      }
+    }
   };
 
-  const handleAddComment = (postId) => {
+  const handleAddComment = async (postId) => {
     const text = (commentInput[postId] || "").trim();
     if (!text) return;
 
-    const authorName =
-      accountMode === "company"
-        ? activeCompany?.name || "Company"
-        : `${user?.first_name || "User"} ${user?.last_name || ""}`.trim() || user?.email;
-
-    const authorAvatar =
-      accountMode === "company"
-        ? activeCompany?.logo_url
-        : user?.profile_picture;
-
-    const newComment = {
-      id: Date.now(),
-      authorName,
-      authorAvatar,
-      isCompany: accountMode === "company",
-      text,
-      createdAt: new Date().toISOString(),
-    };
-
-    setPostComments((prev) => {
-      const updated = {
-        ...prev,
-        [postId]: [...(prev[postId] || []), newComment],
-      };
-      try {
-        localStorage.setItem("xanatz_feed_comments", JSON.stringify(updated));
-      } catch (err) {
-        console.warn(err);
+    try {
+      const payload = { text };
+      if (accountMode === "company" && activeCompany?.id) {
+        payload.company_id = activeCompany.id;
       }
-      return updated;
-    });
-
+      const res = await api.post(`feed/${postId}/comments/`, payload);
+      setPostComments((prev) => ({
+        ...prev,
+        [postId]: [...(prev[postId] || []), res.data],
+      }));
+      // Also bump local comments_count on the post
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId ? { ...p, comments_count: (p.comments_count || 0) + 1 } : p
+        )
+      );
+    } catch (err) {
+      console.error("Failed to add comment", err);
+    }
     setCommentInput((prev) => ({ ...prev, [postId]: "" }));
+  };
+
+  const handleStartEditComment = (comment) => {
+    setEditingCommentId(comment.id);
+    setEditCommentText(comment.text);
+  };
+
+  const handleSaveEditComment = async (postId, commentId) => {
+    const text = editCommentText.trim();
+    if (!text) return;
+    try {
+      const res = await api.patch(`feed/${postId}/comments/${commentId}/`, { text });
+      setPostComments((prev) => ({
+        ...prev,
+        [postId]: (prev[postId] || []).map((c) => (c.id === commentId ? res.data : c)),
+      }));
+    } catch (err) {
+      console.error("Failed to edit comment", err);
+    } finally {
+      setEditingCommentId(null);
+      setEditCommentText("");
+    }
+  };
+
+  const handleDeleteComment = (postId, commentId) => {
+    // Open the custom confirm modal instead of window.confirm
+    setDeleteCommentPending({ postId, commentId });
+  };
+
+  const confirmDeleteComment = async () => {
+    if (!deleteCommentPending) return;
+    const { postId, commentId } = deleteCommentPending;
+    setDeleteCommentPending(null);
+    try {
+      await api.delete(`feed/${postId}/comments/${commentId}/`);
+      setPostComments((prev) => ({
+        ...prev,
+        [postId]: (prev[postId] || []).filter((c) => c.id !== commentId),
+      }));
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId ? { ...p, comments_count: Math.max(0, (p.comments_count || 1) - 1) } : p
+        )
+      );
+    } catch (err) {
+      console.error("Failed to delete comment", err);
+    }
   };
 
   const openShareModal = (post, e) => {
@@ -419,6 +465,111 @@ const FeedPage = () => {
       }}
     >
       <Navbar />
+
+      {/* ── Delete Comment Confirm Modal ── */}
+      <AnimatePresence>
+        {deleteCommentPending && (
+          <motion.div
+            key="delete-comment-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 9999,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "rgba(0,0,0,0.6)",
+              backdropFilter: "blur(6px)",
+            }}
+            onClick={() => setDeleteCommentPending(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.88, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.88, opacity: 0, y: 20 }}
+              transition={{ type: "spring", stiffness: 320, damping: 26 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: "linear-gradient(135deg, rgba(15,20,40,0.98), rgba(20,15,40,0.98))",
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: "20px",
+                padding: "32px 28px 24px",
+                maxWidth: "360px",
+                width: "90%",
+                boxShadow: "0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(239,68,68,0.15)",
+                textAlign: "center",
+              }}
+            >
+              {/* Icon */}
+              <div style={{
+                width: "52px",
+                height: "52px",
+                borderRadius: "16px",
+                background: "linear-gradient(135deg, rgba(239,68,68,0.2), rgba(220,38,38,0.1))",
+                border: "1px solid rgba(239,68,68,0.3)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 16px",
+              }}>
+                <Trash2 size={22} color="#ef4444" />
+              </div>
+
+              <h3 style={{ fontSize: "17px", fontWeight: 700, margin: "0 0 8px", color: "#fff" }}>
+                Delete Comment?
+              </h3>
+              <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.5)", margin: "0 0 24px", lineHeight: 1.5 }}>
+                This comment will be permanently removed and cannot be recovered.
+              </p>
+
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button
+                  onClick={() => setDeleteCommentPending(null)}
+                  style={{
+                    flex: 1,
+                    padding: "10px",
+                    borderRadius: "12px",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    background: "rgba(255,255,255,0.06)",
+                    color: "rgba(255,255,255,0.7)",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.1)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.06)")}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteComment}
+                  style={{
+                    flex: 1,
+                    padding: "10px",
+                    borderRadius: "12px",
+                    border: "none",
+                    background: "linear-gradient(135deg, #ef4444, #dc2626)",
+                    color: "#fff",
+                    fontSize: "13px",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    boxShadow: "0 4px 15px rgba(239,68,68,0.35)",
+                    transition: "all 0.2s",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.88")}
+                  onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Ambient Radial Mesh Background */}
       <div
@@ -593,46 +744,6 @@ const FeedPage = () => {
                 </div>
               </div>
 
-              {/* Mode switch helper if user has company access */}
-              {userCompanies?.length > 0 && (
-                <button
-                  onClick={() => {
-                    if (isCompany) {
-                      switchAccountMode("personal");
-                    } else {
-                      switchAccountMode("company", userCompanies[0]);
-                    }
-                  }}
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid var(--color-card-border, rgba(255,255,255,0.1))",
-                    borderRadius: "12px",
-                    color: "var(--color-text-secondary, #cbd5e1)",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    transition: "all 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(255,255,255,0.08)";
-                    e.currentTarget.style.color = "#ffffff";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "rgba(255,255,255,0.05)";
-                    e.currentTarget.style.color = "var(--color-text-secondary, #cbd5e1)";
-                  }}
-                >
-                  <span>
-                    Switch to {isCompany ? "Personal" : userCompanies[0]?.name || "Company"}
-                  </span>
-                  <RotateCcw size={13} />
-                </button>
-              )}
 
               {/* Platform activity metrics */}
               <div
@@ -951,25 +1062,6 @@ const FeedPage = () => {
                   </div>
                 </div>
 
-                {userCompanies?.length > 0 && (
-                  <button
-                    onClick={() => {
-                      if (isCompany) switchAccountMode("personal");
-                      else switchAccountMode("company", userCompanies[0]);
-                    }}
-                    style={{
-                      background: "transparent",
-                      border: "none",
-                      color: isCompany ? "#c084fc" : "#34d399",
-                      fontSize: "11px",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      textDecoration: "underline",
-                    }}
-                  >
-                    Switch Identity
-                  </button>
-                )}
               </div>
 
               {/* Textarea */}
@@ -1497,7 +1589,9 @@ const FeedPage = () => {
                         post.author_email === user.email ||
                         (post.company && activeCompany?.id === post.company));
 
-                    const commentsCount = (postComments[post.id] || []).length;
+                    const commentsCount = postComments[post.id]
+                      ? postComments[post.id].length
+                      : (post.comments_count || 0);
                     const isBookmarked = bookmarkedIds.includes(post.id);
                     const isCommentsOpen = Boolean(expandedComments[post.id]);
 
@@ -2008,70 +2102,160 @@ const FeedPage = () => {
                               borderTop: "1px solid var(--color-card-border, rgba(255,255,255,0.06))",
                             }}
                           >
-                            {/* Existing Comments List */}
-                            <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "12px" }}>
-                              {(postComments[post.id] || []).map((comm) => (
-                                <div
-                                  key={comm.id}
-                                  style={{
-                                    display: "flex",
-                                    gap: "10px",
-                                    padding: "8px 12px",
-                                    background: "rgba(255,255,255,0.025)",
-                                    borderRadius: "12px",
-                                    border: "1px solid rgba(255,255,255,0.05)",
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      width: "28px",
-                                      height: "28px",
-                                      borderRadius: "8px",
-                                      background: comm.isCompany ? "#8b5cf6" : "#10b981",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: "center",
-                                      overflow: "hidden",
-                                      flexShrink: 0,
-                                      fontSize: "12px",
-                                      fontWeight: 700,
-                                    }}
-                                  >
-                                    {comm.authorAvatar ? (
-                                      <img
-                                        src={getMediaUrl(comm.authorAvatar)}
-                                        alt={comm.authorName}
-                                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                                      />
-                                    ) : (
-                                      comm.authorName.charAt(0).toUpperCase()
-                                    )}
-                                  </div>
-                                  <div style={{ flex: 1 }}>
-                                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                                      <span style={{ fontSize: "12px", fontWeight: 700 }}>{comm.authorName}</span>
-                                      <span
-                                        style={{
-                                          fontSize: "10px",
-                                          color: "var(--color-text-muted, rgba(255,255,255,0.4))",
-                                        }}
-                                      >
-                                        {formatRelativeTime(comm.createdAt)}
-                                      </span>
+                            {/* Loading shimmer */}
+                            {commentsLoading[post.id] && (
+                              <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
+                                {[1, 2].map((sk) => (
+                                  <div key={sk} style={{ display: "flex", gap: "10px", padding: "8px 12px", background: "rgba(255,255,255,0.02)", borderRadius: "12px" }}>
+                                    <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: "rgba(255,255,255,0.07)", animation: "pulse 1.5s infinite", flexShrink: 0 }} />
+                                    <div style={{ flex: 1 }}>
+                                      <div style={{ width: "80px", height: "10px", borderRadius: "5px", background: "rgba(255,255,255,0.07)", animation: "pulse 1.5s infinite", marginBottom: "6px" }} />
+                                      <div style={{ width: "160px", height: "10px", borderRadius: "5px", background: "rgba(255,255,255,0.05)", animation: "pulse 1.5s infinite" }} />
                                     </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Comments List */}
+                            {!commentsLoading[post.id] && (
+                              <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "12px" }}>
+                                {(postComments[post.id] || []).length === 0 && (
+                                  <div style={{ textAlign: "center", fontSize: "12px", color: "rgba(255,255,255,0.4)", padding: "12px 0" }}>
+                                    No comments yet — be the first!
+                                  </div>
+                                )}
+                                {(postComments[post.id] || []).map((comm) => {
+                                  const isMyComment = user && comm.author_id === user.id;
+                                  const isEditing = editingCommentId === comm.id;
+                                  return (
                                     <div
+                                      key={comm.id}
                                       style={{
-                                        fontSize: "13px",
-                                        color: "var(--color-text-primary, #ffffff)",
-                                        marginTop: "2px",
+                                        display: "flex",
+                                        gap: "10px",
+                                        padding: "10px 12px",
+                                        background: "rgba(255,255,255,0.025)",
+                                        borderRadius: "12px",
+                                        border: "1px solid rgba(255,255,255,0.05)",
+                                        alignItems: "flex-start",
                                       }}
                                     >
-                                      {comm.text}
+                                      {/* Avatar */}
+                                      <div
+                                        style={{
+                                          width: "28px",
+                                          height: "28px",
+                                          borderRadius: "8px",
+                                          background: comm.is_company ? "#8b5cf6" : "#10b981",
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                          overflow: "hidden",
+                                          flexShrink: 0,
+                                          fontSize: "12px",
+                                          fontWeight: 700,
+                                          color: "white",
+                                        }}
+                                      >
+                                        {comm.author_profile_picture ? (
+                                          <img
+                                            src={getMediaUrl(comm.author_profile_picture)}
+                                            alt={comm.author_name}
+                                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                          />
+                                        ) : (
+                                          (comm.author_name || "?").charAt(0).toUpperCase()
+                                        )}
+                                      </div>
+
+                                      {/* Content */}
+                                      <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: "6px", justifyContent: "space-between" }}>
+                                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                            <span style={{ fontSize: "12px", fontWeight: 700 }}>{comm.author_name}</span>
+                                            {comm.is_company && (
+                                              <span style={{ fontSize: "10px", padding: "1px 5px", borderRadius: "9999px", background: "rgba(139,92,246,0.2)", color: "#c084fc", fontWeight: 700 }}>Co.</span>
+                                            )}
+                                            <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)" }}>
+                                              {formatRelativeTime(comm.created_at)}
+                                            </span>
+                                          </div>
+                                          {/* Edit / Delete (author only) */}
+                                          {isMyComment && !isEditing && (
+                                            <div style={{ display: "flex", gap: "4px", flexShrink: 0 }}>
+                                              <button
+                                                onClick={() => handleStartEditComment(comm)}
+                                                title="Edit comment"
+                                                style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", padding: "2px", display: "flex", alignItems: "center" }}
+                                                onMouseEnter={(e) => (e.currentTarget.style.color = "#60a5fa")}
+                                                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.4)")}
+                                              >
+                                                <Pencil size={13} />
+                                              </button>
+                                              <button
+                                                onClick={() => handleDeleteComment(post.id, comm.id)}
+                                                title="Delete comment"
+                                                style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", padding: "2px", display: "flex", alignItems: "center" }}
+                                                onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
+                                                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.4)")}
+                                              >
+                                                <Trash2 size={13} />
+                                              </button>
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        {/* Edit mode */}
+                                        {isEditing ? (
+                                          <div style={{ display: "flex", gap: "6px", marginTop: "6px", alignItems: "center" }}>
+                                            <input
+                                              autoFocus
+                                              value={editCommentText}
+                                              onChange={(e) => setEditCommentText(e.target.value)}
+                                              onKeyDown={(e) => {
+                                                if (e.key === "Enter" && !e.shiftKey) {
+                                                  e.preventDefault();
+                                                  handleSaveEditComment(post.id, comm.id);
+                                                } else if (e.key === "Escape") {
+                                                  setEditingCommentId(null);
+                                                }
+                                              }}
+                                              style={{
+                                                flex: 1,
+                                                background: "rgba(0,0,0,0.3)",
+                                                border: "1px solid rgba(59,130,246,0.4)",
+                                                borderRadius: "8px",
+                                                padding: "5px 10px",
+                                                fontSize: "13px",
+                                                color: "#ffffff",
+                                                outline: "none",
+                                              }}
+                                            />
+                                            <button
+                                              onClick={() => handleSaveEditComment(post.id, comm.id)}
+                                              style={{ background: "#3b82f6", border: "none", borderRadius: "8px", color: "white", padding: "5px 8px", cursor: "pointer", display: "flex", alignItems: "center" }}
+                                            >
+                                              <Check size={14} />
+                                            </button>
+                                            <button
+                                              onClick={() => setEditingCommentId(null)}
+                                              style={{ background: "rgba(255,255,255,0.08)", border: "none", borderRadius: "8px", color: "white", padding: "5px 8px", cursor: "pointer", display: "flex", alignItems: "center" }}
+                                            >
+                                              <X size={14} />
+                                            </button>
+                                          </div>
+                                        ) : (
+                                          <div style={{ fontSize: "13px", color: "var(--color-text-primary, #ffffff)", marginTop: "3px", lineHeight: "1.45" }}>
+                                            {comm.text}
+                                          </div>
+                                        )}
+                                      </div>
                                     </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
+                                  );
+                                })}
+                              </div>
+                            )}
 
                             {/* Add Comment Input Bar */}
                             <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
@@ -2112,7 +2296,7 @@ const FeedPage = () => {
                                   cursor: "pointer",
                                 }}
                               >
-                                Reply
+                                Post
                               </button>
                             </div>
                           </motion.div>

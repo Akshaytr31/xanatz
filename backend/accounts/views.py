@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
 from django.core.exceptions import ValidationError
-from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ, CompanyMedia, UserActivityLog, FeedPost
+from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ, CompanyMedia, UserActivityLog, FeedPost, FeedComment
 from .serializers import (
     SendOTPSerializer, VerifyOTPSerializer, RegisterUserSerializer, 
     PrivacyPolicySerializer, UserSerializer, ProfileSerializer,
@@ -13,7 +13,7 @@ from .serializers import (
     UserSearchSerializer, JobOpeningSerializer, JobApplicationSerializer,
     RFPSerializer, RFPInterestSerializer, JobPostPlanSerializer, CompanySubscriptionSerializer, NotificationSerializer, MessageSerializer,
     PortfolioProjectSerializer, PublicCompanySerializer, CompanyReviewSerializer, FreelancerReviewSerializer, CompanyFAQSerializer, CompanyMediaSerializer,
-    UserActivityLogSerializer, FeedPostSerializer
+    UserActivityLogSerializer, FeedPostSerializer, FeedCommentSerializer
 )
 from .utils import (
     get_user_company_role,
@@ -2265,3 +2265,36 @@ class FeedPostViewSet(viewsets.ModelViewSet):
             post.likes.add(user)
             liked = True
         return Response({'liked': liked, 'likes_count': post.likes.count()})
+
+
+class FeedCommentViewSet(viewsets.ModelViewSet):
+    serializer_class = FeedCommentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        post_id = self.kwargs.get('post_pk')
+        if post_id:
+            return FeedComment.objects.filter(post_id=post_id).select_related('author', 'company')
+        return FeedComment.objects.none()
+
+    def perform_create(self, serializer):
+        post_id = self.kwargs.get('post_pk')
+        post = FeedPost.objects.get(id=post_id)
+        company_id = self.request.data.get('company_id')
+        company = None
+        if company_id:
+            company = Company.objects.filter(id=company_id).first()
+        serializer.save(author=self.request.user, post=post, company=company)
+
+    def perform_update(self, serializer):
+        instance = serializer.instance
+        if instance.author != self.request.user:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You can only edit your own comments.")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        if instance.author != self.request.user and not self.request.user.is_staff:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You can only delete your own comments.")
+        instance.delete()

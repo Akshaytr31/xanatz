@@ -686,4 +686,19 @@ class FeedPost(models.Model):
         return f"Post by {self.author.email} at {self.created_at}"
 
 
+class FeedComment(models.Model):
+    post = models.ForeignKey(FeedPost, on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='feed_comments')
+    company = models.ForeignKey(Company, on_delete=models.SET_NULL, related_name='feed_comments', null=True, blank=True)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Comment by {self.author.email} on post {self.post.id}"
+
+
 
