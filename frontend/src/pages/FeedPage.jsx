@@ -5,6 +5,8 @@ import { useAccount } from "../context/AccountContext";
 import api, { backendUrl } from "../api";
 import Navbar from "../components/Navbar";
 import ShareModal from "../components/ShareModal";
+import ConnectButton from "../components/ConnectButton";
+import FollowButton from "../components/FollowButton";
 import {
   Send,
   Heart,
@@ -1632,56 +1634,90 @@ const FeedPage = () => {
                           }}
                         >
                           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                            {/* Author Avatar */}
-                            <div
-                              style={{
-                                width: "46px",
-                                height: "46px",
-                                borderRadius: "14px",
-                                background: post.company_name
-                                  ? "linear-gradient(135deg, #8b5cf6, #6366f1)"
-                                  : "linear-gradient(135deg, #10b981, #06b6d4)",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                overflow: "hidden",
-                                flexShrink: 0,
-                              }}
+                            {/* Author Avatar Link */}
+                            <Link
+                              to={
+                                post.company_name
+                                  ? `/company/${post.company_public_id || post.company}`
+                                  : `/profile/${post.author_public_id || post.author}`
+                              }
+                              style={{ textDecoration: "none" }}
+                              onClick={(e) => e.stopPropagation()}
+                              title={`View ${post.company_name || post.author_name || "profile"}`}
                             >
-                              {post.company_name ? (
-                                post.company_logo ? (
+                              <div
+                                style={{
+                                  width: "46px",
+                                  height: "46px",
+                                  borderRadius: "14px",
+                                  background: post.company_name
+                                    ? "linear-gradient(135deg, #8b5cf6, #6366f1)"
+                                    : "linear-gradient(135deg, #10b981, #06b6d4)",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  overflow: "hidden",
+                                  flexShrink: 0,
+                                  cursor: "pointer",
+                                  transition: "transform 0.2s ease",
+                                }}
+                                onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+                                onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                              >
+                                {post.company_name ? (
+                                  post.company_logo ? (
+                                    <img
+                                      src={getMediaUrl(post.company_logo)}
+                                      alt={post.company_name}
+                                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                    />
+                                  ) : (
+                                    <Building2 size={22} color="white" />
+                                  )
+                                ) : post.author_profile_picture ? (
                                   <img
-                                    src={getMediaUrl(post.company_logo)}
-                                    alt={post.company_name}
+                                    src={getMediaUrl(post.author_profile_picture)}
+                                    alt={post.author_name}
                                     style={{ width: "100%", height: "100%", objectFit: "cover" }}
                                   />
                                 ) : (
-                                  <Building2 size={22} color="white" />
-                                )
-                              ) : post.author_profile_picture ? (
-                                <img
-                                  src={getMediaUrl(post.author_profile_picture)}
-                                  alt={post.author_name}
-                                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                                />
-                              ) : (
-                                <User size={22} color="white" />
-                              )}
-                            </div>
+                                  <User size={22} color="white" />
+                                )}
+                              </div>
+                            </Link>
 
                             {/* Author info */}
                             <div>
                               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                                <span
-                                  style={{
-                                    fontWeight: 700,
-                                    fontSize: "15px",
-                                    color: "var(--color-text-primary, #ffffff)",
-                                    letterSpacing: "-0.01em",
-                                  }}
+                                <Link
+                                  to={
+                                    post.company_name
+                                      ? `/company/${post.company_public_id || post.company}`
+                                      : `/profile/${post.author_public_id || post.author}`
+                                  }
+                                  style={{ textDecoration: "none", color: "inherit" }}
+                                  onClick={(e) => e.stopPropagation()}
+                                  title={`View ${post.company_name || post.author_name || "profile"}`}
                                 >
-                                  {post.company_name || post.author_name || post.author_email}
-                                </span>
+                                  <span
+                                    style={{
+                                      fontWeight: 700,
+                                      fontSize: "15px",
+                                      color: "var(--color-text-primary, #ffffff)",
+                                      letterSpacing: "-0.01em",
+                                      cursor: "pointer",
+                                      transition: "color 0.2s ease",
+                                    }}
+                                    onMouseEnter={(e) =>
+                                      (e.currentTarget.style.color = post.company_name ? "#c084fc" : "#10b981")
+                                    }
+                                    onMouseLeave={(e) =>
+                                      (e.currentTarget.style.color = "var(--color-text-primary, #ffffff)")
+                                    }
+                                  >
+                                    {post.company_name || post.author_name || post.author_email}
+                                  </span>
+                                </Link>
                                 {post.company_name ? (
                                   <span
                                     style={{
@@ -1722,8 +1758,17 @@ const FeedPage = () => {
                             </div>
                           </div>
 
-                          {/* Context Action Menu */}
-                          <div style={{ position: "relative" }}>
+                          {/* Context Action Menu & Connect/Follow Button */}
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            {!isAuthor && (
+                              post.company_name && post.company ? (
+                                <FollowButton companyId={post.company} size="sm" />
+                              ) : post.author ? (
+                                <ConnectButton targetUserId={post.author} size="sm" />
+                              ) : null
+                            )}
+
+                            <div style={{ position: "relative" }}>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -1854,6 +1899,7 @@ const FeedPage = () => {
                             )}
                           </div>
                         </div>
+                      </div>
 
                         {/* Post Text Content */}
                         {post.content && (
@@ -2141,39 +2187,75 @@ const FeedPage = () => {
                                         alignItems: "flex-start",
                                       }}
                                     >
-                                      {/* Avatar */}
-                                      <div
-                                        style={{
-                                          width: "28px",
-                                          height: "28px",
-                                          borderRadius: "8px",
-                                          background: comm.is_company ? "#8b5cf6" : "#10b981",
-                                          display: "flex",
-                                          alignItems: "center",
-                                          justifyContent: "center",
-                                          overflow: "hidden",
-                                          flexShrink: 0,
-                                          fontSize: "12px",
-                                          fontWeight: 700,
-                                          color: "white",
-                                        }}
+                                      {/* Avatar Link */}
+                                      <Link
+                                        to={
+                                          comm.is_company
+                                            ? `/company/${comm.company_public_id || comm.company_id}`
+                                            : `/profile/${comm.author_public_id || comm.author_id}`
+                                        }
+                                        style={{ textDecoration: "none" }}
+                                        onClick={(e) => e.stopPropagation()}
+                                        title={`View ${comm.author_name}'s profile`}
                                       >
-                                        {comm.author_profile_picture ? (
-                                          <img
-                                            src={getMediaUrl(comm.author_profile_picture)}
-                                            alt={comm.author_name}
-                                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                                          />
-                                        ) : (
-                                          (comm.author_name || "?").charAt(0).toUpperCase()
-                                        )}
-                                      </div>
+                                        <div
+                                          style={{
+                                            width: "28px",
+                                            height: "28px",
+                                            borderRadius: "8px",
+                                            background: comm.is_company ? "#8b5cf6" : "#10b981",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            overflow: "hidden",
+                                            flexShrink: 0,
+                                            fontSize: "12px",
+                                            fontWeight: 700,
+                                            color: "white",
+                                            cursor: "pointer",
+                                          }}
+                                        >
+                                          {comm.author_profile_picture ? (
+                                            <img
+                                              src={getMediaUrl(comm.author_profile_picture)}
+                                              alt={comm.author_name}
+                                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                            />
+                                          ) : (
+                                            (comm.author_name || "?").charAt(0).toUpperCase()
+                                          )}
+                                        </div>
+                                      </Link>
 
                                       {/* Content */}
                                       <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ display: "flex", alignItems: "center", gap: "6px", justifyContent: "space-between" }}>
                                           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                                            <span style={{ fontSize: "12px", fontWeight: 700 }}>{comm.author_name}</span>
+                                            <Link
+                                              to={
+                                                comm.is_company
+                                                  ? `/company/${comm.company_public_id || comm.company_id}`
+                                                  : `/profile/${comm.author_public_id || comm.author_id}`
+                                              }
+                                              style={{ textDecoration: "none", color: "inherit" }}
+                                              onClick={(e) => e.stopPropagation()}
+                                              title={`View ${comm.author_name}'s profile`}
+                                            >
+                                              <span
+                                                style={{
+                                                  fontSize: "12px",
+                                                  fontWeight: 700,
+                                                  cursor: "pointer",
+                                                  transition: "color 0.2s ease",
+                                                }}
+                                                onMouseEnter={(e) =>
+                                                  (e.currentTarget.style.color = comm.is_company ? "#c084fc" : "#10b981")
+                                                }
+                                                onMouseLeave={(e) => (e.currentTarget.style.color = "inherit")}
+                                              >
+                                                {comm.author_name}
+                                              </span>
+                                            </Link>
                                             {comm.is_company && (
                                               <span style={{ fontSize: "10px", padding: "1px 5px", borderRadius: "9999px", background: "rgba(139,92,246,0.2)", color: "#c084fc", fontWeight: 700 }}>Co.</span>
                                             )}

@@ -1,8 +1,9 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Mail, ArrowUpRight, Handshake } from "lucide-react";
+import ConnectButton from "../ConnectButton";
 
-const PublicCTA = ({ email }) => {
+const PublicCTA = ({ email, userId }) => {
   return (
     <section className="pub-section">
       <div className="pub-inner">
@@ -51,23 +52,27 @@ const PublicCTA = ({ email }) => {
               Have a project in mind? I'm always open to discussing new ideas and opportunities.
             </motion.p>
 
-            {/* CTA */}
-            <motion.a
-              href={`mailto:${email}`}
-              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
-              style={{
-                display: "inline-flex", alignItems: "center", gap: "0.6rem",
-                padding: "0.9rem 2rem", borderRadius: "1rem",
-                background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
-                boxShadow: "0 0 28px rgba(59,130,246,0.4), 0 8px 30px var(--color-card-hover-bg), inset 0 1px 0 var(--color-card-border)",
-                fontSize: "0.78rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: "white",
-                textDecoration: "none",
-              }}
-            >
-              <Mail size={16} />
-              Start a Conversation
-              <ArrowUpRight size={16} />
-            </motion.a>
+            {/* CTAs */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", flexWrap: "wrap" }}>
+              {userId && <ConnectButton targetUserId={userId} size="lg" />}
+
+              <motion.a
+                href={`mailto:${email}`}
+                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: "0.6rem",
+                  padding: "0.9rem 2rem", borderRadius: "1rem",
+                  background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
+                  boxShadow: "0 0 28px rgba(59,130,246,0.4), 0 8px 30px var(--color-card-hover-bg), inset 0 1px 0 var(--color-card-border)",
+                  fontSize: "0.78rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: "white",
+                  textDecoration: "none",
+                }}
+              >
+                <Mail size={16} />
+                Start a Conversation
+                <ArrowUpRight size={16} />
+              </motion.a>
+            </div>
 
             {email && (
               <p style={{ marginTop: "1.25rem", fontSize: "0.72rem", fontFamily: "monospace", color: "#374151" }}>{email}</p>

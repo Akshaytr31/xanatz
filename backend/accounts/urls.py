@@ -10,7 +10,8 @@ from .views import (
     PublicCompanyProfileView, CompanyReviewViewSet, FreelancerReviewViewSet, AdminFlaggedReviewsView,
     CompanyFAQViewSet, CompanyMediaViewSet, AIEnhanceView, AdminStatsView,
     AdminUsersListView, AdminCompaniesListView, AdminJobsListView, AdminRFPsListView,
-    FreelancersListView, UserActivityLogCreateView, AdminUserLogsListView, LogoutView, FeedPostViewSet, FeedCommentViewSet
+    FreelancersListView, UserActivityLogCreateView, AdminUserLogsListView, LogoutView, FeedPostViewSet, FeedCommentViewSet,
+    ConnectionViewSet, CompanyFollowViewSet
 )
 
 router = DefaultRouter()
@@ -30,6 +31,8 @@ router.register(r'freelancer-reviews', FreelancerReviewViewSet, basename='freela
 router.register(r'faqs', CompanyFAQViewSet, basename='faqs')
 router.register(r'company-media', CompanyMediaViewSet, basename='company-media')
 router.register(r'feed', FeedPostViewSet, basename='feed')
+router.register(r'connections', ConnectionViewSet, basename='connections')
+router.register(r'company-follows', CompanyFollowViewSet, basename='company-follows')
 
 # Nested comments: /api/feed/{post_pk}/comments/
 feed_comment_list = FeedCommentViewSet.as_view({'get': 'list', 'post': 'create'})

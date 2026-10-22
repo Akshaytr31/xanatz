@@ -28,6 +28,7 @@ import {
   Check,
   Plus,
   Send,
+  UserPlus,
 } from "lucide-react";
 
 import { useNavigate, useLocation } from "react-router-dom";
@@ -604,6 +605,12 @@ const Navbar = () => {
                 label="Proposals"
                 active={location.pathname === "/my-rfp-interests"}
                 onClick={() => navigate("/my-rfp-interests")}
+              />
+              <NavItem
+                icon={UserPlus}
+                label="Network"
+                active={location.pathname === "/connections"}
+                onClick={() => navigate("/connections")}
               />
             </>
           )}

@@ -27,6 +27,7 @@ import MessagesPage from "./pages/MessagesPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import FreelancersPage from "./pages/FreelancersPage";
 import FeedPage from "./pages/FeedPage";
+import ConnectionsPage from "./pages/ConnectionsPage";
 function App() {
   return (
     <AccountProvider>
@@ -71,6 +72,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <FeedPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/connections"
+            element={
+              <ProtectedRoute>
+                <ConnectionsPage />
               </ProtectedRoute>
             }
           />

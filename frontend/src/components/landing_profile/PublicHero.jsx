@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { backendUrl } from "../../api";
+import ConnectButton from "../ConnectButton";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -28,6 +29,7 @@ const PublicHero = ({
   fullName,
   heroY,
   heroOpacity,
+  userId,
 }) => {
   const currentCompany = profile?.experiences?.find(
     (exp) => exp.current,
@@ -432,6 +434,21 @@ const PublicHero = ({
                     Website <ArrowUpRight size={10} />
                   </a>
                 )}
+              </motion.div>
+            )}
+
+            {/* Connect Action */}
+            {userId && (
+              <motion.div
+                variants={fadeUp}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.75rem",
+                  marginBottom: "1.25rem",
+                }}
+              >
+                <ConnectButton targetUserId={userId} size="md" />
               </motion.div>
             )}
 

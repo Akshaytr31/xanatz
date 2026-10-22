@@ -4,6 +4,7 @@ import api from "../api";
 import { formatDate } from "../utils/dateUtils";
 import FlagConfirmationModal from "../components/FlagConfirmationModal";
 import CompanyMediaSection from "../components/company/CompanyMediaSection";
+import FollowButton from "../components/FollowButton";
 import { ArrowRight, Globe, MapPin, Users, Calendar, Link2, AtSign, Briefcase, ExternalLink, Share2, Check, Mail, ArrowUpRight, Star, Flag, ShieldAlert, CheckCircle2, HelpCircle, ChevronDown, MessageSquare } from "lucide-react";
 import { motion, useScroll, useSpring, useTransform, AnimatePresence } from "framer-motion";
 
@@ -304,6 +305,8 @@ const PublicCompanyProfile = () => {
 
           {/* Actions */}
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <FollowButton companyId={company.id || company.public_id} size="sm" />
+
             <motion.button
               onClick={handleShare}
               whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
@@ -542,6 +545,16 @@ const PublicCompanyProfile = () => {
                     "{company.tagline}"
                   </motion.p>
                 )}
+
+                {/* Follow Button */}
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.35 }}
+                  style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginTop: "1.25rem", flexWrap: "wrap" }}
+                >
+                  <FollowButton companyId={company.id || company.public_id} size="md" />
+                </motion.div>
 
                 {/* Stats Grid */}
                 <motion.div
@@ -1061,7 +1074,8 @@ const PublicCompanyProfile = () => {
                   .cta-buttons { flex-direction: row !important; }
                 }
               `}</style>
-              <div className="cta-buttons" style={{ display: "flex", flexDirection: "column", gap: "1rem", width: "100%", justifyContent: "center" }}>
+              <div className="cta-buttons" style={{ display: "flex", flexDirection: "column", gap: "1rem", width: "100%", justifyContent: "center", alignItems: "center" }}>
+                <FollowButton companyId={company.id || company.public_id} size="lg" />
                 {company.website && (
                   <a
                     href={company.website}

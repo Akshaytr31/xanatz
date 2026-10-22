@@ -5,7 +5,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 import random
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, OTP, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ, CompanyMedia, UserActivityLog, FeedPost, FeedComment
+from .models import PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, OTP, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ, CompanyMedia, UserActivityLog, FeedPost, FeedComment, Connection, CompanyFollow
 from .utils import log_user_activity
 
 User = get_user_model()
@@ -805,7 +805,7 @@ class PublicCompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = [
-            'public_id', 'name', 'tagline', 'description', 'logo_url',
+            'id', 'public_id', 'name', 'tagline', 'description', 'logo_url',
             'website', 'industry', 'company_size', 'location', 'founded_year',
             'linkedin_url', 'twitter_url', 'is_recently_active', 'last_activity_date', 'members_details', 'jobs', 'rfps',
             'reviews', 'average_rating', 'reviews_count',
@@ -919,23 +919,38 @@ class FeedCommentSerializer(serializers.ModelSerializer):
     author_id = serializers.IntegerField(source='author.id', read_only=True)
     company_name = serializers.CharField(source='company.name', read_only=True, default=None)
     company_id = serializers.IntegerField(source='company.id', read_only=True, default=None)
+    author_public_id = serializers.SerializerMethodField()
+    company_public_id = serializers.SerializerMethodField()
     is_company = serializers.SerializerMethodField()
 
     class Meta:
         model = FeedComment
         fields = [
             'id', 'post', 'author_id', 'author_name', 'author_email', 'author_profile_picture',
-            'company_id', 'company_name', 'is_company',
+            'author_public_id', 'company_id', 'company_name', 'company_public_id', 'is_company',
             'text', 'created_at', 'updated_at'
         ]
         read_only_fields = ['post', 'author_id', 'author_name', 'author_email', 'author_profile_picture',
-                             'company_id', 'company_name', 'is_company', 'created_at', 'updated_at']
+                             'author_public_id', 'company_id', 'company_name', 'company_public_id',
+                             'is_company', 'created_at', 'updated_at']
 
     def get_author_name(self, obj):
         if obj.company:
             return obj.company.name
         name = obj.author.get_full_name().strip()
         return name if name else obj.author.email
+
+    def get_author_public_id(self, obj):
+        if hasattr(obj.author, 'profile') and obj.author.profile.public_id:
+            return str(obj.author.profile.public_id)
+        return str(obj.author_id)
+
+    def get_company_public_id(self, obj):
+        if obj.company and obj.company.public_id:
+            return str(obj.company.public_id)
+        if obj.company_id:
+            return str(obj.company_id)
+        return None
 
     def get_author_profile_picture(self, obj):
         request = self.context.get('request')
@@ -954,8 +969,10 @@ class FeedCommentSerializer(serializers.ModelSerializer):
 class FeedPostSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source='author.get_full_name', read_only=True)
     author_email = serializers.CharField(source='author.email', read_only=True)
+    author_public_id = serializers.SerializerMethodField()
     author_profile_picture = serializers.SerializerMethodField()
     company_name = serializers.CharField(source='company.name', read_only=True)
+    company_public_id = serializers.SerializerMethodField()
     company_logo = serializers.SerializerMethodField()
     likes_count = serializers.SerializerMethodField()
     has_liked = serializers.SerializerMethodField()
@@ -964,11 +981,23 @@ class FeedPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = FeedPost
         fields = [
-            'id', 'author', 'author_name', 'author_email', 'author_profile_picture',
-            'company', 'company_name', 'company_logo', 'content', 'media',
+            'id', 'author', 'author_name', 'author_email', 'author_public_id', 'author_profile_picture',
+            'company', 'company_name', 'company_public_id', 'company_logo', 'content', 'media',
             'likes_count', 'has_liked', 'comments_count', 'created_at', 'updated_at'
         ]
         read_only_fields = ['author', 'company']
+
+    def get_author_public_id(self, obj):
+        if hasattr(obj.author, 'profile') and obj.author.profile.public_id:
+            return str(obj.author.profile.public_id)
+        return str(obj.author.id)
+
+    def get_company_public_id(self, obj):
+        if obj.company and obj.company.public_id:
+            return str(obj.company.public_id)
+        if obj.company:
+            return str(obj.company.id)
+        return None
 
     def get_author_profile_picture(self, obj):
         request = self.context.get('request')
@@ -999,3 +1028,71 @@ class FeedPostSerializer(serializers.ModelSerializer):
 
     def get_comments_count(self, obj):
         return obj.comments.count()
+
+
+class ConnectionSerializer(serializers.ModelSerializer):
+    sender_id     = serializers.IntegerField(source='sender.id',   read_only=True)
+    sender_name   = serializers.SerializerMethodField()
+    sender_avatar = serializers.SerializerMethodField()
+    receiver_id   = serializers.IntegerField(source='receiver.id', read_only=True)
+    receiver_name = serializers.SerializerMethodField()
+    receiver_avatar = serializers.SerializerMethodField()
+
+    class Meta:
+        model  = Connection
+        fields = [
+            'id', 'sender_id', 'sender_name', 'sender_avatar',
+            'receiver_id', 'receiver_name', 'receiver_avatar',
+            'status', 'created_at', 'updated_at',
+        ]
+        read_only_fields = [
+            'sender_id', 'sender_name', 'sender_avatar',
+            'receiver_id', 'receiver_name', 'receiver_avatar',
+            'status', 'created_at', 'updated_at',
+        ]
+
+    def _get_avatar(self, user, request):
+        try:
+            if user.profile and user.profile.profile_picture:
+                url = user.profile.profile_picture.url
+                return request.build_absolute_uri(url) if request else url
+        except Exception:
+            pass
+        return None
+
+    def get_sender_name(self, obj):
+        name = obj.sender.get_full_name().strip()
+        return name if name else obj.sender.email
+
+    def get_receiver_name(self, obj):
+        name = obj.receiver.get_full_name().strip()
+        return name if name else obj.receiver.email
+
+    def get_sender_avatar(self, obj):
+        request = self.context.get('request')
+        return self._get_avatar(obj.sender, request)
+
+    def get_receiver_avatar(self, obj):
+        request = self.context.get('request')
+        return self._get_avatar(obj.receiver, request)
+
+
+class CompanyFollowSerializer(serializers.ModelSerializer):
+    company_name = serializers.CharField(source='company.name',     read_only=True)
+    company_logo = serializers.SerializerMethodField()
+    follower_id  = serializers.IntegerField(source='follower.id',   read_only=True)
+
+    class Meta:
+        model  = CompanyFollow
+        fields = ['id', 'follower_id', 'company', 'company_name', 'company_logo', 'created_at']
+        read_only_fields = ['follower_id', 'company_name', 'company_logo', 'created_at']
+
+    def get_company_logo(self, obj):
+        request = self.context.get('request')
+        try:
+            if obj.company.logo:
+                url = obj.company.logo.url
+                return request.build_absolute_uri(url) if request else url
+        except Exception:
+            pass
+        return None

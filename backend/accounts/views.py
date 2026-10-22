@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
 from django.core.exceptions import ValidationError
-from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ, CompanyMedia, UserActivityLog, FeedPost, FeedComment
+from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ, CompanyMedia, UserActivityLog, FeedPost, FeedComment, Connection, CompanyFollow
 from .serializers import (
     SendOTPSerializer, VerifyOTPSerializer, RegisterUserSerializer, 
     PrivacyPolicySerializer, UserSerializer, ProfileSerializer,
@@ -13,7 +13,8 @@ from .serializers import (
     UserSearchSerializer, JobOpeningSerializer, JobApplicationSerializer,
     RFPSerializer, RFPInterestSerializer, JobPostPlanSerializer, CompanySubscriptionSerializer, NotificationSerializer, MessageSerializer,
     PortfolioProjectSerializer, PublicCompanySerializer, CompanyReviewSerializer, FreelancerReviewSerializer, CompanyFAQSerializer, CompanyMediaSerializer,
-    UserActivityLogSerializer, FeedPostSerializer, FeedCommentSerializer
+    UserActivityLogSerializer, FeedPostSerializer, FeedCommentSerializer,
+    ConnectionSerializer, CompanyFollowSerializer
 )
 from .utils import (
     get_user_company_role,
@@ -2239,7 +2240,40 @@ from rest_framework.decorators import action
 class FeedPostViewSet(viewsets.ModelViewSet):
     serializer_class = FeedPostSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    queryset = FeedPost.objects.all().order_by('-created_at')
+
+    def get_queryset(self):
+        user = self.request.user
+        explore = self.request.query_params.get('explore', 'false').lower() == 'true'
+
+        # Unauthenticated users see all posts
+        if not user.is_authenticated or explore:
+            return FeedPost.objects.all().order_by('-created_at')
+
+        # Collect connected peer IDs (accepted connections)
+        connected_rows = Connection.objects.filter(
+            Q(sender=user, status='accepted') | Q(receiver=user, status='accepted')
+        ).values_list('sender_id', 'receiver_id')
+        peer_ids = set()
+        for s, r in connected_rows:
+            peer_ids.add(s if s != user.id else r)
+
+        # Collect followed company IDs
+        followed_company_ids = list(
+            CompanyFollow.objects.filter(follower=user).values_list('company_id', flat=True)
+        )
+
+        # If user has no network yet, show all (onboarding experience)
+        has_network = peer_ids or followed_company_ids
+        if not has_network:
+            return FeedPost.objects.all().order_by('-created_at')
+
+        # Filter to own posts + peer posts + company posts
+        return FeedPost.objects.filter(
+            Q(author=user) |
+            Q(author_id__in=peer_ids, company__isnull=True) |
+            Q(company_id__in=followed_company_ids)
+        ).distinct().order_by('-created_at')
+
 
     def perform_create(self, serializer):
         company_id = self.request.data.get('company_id')
@@ -2298,3 +2332,346 @@ class FeedCommentViewSet(viewsets.ModelViewSet):
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("You can only delete your own comments.")
         instance.delete()
+
+
+# ────────────────────────────────────────────────────────────────
+# Connection ViewSet  (person ↔ person, requires mutual acceptance)
+# ────────────────────────────────────────────────────────────────
+class ConnectionViewSet(viewsets.ModelViewSet):
+    serializer_class   = ConnectionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names  = ['get', 'post', 'delete', 'patch', 'head', 'options']
+
+    def get_queryset(self):
+        user = self.request.user
+        return Connection.objects.filter(
+            Q(sender=user) | Q(receiver=user)
+        ).exclude(status='withdrawn').select_related('sender', 'receiver')
+
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        raw_receiver = data.get('receiver')
+        receiver = None
+        if raw_receiver is not None:
+            if str(raw_receiver).isdigit():
+                receiver = User.objects.filter(id=int(raw_receiver)).first()
+            if not receiver:
+                profile = Profile.objects.filter(public_id=raw_receiver).first()
+                if profile:
+                    receiver = profile.user
+
+        if not receiver:
+            return Response({'detail': 'Receiver user not found.'}, status=status.HTTP_400_BAD_REQUEST)
+        if receiver == request.user:
+            return Response({'detail': 'You cannot connect with yourself.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check existing connection
+        existing = Connection.objects.filter(
+            Q(sender=request.user, receiver=receiver) |
+            Q(sender=receiver, receiver=request.user)
+        ).exclude(status='withdrawn').first()
+        if existing:
+            # Return existing connection so frontend updates state seamlessly
+            serializer = self.get_serializer(existing)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        data['receiver'] = receiver.id
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        conn = serializer.save(sender=request.user, receiver=receiver)
+
+        try:
+            Notification.objects.create(
+                recipient=receiver,
+                sender=request.user,
+                message=f"{request.user.get_full_name() or request.user.email} sent you a connection request.",
+                target_url="/connections"
+            )
+        except Exception:
+            pass
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    @action(detail=True, methods=['patch'])
+    def accept(self, request, pk=None):
+        conn = self.get_object()
+        if conn.receiver != request.user:
+            return Response({'detail': 'Only the receiver can accept.'}, status=status.HTTP_403_FORBIDDEN)
+        if conn.status != 'pending':
+            return Response({'detail': 'Request is not pending.'}, status=status.HTTP_400_BAD_REQUEST)
+        conn.status = 'accepted'
+        conn.save()
+        try:
+            Notification.objects.create(
+                recipient=conn.sender,
+                sender=request.user,
+                message=f"{request.user.get_full_name() or request.user.email} accepted your connection request.",
+                target_url="/connections"
+            )
+        except Exception:
+            pass
+        return Response(ConnectionSerializer(conn, context={'request': request}).data)
+
+    @action(detail=True, methods=['patch'])
+    def reject(self, request, pk=None):
+        conn = self.get_object()
+        if conn.receiver != request.user:
+            return Response({'detail': 'Only the receiver can reject.'}, status=status.HTTP_403_FORBIDDEN)
+        conn.status = 'rejected'
+        conn.save()
+        return Response({'status': 'rejected'})
+
+    @action(detail=False, methods=['get'])
+    def pending(self, request):
+        """Requests sent TO me that are still pending."""
+        qs = Connection.objects.filter(receiver=request.user, status='pending').select_related('sender', 'receiver')
+        return Response(ConnectionSerializer(qs, many=True, context={'request': request}).data)
+
+    @action(detail=False, methods=['get'])
+    def status_with(self, request):
+        """Check connection status with a specific user. ?user_id=<id or public_id>"""
+        other_id = request.query_params.get('user_id')
+        if not other_id:
+            return Response({'detail': 'user_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        target_user = None
+        if str(other_id).isdigit():
+            target_user = User.objects.filter(id=int(other_id)).first()
+        if not target_user:
+            profile = Profile.objects.filter(public_id=other_id).first()
+            if profile:
+                target_user = profile.user
+        if not target_user:
+            return Response({'status': 'none'})
+
+        if target_user == request.user:
+            return Response({'status': 'self'})
+
+        conn = Connection.objects.filter(
+            Q(sender=request.user, receiver=target_user) |
+            Q(receiver=request.user, sender=target_user)
+        ).exclude(status='withdrawn').first()
+        if not conn:
+            return Response({'status': 'none'})
+        data = ConnectionSerializer(conn, context={'request': request}).data
+        data['i_am_sender'] = (conn.sender == request.user)
+        return Response(data)
+
+    @action(detail=False, methods=['get'])
+    def suggestions(self, request):
+        """
+        Suggest members to connect with (Discover):
+        ALWAYS strictly excludes:
+          - Self
+          - Already connected members (status='accepted')
+          - Members with pending requests (sent or received)
+        """
+        user = request.user
+        q = request.query_params.get('q', '').strip()
+
+        # Find all user IDs connected or pending with the current user
+        conns = Connection.objects.filter(
+            Q(sender=user) | Q(receiver=user)
+        ).exclude(status__in=['withdrawn', 'rejected']).values_list('sender_id', 'receiver_id')
+
+        exclude_ids = {user.id}
+        for s_id, r_id in conns:
+            exclude_ids.add(s_id)
+            exclude_ids.add(r_id)
+
+        qs = User.objects.filter(is_active=True).exclude(id__in=exclude_ids)
+        if q:
+            qs = qs.filter(
+                Q(first_name__icontains=q) |
+                Q(last_name__icontains=q) |
+                Q(email__icontains=q) |
+                Q(profile__headline__icontains=q) |
+                Q(profile__location__icontains=q)
+            )
+
+        limit_param = request.query_params.get('limit', '30')
+        try:
+            limit = int(limit_param)
+        except ValueError:
+            limit = 30
+
+        users = qs.select_related('profile').order_by('-date_joined')[:limit]
+
+        data = []
+        for u in users:
+            avatar = None
+            headline = ""
+            location = ""
+            skills = []
+            public_id = str(u.id)
+            is_freelancer = False
+
+            if hasattr(u, 'profile') and u.profile:
+                prof = u.profile
+                if prof.public_id:
+                    public_id = str(prof.public_id)
+                headline = prof.headline or ""
+                location = prof.location or ""
+                skills = prof.skills or []
+                is_freelancer = prof.is_freelancer
+                if prof.profile_picture:
+                    try:
+                        avatar = request.build_absolute_uri(prof.profile_picture.url)
+                    except Exception:
+                        avatar = prof.profile_picture.url
+
+            name = u.get_full_name().strip() or u.email.split('@')[0]
+            data.append({
+                'id': u.id,
+                'public_id': public_id,
+                'name': name,
+                'email': u.email,
+                'avatar': avatar,
+                'headline': headline,
+                'location': location,
+                'skills': skills[:4] if isinstance(skills, list) else [],
+                'is_freelancer': is_freelancer,
+                'connection_status': 'none',
+                'connection_id': None,
+                'i_am_sender': False,
+            })
+        return Response(data)
+
+    def perform_destroy(self, instance):
+        """Sender can withdraw; either party can disconnect accepted connections."""
+        user = self.request.user
+        if instance.sender != user and instance.receiver != user:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied('Not your connection.')
+        if instance.status == 'accepted':
+            instance.delete()
+        else:
+            instance.status = 'withdrawn'
+            instance.save()
+
+
+# ────────────────────────────────────────────────────────────────
+# CompanyFollow ViewSet  (person → company, no approval needed)
+# ────────────────────────────────────────────────────────────────
+class CompanyFollowViewSet(viewsets.ModelViewSet):
+    serializer_class   = CompanyFollowSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names  = ['get', 'post', 'delete', 'head', 'options']
+
+    def get_queryset(self):
+        return CompanyFollow.objects.filter(follower=self.request.user).select_related('company')
+
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        raw_company = data.get('company')
+        if raw_company is not None and not str(raw_company).isdigit():
+            company = Company.objects.filter(public_id=raw_company).first()
+            if company:
+                data['company'] = company.id
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        company_id = self.request.data.get('company')
+        company = None
+        if company_id is not None:
+            if str(company_id).isdigit():
+                company = Company.objects.filter(id=int(company_id)).first()
+            if not company:
+                company = Company.objects.filter(public_id=company_id).first()
+        if not company:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError('Company not found.')
+        if CompanyFollow.objects.filter(follower=self.request.user, company=company).exists():
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError('Already following this company.')
+        serializer.save(follower=self.request.user, company=company)
+
+    @action(detail=False, methods=['get'])
+    def status_with(self, request):
+        """Check if I follow a company. ?company_id=<id or public_id>"""
+        company_id = request.query_params.get('company_id')
+        if not company_id:
+            return Response({'detail': 'company_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        company = None
+        if str(company_id).isdigit():
+            company = Company.objects.filter(id=int(company_id)).first()
+        if not company:
+            company = Company.objects.filter(public_id=company_id).first()
+        if not company:
+            return Response({'following': False})
+        follow = CompanyFollow.objects.filter(follower=request.user, company=company).first()
+        if follow:
+            return Response({'following': True, 'follow_id': follow.id})
+        return Response({'following': False})
+
+    @action(detail=False, methods=['get'])
+    def suggestions(self, request):
+        """
+        Suggest companies to follow, or search companies across the platform:
+        - Support search query ?q= (matches name, industry, tagline, location)
+        - Support limit ?limit= (default 20)
+        """
+        user = request.user
+        follows = CompanyFollow.objects.filter(
+            follower=user
+        ).values('company_id', 'id')
+        follow_map = {f['company_id']: f['id'] for f in follows}
+
+        qs = Company.objects.filter(is_active=True).exclude(id__in=follow_map.keys())
+
+        q = request.query_params.get('q', '').strip()
+        if q:
+            qs = qs.filter(
+                Q(name__icontains=q) |
+                Q(industry__icontains=q) |
+                Q(tagline__icontains=q) |
+                Q(location__icontains=q)
+            )
+
+        limit_param = request.query_params.get('limit', '20')
+        try:
+            limit = int(limit_param)
+        except ValueError:
+            limit = 20
+
+        companies = qs.order_by('-id')[:limit]
+
+        data = []
+        for c in companies:
+            logo_url = None
+            if c.logo:
+                try:
+                    logo_url = request.build_absolute_uri(c.logo.url)
+                except Exception:
+                    logo_url = c.logo.url
+
+            is_following = c.id in follow_map
+            data.append({
+                'id': c.id,
+                'public_id': str(c.public_id),
+                'company_id': c.company_id,
+                'name': c.name,
+                'tagline': c.tagline or "",
+                'logo_url': logo_url,
+                'industry': c.industry or "",
+                'company_size': c.company_size or "",
+                'location': c.location or "",
+                'website': c.website or "",
+                'is_following': is_following,
+                'follow_id': follow_map.get(c.id),
+            })
+        return Response(data)
+
+    @action(detail=False, methods=['get'])
+    def followers_of(self, request):
+        """List followers of a company. ?company_id=<id>"""
+        company_id = request.query_params.get('company_id')
+        if not company_id:
+            return Response({'detail': 'company_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        qs = CompanyFollow.objects.filter(company_id=company_id).select_related('follower', 'company')
+        return Response(CompanyFollowSerializer(qs, many=True, context={'request': request}).data)

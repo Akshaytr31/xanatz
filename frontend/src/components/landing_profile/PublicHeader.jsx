@@ -1,8 +1,9 @@
 import React from "react";
 import { ArrowUpRight, Share2, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import ConnectButton from "../ConnectButton";
 
-const PublicHeader = ({ first_name, email, copied, handleShare, scrolled }) => {
+const PublicHeader = ({ first_name, email, copied, handleShare, scrolled, userId }) => {
   return (
     <motion.header
       initial={{ y: -6, opacity: 0 }}
@@ -34,6 +35,8 @@ const PublicHeader = ({ first_name, email, copied, handleShare, scrolled }) => {
 
         {/* Actions */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          {userId && <ConnectButton targetUserId={userId} size="sm" />}
+
           <motion.button
             onClick={handleShare}
             whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}

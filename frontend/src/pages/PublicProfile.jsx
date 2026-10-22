@@ -202,6 +202,7 @@ const PublicProfile = () => {
         copied={copied}
         handleShare={handleShare}
         scrolled={scrolled}
+        userId={user?.id}
       />
 
       <main className="relative z-10">
@@ -212,6 +213,7 @@ const PublicProfile = () => {
           fullName={fullName}
           heroY={heroY}
           heroOpacity={heroOpacity}
+          userId={user?.id}
         />
 
         <PublicAbout about={profile?.about} />
@@ -238,7 +240,7 @@ const PublicProfile = () => {
           onFlagReview={handleOpenFlagModal}
         />
 
-        <PublicCTA email={email} />
+        <PublicCTA email={email} userId={user?.id} />
       </main>
 
       <PublicFooter fullName={fullName} handleShare={handleShare} />
