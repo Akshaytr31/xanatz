@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
 from django.core.exceptions import ValidationError
-from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ, CompanyMedia, UserActivityLog, FeedPost, FeedComment, Connection, CompanyFollow
+from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ, CompanyMedia, UserActivityLog, FeedPost, FeedPostMedia, FeedComment, Connection, CompanyFollow
 from .serializers import (
     SendOTPSerializer, VerifyOTPSerializer, RegisterUserSerializer, 
     PrivacyPolicySerializer, UserSerializer, ProfileSerializer,
@@ -2245,9 +2245,11 @@ class FeedPostViewSet(viewsets.ModelViewSet):
         user = self.request.user
         explore = self.request.query_params.get('explore', 'false').lower() == 'true'
 
+        base_qs = FeedPost.objects.prefetch_related('media_files', 'likes', 'comments')
+
         # Unauthenticated users see all posts
         if not user.is_authenticated or explore:
-            return FeedPost.objects.all().order_by('-created_at')
+            return base_qs.order_by('-created_at')
 
         # Collect connected peer IDs (accepted connections)
         connected_rows = Connection.objects.filter(
@@ -2265,22 +2267,41 @@ class FeedPostViewSet(viewsets.ModelViewSet):
         # If user has no network yet, show all (onboarding experience)
         has_network = peer_ids or followed_company_ids
         if not has_network:
-            return FeedPost.objects.all().order_by('-created_at')
+            return base_qs.order_by('-created_at')
 
         # Filter to own posts + peer posts + company posts
-        return FeedPost.objects.filter(
+        return base_qs.filter(
             Q(author=user) |
             Q(author_id__in=peer_ids, company__isnull=True) |
             Q(company_id__in=followed_company_ids)
         ).distinct().order_by('-created_at')
-
 
     def perform_create(self, serializer):
         company_id = self.request.data.get('company_id')
         company = None
         if company_id:
             company = Company.objects.filter(id=company_id).first()
-        serializer.save(author=self.request.user, company=company)
+
+        files = self.request.FILES.getlist('media_files')
+        if not files:
+            files = self.request.FILES.getlist('media')
+
+        # Prevent serializer from consuming/moving temp files before FeedPostMedia creates records
+        if files and 'media' in serializer.validated_data:
+            serializer.validated_data.pop('media')
+
+        post = serializer.save(author=self.request.user, company=company)
+
+        first_media_file_name = None
+        for order, f in enumerate(files):
+            media_item = FeedPostMedia.objects.create(post=post, file=f, order=order)
+            if order == 0 and media_item.file:
+                first_media_file_name = media_item.file.name
+
+        # Backward compatibility: populate post.media with the first media file path
+        if first_media_file_name:
+            post.media.name = first_media_file_name
+            post.save(update_fields=['media'])
 
     def perform_destroy(self, instance):
         if instance.author != self.request.user and not self.request.user.is_staff:
@@ -2308,17 +2329,23 @@ class FeedCommentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         post_id = self.kwargs.get('post_pk')
         if post_id:
-            return FeedComment.objects.filter(post_id=post_id).select_related('author', 'company')
+            return FeedComment.objects.filter(post_id=post_id).select_related(
+                'author', 'author__profile', 'company', 'parent', 'parent__author', 'parent__company'
+            ).prefetch_related('likes').order_by('created_at')
         return FeedComment.objects.none()
 
     def perform_create(self, serializer):
         post_id = self.kwargs.get('post_pk')
         post = FeedPost.objects.get(id=post_id)
         company_id = self.request.data.get('company_id')
+        parent_id = self.request.data.get('parent_id') or self.request.data.get('parent')
         company = None
         if company_id:
             company = Company.objects.filter(id=company_id).first()
-        serializer.save(author=self.request.user, post=post, company=company)
+        parent = None
+        if parent_id:
+            parent = FeedComment.objects.filter(id=parent_id, post=post).first()
+        serializer.save(author=self.request.user, post=post, company=company, parent=parent)
 
     def perform_update(self, serializer):
         instance = serializer.instance
@@ -2332,6 +2359,23 @@ class FeedCommentViewSet(viewsets.ModelViewSet):
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("You can only delete your own comments.")
         instance.delete()
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def toggle_like(self, request, post_pk=None, pk=None):
+        comment = self.get_object()
+        user = request.user
+        if comment.likes.filter(id=user.id).exists():
+            comment.likes.remove(user)
+            liked = False
+        else:
+            comment.likes.add(user)
+            liked = True
+        return Response({
+            'status': 'success',
+            'has_liked': liked,
+            'liked': liked,
+            'likes_count': comment.likes.count()
+        })
 
 
 # ────────────────────────────────────────────────────────────────

@@ -37,6 +37,7 @@ router.register(r'company-follows', CompanyFollowViewSet, basename='company-foll
 # Nested comments: /api/feed/{post_pk}/comments/
 feed_comment_list = FeedCommentViewSet.as_view({'get': 'list', 'post': 'create'})
 feed_comment_detail = FeedCommentViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'})
+feed_comment_like = FeedCommentViewSet.as_view({'post': 'toggle_like'})
 
 
 urlpatterns = [
@@ -70,5 +71,6 @@ urlpatterns = [
     # Nested comment routes
     path('feed/<int:post_pk>/comments/', feed_comment_list, name='feed-comments-list'),
     path('feed/<int:post_pk>/comments/<int:pk>/', feed_comment_detail, name='feed-comments-detail'),
+    path('feed/<int:post_pk>/comments/<int:pk>/like/', feed_comment_like, name='feed-comments-like'),
 ]
 

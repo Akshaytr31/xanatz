@@ -29,7 +29,14 @@ import {
   Check,
   Flame,
   TrendingUp,
-  ArrowRight
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Layers,
+  CornerDownRight,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 
 // Helper to safely format relative timestamps
@@ -58,6 +65,865 @@ const getMediaUrl = (url) => {
   return `${backendUrl}${url.startsWith("/") ? "" : "/"}${url}`;
 };
 
+// Helper to extract unified list of media items from a post
+const getPostMediaItems = (post) => {
+  if (Array.isArray(post?.media_files) && post.media_files.length > 0) {
+    return post.media_files;
+  }
+  if (post?.media) {
+    return [{ id: 0, file: post.media, order: 0 }];
+  }
+  return [];
+};
+
+// Scrollable multi-image/video post carousel
+const FeedMediaCarousel = ({ mediaItems = [], onOpenLightbox }) => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const scrollRef = useRef(null);
+
+  if (!mediaItems || mediaItems.length === 0) return null;
+
+  const isMultiple = mediaItems.length > 1;
+
+  const handleScroll = () => {
+    if (!scrollRef.current) return;
+    const { scrollLeft, clientWidth } = scrollRef.current;
+    if (clientWidth > 0) {
+      const idx = Math.round(scrollLeft / clientWidth);
+      if (idx !== activeIndex && idx >= 0 && idx < mediaItems.length) {
+        setActiveIndex(idx);
+      }
+    }
+  };
+
+  const scrollTo = (idx, e) => {
+    e?.stopPropagation();
+    if (!scrollRef.current) return;
+    scrollRef.current.scrollTo({
+      left: idx * scrollRef.current.clientWidth,
+      behavior: "smooth",
+    });
+    setActiveIndex(idx);
+  };
+
+  const handlePrev = (e) => {
+    e.stopPropagation();
+    if (activeIndex > 0) scrollTo(activeIndex - 1, e);
+  };
+
+  const handleNext = (e) => {
+    e.stopPropagation();
+    if (activeIndex < mediaItems.length - 1) scrollTo(activeIndex + 1, e);
+  };
+
+  return (
+    <div
+      style={{
+        borderRadius: "16px",
+        overflow: "hidden",
+        marginBottom: "16px",
+        border: "1px solid var(--color-card-border, rgba(255,255,255,0.08))",
+        background: "#050814",
+        position: "relative",
+      }}
+    >
+      {/* Scrollable Container with Snap */}
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="no-scrollbar"
+        style={{
+          display: "flex",
+          overflowX: "auto",
+          scrollSnapType: "x mandatory",
+          scrollBehavior: "smooth",
+          WebkitOverflowScrolling: "touch",
+        }}
+      >
+        {mediaItems.map((item, idx) => {
+          const itemUrl = getMediaUrl(item?.file || item);
+          const isVideo = itemUrl?.match(/\.(mp4|webm|mov|ogg)$/i);
+
+          return (
+            <div
+              key={item?.id || idx}
+              style={{
+                minWidth: "100%",
+                maxWidth: "100%",
+                scrollSnapAlign: "start",
+                scrollSnapStop: "always",
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "#000000",
+                minHeight: "260px",
+                maxHeight: "520px",
+              }}
+            >
+              {isVideo ? (
+                <video
+                  src={itemUrl}
+                  controls
+                  style={{
+                    width: "100%",
+                    maxHeight: "520px",
+                    display: "block",
+                    background: "#000000",
+                  }}
+                />
+              ) : (
+                <div
+                  onClick={() => onOpenLightbox(mediaItems, idx)}
+                  style={{
+                    cursor: "pointer",
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    position: "relative",
+                  }}
+                >
+                  <img
+                    src={itemUrl}
+                    alt={`Attachment ${idx + 1}`}
+                    style={{
+                      width: "100%",
+                      maxHeight: "520px",
+                      objectFit: "contain",
+                      display: "block",
+                      background: "#050814",
+                    }}
+                    loading="lazy"
+                  />
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: "12px",
+                      right: "12px",
+                      background: "rgba(0,0,0,0.65)",
+                      backdropFilter: "blur(6px)",
+                      padding: "4px 8px",
+                      borderRadius: "8px",
+                      fontSize: "11px",
+                      color: "white",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      pointerEvents: "none",
+                    }}
+                  >
+                    <Maximize2 size={12} />
+                    <span>Expand</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Floating Navigation Controls (When multiple items exist) */}
+      {isMultiple && (
+        <>
+          {activeIndex > 0 && (
+            <button
+              onClick={handlePrev}
+              title="Previous item"
+              style={{
+                position: "absolute",
+                left: "12px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: "36px",
+                height: "36px",
+                borderRadius: "50%",
+                background: "rgba(15, 23, 42, 0.75)",
+                backdropFilter: "blur(8px)",
+                border: "1px solid rgba(255,255,255,0.2)",
+                color: "#ffffff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                zIndex: 10,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-50%) scale(1.1)";
+                e.currentTarget.style.background = "rgba(15, 23, 42, 0.95)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(-50%) scale(1)";
+                e.currentTarget.style.background = "rgba(15, 23, 42, 0.75)";
+              }}
+            >
+              <ChevronLeft size={20} />
+            </button>
+          )}
+
+          {activeIndex < mediaItems.length - 1 && (
+            <button
+              onClick={handleNext}
+              title="Next item"
+              style={{
+                position: "absolute",
+                right: "12px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: "36px",
+                height: "36px",
+                borderRadius: "50%",
+                background: "rgba(15, 23, 42, 0.75)",
+                backdropFilter: "blur(8px)",
+                border: "1px solid rgba(255,255,255,0.2)",
+                color: "#ffffff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                zIndex: 10,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-50%) scale(1.1)";
+                e.currentTarget.style.background = "rgba(15, 23, 42, 0.95)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(-50%) scale(1)";
+                e.currentTarget.style.background = "rgba(15, 23, 42, 0.75)";
+              }}
+            >
+              <ChevronRight size={20} />
+            </button>
+          )}
+
+          {/* Top-Right Badge: Active Slide Counter */}
+          <div
+            style={{
+              position: "absolute",
+              top: "12px",
+              right: "12px",
+              background: "rgba(15, 23, 42, 0.8)",
+              backdropFilter: "blur(8px)",
+              border: "1px solid rgba(255,255,255,0.15)",
+              color: "#ffffff",
+              padding: "4px 10px",
+              borderRadius: "9999px",
+              fontSize: "12px",
+              fontWeight: 700,
+              letterSpacing: "0.5px",
+              zIndex: 10,
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+            }}
+          >
+            <Layers size={13} style={{ opacity: 0.8 }} />
+            <span>
+              {activeIndex + 1} / {mediaItems.length}
+            </span>
+          </div>
+
+          {/* Bottom Dot Indicators */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: "12px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              zIndex: 10,
+              background: "rgba(0,0,0,0.5)",
+              backdropFilter: "blur(8px)",
+              padding: "4px 8px",
+              borderRadius: "9999px",
+            }}
+          >
+            {mediaItems.map((_, i) => (
+              <button
+                key={i}
+                onClick={(e) => scrollTo(i, e)}
+                style={{
+                  width: i === activeIndex ? "18px" : "6px",
+                  height: "6px",
+                  borderRadius: "9999px",
+                  background: i === activeIndex ? "#ffffff" : "rgba(255,255,255,0.45)",
+                  border: "none",
+                  padding: 0,
+                  cursor: "pointer",
+                  transition: "all 0.25s ease",
+                }}
+                title={`Go to item ${i + 1}`}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+// Helper to assemble flat comments array into hierarchical threaded tree
+const buildCommentTree = (comments = []) => {
+  const map = {};
+  const roots = [];
+
+  comments.forEach((c) => {
+    map[c.id] = { ...c, replies: [] };
+  });
+
+  comments.forEach((c) => {
+    if (c.parent_id && map[c.parent_id]) {
+      map[c.parent_id].replies.push(map[c.id]);
+    } else {
+      roots.push(map[c.id]);
+    }
+  });
+
+  return roots;
+};
+
+// Recursive Threaded Comment Component (Comment -> Reply -> Re-Reply)
+const CommentNode = ({
+  comment,
+  postId,
+  depth = 0,
+  user,
+  isCompany,
+  replyingToId,
+  setReplyingToId,
+  replyInputs,
+  setReplyInputs,
+  submittingReplyId,
+  onSendReply,
+  editingCommentId,
+  setEditingCommentId,
+  editCommentText,
+  setEditCommentText,
+  onSaveEdit,
+  onDeleteComment,
+  onToggleLikeComment,
+  collapsedReplies,
+  toggleCollapseReplies,
+}) => {
+  const isMyComment = user && comment.author_id === user.id;
+  const isEditing = editingCommentId === comment.id;
+  const isReplying = replyingToId === comment.id;
+  const hasReplies = comment.replies && comment.replies.length > 0;
+  const isCollapsed = Boolean(collapsedReplies[comment.id]);
+  const currentReplyText = replyInputs[comment.id] || "";
+  const isSubmitting = submittingReplyId === comment.id;
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        marginTop: depth > 0 ? "8px" : "10px",
+        marginLeft: depth > 0 ? (depth === 1 ? "18px" : "12px") : "0px",
+        paddingLeft: depth > 0 ? "10px" : "0px",
+        borderLeft: depth > 0 ? "2px solid rgba(255, 255, 255, 0.08)" : "none",
+        position: "relative",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          gap: "10px",
+          padding: depth > 0 ? "8px 10px" : "10px 12px",
+          background: depth > 0 ? "rgba(255,255,255,0.018)" : "rgba(255,255,255,0.025)",
+          borderRadius: "12px",
+          border: "1px solid rgba(255,255,255,0.05)",
+          alignItems: "flex-start",
+        }}
+      >
+        {/* Avatar Link */}
+        <Link
+          to={
+            comment.is_company
+              ? `/company/${comment.company_public_id || comment.company_id}`
+              : `/profile/${comment.author_public_id || comment.author_id}`
+          }
+          style={{ textDecoration: "none" }}
+          onClick={(e) => e.stopPropagation()}
+          title={`View ${comment.author_name}'s profile`}
+        >
+          <div
+            style={{
+              width: depth > 0 ? "24px" : "28px",
+              height: depth > 0 ? "24px" : "28px",
+              borderRadius: "8px",
+              background: comment.is_company ? "#8b5cf6" : "#10b981",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              overflow: "hidden",
+              flexShrink: 0,
+              fontSize: depth > 0 ? "11px" : "12px",
+              fontWeight: 700,
+              color: "white",
+              cursor: "pointer",
+            }}
+          >
+            {comment.author_profile_picture ? (
+              <img
+                src={getMediaUrl(comment.author_profile_picture)}
+                alt={comment.author_name}
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            ) : (
+              (comment.author_name || "?").charAt(0).toUpperCase()
+            )}
+          </div>
+        </Link>
+
+        {/* Content Body */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              justifyContent: "space-between",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+              <Link
+                to={
+                  comment.is_company
+                    ? `/company/${comment.company_public_id || comment.company_id}`
+                    : `/profile/${comment.author_public_id || comment.author_id}`
+                }
+                style={{ textDecoration: "none", color: "inherit" }}
+                onClick={(e) => e.stopPropagation()}
+                title={`View ${comment.author_name}'s profile`}
+              >
+                <span
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    transition: "color 0.2s ease",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.color = comment.is_company ? "#c084fc" : "#10b981")
+                  }
+                  onMouseLeave={(e) => (e.currentTarget.style.color = "inherit")}
+                >
+                  {comment.author_name}
+                </span>
+              </Link>
+
+              {comment.is_company && (
+                <span
+                  style={{
+                    fontSize: "10px",
+                    padding: "1px 5px",
+                    borderRadius: "9999px",
+                    background: "rgba(139,92,246,0.2)",
+                    color: "#c084fc",
+                    fontWeight: 700,
+                  }}
+                >
+                  Co.
+                </span>
+              )}
+
+              {/* Replying To Tag (if nested reply) */}
+              {comment.reply_to_name && (
+                <span
+                  style={{
+                    fontSize: "11px",
+                    color: "rgba(56, 189, 248, 0.9)",
+                    fontWeight: 600,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "2px",
+                  }}
+                >
+                  ↳ @{comment.reply_to_name}
+                </span>
+              )}
+
+              <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)" }}>
+                {formatRelativeTime(comment.created_at)}
+              </span>
+            </div>
+
+            {/* Edit / Delete (author only) */}
+            {isMyComment && !isEditing && (
+              <div style={{ display: "flex", gap: "4px", flexShrink: 0 }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingCommentId(comment.id);
+                    setEditCommentText(comment.text);
+                  }}
+                  title="Edit comment"
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "rgba(255,255,255,0.4)",
+                    cursor: "pointer",
+                    padding: "2px",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "#60a5fa")}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.4)")}
+                >
+                  <Pencil size={12} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDeleteComment(postId, comment.id)}
+                  title="Delete comment"
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "rgba(255,255,255,0.4)",
+                    cursor: "pointer",
+                    padding: "2px",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.4)")}
+                >
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Edit mode */}
+          {isEditing ? (
+            <div style={{ display: "flex", gap: "6px", marginTop: "6px", alignItems: "center" }}>
+              <input
+                autoFocus
+                value={editCommentText}
+                onChange={(e) => setEditCommentText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    onSaveEdit(postId, comment.id);
+                  } else if (e.key === "Escape") {
+                    setEditingCommentId(null);
+                  }
+                }}
+                style={{
+                  flex: 1,
+                  background: "rgba(0,0,0,0.3)",
+                  border: "1px solid rgba(59,130,246,0.4)",
+                  borderRadius: "8px",
+                  padding: "5px 10px",
+                  fontSize: "13px",
+                  color: "#ffffff",
+                  outline: "none",
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => onSaveEdit(postId, comment.id)}
+                style={{
+                  background: "#3b82f6",
+                  border: "none",
+                  borderRadius: "8px",
+                  color: "white",
+                  padding: "5px 8px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <Check size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditingCommentId(null)}
+                style={{
+                  background: "rgba(255,255,255,0.08)",
+                  border: "none",
+                  borderRadius: "8px",
+                  color: "white",
+                  padding: "5px 8px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ) : (
+            <div
+              style={{
+                fontSize: "13px",
+                color: "var(--color-text-primary, #ffffff)",
+                marginTop: "3px",
+                lineHeight: "1.45",
+                wordBreak: "break-word",
+              }}
+            >
+              {comment.text}
+            </div>
+          )}
+
+          {/* Actions Bar: Reply button & Collapse toggle */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "14px",
+              marginTop: "6px",
+            }}
+          >
+            {/* Comment Like / Heart Button */}
+            <button
+              type="button"
+              onClick={(e) => onToggleLikeComment && onToggleLikeComment(postId, comment.id, e)}
+              style={{
+                background: "none",
+                border: "none",
+                color: comment.has_liked ? "#ec4899" : "rgba(255,255,255,0.45)",
+                fontSize: "11px",
+                fontWeight: 700,
+                cursor: "pointer",
+                padding: "2px 0",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+                transition: "all 0.15s ease",
+              }}
+              onMouseEnter={(e) => {
+                if (!comment.has_liked) e.currentTarget.style.color = "#ec4899";
+              }}
+              onMouseLeave={(e) => {
+                if (!comment.has_liked) e.currentTarget.style.color = "rgba(255,255,255,0.45)";
+              }}
+              title={comment.has_liked ? "Unlike comment" : "Like comment"}
+            >
+              <Heart
+                size={12}
+                fill={comment.has_liked ? "#ec4899" : "none"}
+                color={comment.has_liked ? "#ec4899" : "currentColor"}
+              />
+              <span>
+                {comment.likes_count > 0 ? comment.likes_count : "Like"}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (isReplying) {
+                  setReplyingToId(null);
+                } else {
+                  setReplyingToId(comment.id);
+                }
+              }}
+              style={{
+                background: "none",
+                border: "none",
+                color: isReplying ? "#38bdf8" : "rgba(255,255,255,0.5)",
+                fontSize: "11px",
+                fontWeight: 700,
+                cursor: "pointer",
+                padding: "2px 0",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+                transition: "color 0.15s ease",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#38bdf8")}
+              onMouseLeave={(e) => {
+                if (!isReplying) e.currentTarget.style.color = "rgba(255,255,255,0.5)";
+              }}
+            >
+              <CornerDownRight size={12} />
+              <span>{isReplying ? "Cancel" : "Reply"}</span>
+            </button>
+
+            {hasReplies && (
+              <button
+                type="button"
+                onClick={() => toggleCollapseReplies(comment.id)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "rgba(255,255,255,0.45)",
+                  fontSize: "11px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  padding: "2px 0",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  transition: "color 0.15s ease",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#ffffff")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.45)")}
+              >
+                {isCollapsed ? (
+                  <>
+                    <ChevronDown size={12} />
+                    <span>View {comment.replies.length} {comment.replies.length === 1 ? "reply" : "replies"}</span>
+                  </>
+                ) : (
+                  <>
+                    <ChevronUp size={12} />
+                    <span>Hide replies</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Inline Reply Composer */}
+      {isReplying && (
+        <div
+          style={{
+            marginTop: "6px",
+            marginLeft: "24px",
+            padding: "8px 10px",
+            background: "rgba(0,0,0,0.3)",
+            borderRadius: "10px",
+            border: "1px solid rgba(56, 189, 248, 0.25)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "6px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              fontSize: "11px",
+              color: "rgba(56, 189, 248, 0.9)",
+              fontWeight: 600,
+            }}
+          >
+            <span>Replying to @{comment.author_name}</span>
+            <button
+              type="button"
+              onClick={() => setReplyingToId(null)}
+              style={{
+                background: "none",
+                border: "none",
+                color: "rgba(255,255,255,0.4)",
+                cursor: "pointer",
+                padding: "2px",
+                display: "flex",
+              }}
+            >
+              <X size={12} />
+            </button>
+          </div>
+
+          <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+            <input
+              autoFocus
+              type="text"
+              placeholder={`Reply to ${comment.author_name}...`}
+              value={currentReplyText}
+              onChange={(e) =>
+                setReplyInputs({ ...replyInputs, [comment.id]: e.target.value })
+              }
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  onSendReply(postId, comment.id);
+                } else if (e.key === "Escape") {
+                  setReplyingToId(null);
+                }
+              }}
+              style={{
+                flex: 1,
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: "8px",
+                padding: "6px 10px",
+                fontSize: "12px",
+                color: "white",
+                outline: "none",
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => onSendReply(postId, comment.id)}
+              disabled={isSubmitting || !currentReplyText.trim()}
+              style={{
+                background: isCompany ? "#8b5cf6" : "#10b981",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                padding: "6px 12px",
+                fontSize: "11px",
+                fontWeight: 700,
+                cursor: isSubmitting || !currentReplyText.trim() ? "not-allowed" : "pointer",
+                opacity: isSubmitting || !currentReplyText.trim() ? 0.5 : 1,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
+            >
+              {isSubmitting ? (
+                <span>Sending...</span>
+              ) : (
+                <>
+                  <Send size={11} />
+                  <span>Reply</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Recursive Nested Sub-replies */}
+      {hasReplies && !isCollapsed && (
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          {comment.replies.map((subReply) => (
+            <CommentNode
+              key={subReply.id}
+              comment={subReply}
+              postId={postId}
+              depth={depth + 1}
+              user={user}
+              isCompany={isCompany}
+              replyingToId={replyingToId}
+              setReplyingToId={setReplyingToId}
+              replyInputs={replyInputs}
+              setReplyInputs={setReplyInputs}
+              submittingReplyId={submittingReplyId}
+              onSendReply={onSendReply}
+              editingCommentId={editingCommentId}
+              setEditingCommentId={setEditingCommentId}
+              editCommentText={editCommentText}
+              setEditCommentText={setEditCommentText}
+              onSaveEdit={onSaveEdit}
+              onDeleteComment={onDeleteComment}
+              onToggleLikeComment={onToggleLikeComment}
+              collapsedReplies={collapsedReplies}
+              toggleCollapseReplies={toggleCollapseReplies}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const SUGGESTED_TAGS = [
   "#TechUpdate",
   "#ProjectLaunch",
@@ -75,8 +941,8 @@ const FeedPage = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [content, setContent] = useState("");
-  const [media, setMedia] = useState(null);
-  const [mediaPreview, setMediaPreview] = useState(null);
+  const [mediaFiles, setMediaFiles] = useState([]);
+  const [mediaPreviews, setMediaPreviews] = useState([]);
   const [isPosting, setIsPosting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all"); // 'all' | 'company' | 'personal' | 'media' | 'saved'
@@ -135,9 +1001,68 @@ const FeedPage = () => {
   const [editCommentText, setEditCommentText] = useState("");
   // Delete confirm modal state
   const [deleteCommentPending, setDeleteCommentPending] = useState(null); // { postId, commentId }
+  // Nested replies state
+  const [replyingToId, setReplyingToId] = useState(null); // commentId currently opened for reply
+  const [replyInputs, setReplyInputs] = useState({}); // { [commentId]: string }
+  const [submittingReplyId, setSubmittingReplyId] = useState(null);
+  const [collapsedReplies, setCollapsedReplies] = useState({}); // { [commentId]: boolean }
 
-  // Media Lightbox modal
-  const [lightboxMedia, setLightboxMedia] = useState(null);
+  const toggleCollapseReplies = (commentId) => {
+    setCollapsedReplies((prev) => ({
+      ...prev,
+      [commentId]: !prev[commentId],
+    }));
+  };
+
+  // Media Lightbox modal state: { items: { url: string, isVideo: boolean }[], index: number } | null
+  const [lightboxState, setLightboxState] = useState(null);
+
+  const setLightboxMedia = (mediaUrl) => {
+    if (!mediaUrl) {
+      setLightboxState(null);
+    } else {
+      setLightboxState({
+        items: [{ url: mediaUrl, isVideo: !!mediaUrl.match(/\.(mp4|webm|mov|ogg)$/i) }],
+        index: 0,
+      });
+    }
+  };
+
+  const handleOpenLightbox = (items, initialIndex = 0) => {
+    const formattedItems = (items || []).map((item) => {
+      const url = getMediaUrl(item?.file || item);
+      return {
+        url,
+        isVideo: !!url?.match(/\.(mp4|webm|mov|ogg)$/i),
+      };
+    });
+    setLightboxState({
+      items: formattedItems,
+      index: Math.max(0, Math.min(initialIndex, formattedItems.length - 1)),
+    });
+  };
+
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (!lightboxState) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setLightboxState(null);
+      } else if (e.key === "ArrowLeft") {
+        setLightboxState((prev) =>
+          prev && prev.index > 0 ? { ...prev, index: prev.index - 1 } : prev
+        );
+      } else if (e.key === "ArrowRight") {
+        setLightboxState((prev) =>
+          prev && prev.index < prev.items.length - 1
+            ? { ...prev, index: prev.index + 1 }
+            : prev
+        );
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [lightboxState]);
 
   // Share Modal state
   const [shareModalData, setShareModalData] = useState({
@@ -193,19 +1118,43 @@ const FeedPage = () => {
   }, []);
 
   const handleMediaChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setMedia(file);
-      setMediaPreview(URL.createObjectURL(file));
-    }
+    const selectedFiles = Array.from(e.target.files || []);
+    if (!selectedFiles.length) return;
+
+    const newPreviews = selectedFiles.map((file) => ({
+      id: `${file.name}-${file.lastModified}-${Math.random()}`,
+      file,
+      url: URL.createObjectURL(file),
+      isVideo:
+        !!file.type?.match(/video\//i) ||
+        !!file.name?.match(/\.(mp4|webm|mov|ogg)$/i),
+      name: file.name,
+    }));
+
+    setMediaFiles((prev) => [...prev, ...selectedFiles]);
+    setMediaPreviews((prev) => [...prev, ...newPreviews]);
+    e.target.value = "";
   };
 
-  const removeMedia = () => {
-    setMedia(null);
-    if (mediaPreview && mediaPreview.startsWith("blob:")) {
-      URL.revokeObjectURL(mediaPreview);
-    }
-    setMediaPreview(null);
+  const removeMediaItem = (indexToRemove) => {
+    setMediaPreviews((prev) => {
+      const item = prev[indexToRemove];
+      if (item?.url && item.url.startsWith("blob:")) {
+        URL.revokeObjectURL(item.url);
+      }
+      return prev.filter((_, idx) => idx !== indexToRemove);
+    });
+    setMediaFiles((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  const clearAllMedia = () => {
+    mediaPreviews.forEach((item) => {
+      if (item?.url && item.url.startsWith("blob:")) {
+        URL.revokeObjectURL(item.url);
+      }
+    });
+    setMediaFiles([]);
+    setMediaPreviews([]);
   };
 
   const insertTag = (tag) => {
@@ -216,7 +1165,7 @@ const FeedPage = () => {
   };
 
   const handlePost = async () => {
-    if (!content.trim() && !media) return;
+    if (!content.trim() && mediaFiles.length === 0) return;
 
     try {
       setIsPosting(true);
@@ -224,9 +1173,9 @@ const FeedPage = () => {
       if (content.trim()) {
         formData.append("content", content.trim());
       }
-      if (media) {
-        formData.append("media", media);
-      }
+      mediaFiles.forEach((file) => {
+        formData.append("media_files", file);
+      });
       if (accountMode === "company" && activeCompany?.id) {
         formData.append("company_id", activeCompany.id);
       }
@@ -237,7 +1186,7 @@ const FeedPage = () => {
 
       setPosts((prev) => [res.data, ...prev]);
       setContent("");
-      removeMedia();
+      clearAllMedia();
     } catch (err) {
       console.error("Failed to post feed", err);
       alert("Failed to publish post. Please verify your connection.");
@@ -322,12 +1271,62 @@ const FeedPage = () => {
     }
   };
 
-  const handleAddComment = async (postId) => {
-    const text = (commentInput[postId] || "").trim();
+  const toggleCommentLike = async (postId, commentId, e) => {
+    e?.stopPropagation();
+    try {
+      // Optimistic update
+      setPostComments((prev) => {
+        const comments = prev[postId] || [];
+        return {
+          ...prev,
+          [postId]: comments.map((c) => {
+            if (c.id === commentId) {
+              const currentlyLiked = Boolean(c.has_liked);
+              const newLiked = !currentlyLiked;
+              const newCount = currentlyLiked
+                ? Math.max(0, (c.likes_count || 1) - 1)
+                : (c.likes_count || 0) + 1;
+              return { ...c, has_liked: newLiked, likes_count: newCount };
+            }
+            return c;
+          }),
+        };
+      });
+
+      const res = await api.post(`feed/${postId}/comments/${commentId}/like/`);
+      const isLiked = res.data.has_liked !== undefined ? res.data.has_liked : res.data.liked;
+      const count = res.data.likes_count;
+
+      setPostComments((prev) => {
+        const comments = prev[postId] || [];
+        return {
+          ...prev,
+          [postId]: comments.map((c) =>
+            c.id === commentId
+              ? { ...c, has_liked: isLiked, likes_count: count }
+              : c
+          ),
+        };
+      });
+    } catch (err) {
+      console.error("Failed to toggle comment like", err);
+      // Re-fetch comments to restore accurate server state
+      fetchComments(postId);
+    }
+  };
+
+  const handleAddComment = async (postId, parentId = null) => {
+    const text = parentId
+      ? (replyInputs[parentId] || "").trim()
+      : (commentInput[postId] || "").trim();
     if (!text) return;
 
     try {
+      if (parentId) setSubmittingReplyId(parentId);
       const payload = { text };
+      if (parentId) {
+        payload.parent_id = parentId;
+      }
       if (accountMode === "company" && activeCompany?.id) {
         payload.company_id = activeCompany.id;
       }
@@ -342,10 +1341,20 @@ const FeedPage = () => {
           p.id === postId ? { ...p, comments_count: (p.comments_count || 0) + 1 } : p
         )
       );
+
+      if (parentId) {
+        setReplyInputs((prev) => ({ ...prev, [parentId]: "" }));
+        setReplyingToId(null);
+        // Ensure replies for this parent are expanded so user immediately sees their reply
+        setCollapsedReplies((prev) => ({ ...prev, [parentId]: false }));
+      } else {
+        setCommentInput((prev) => ({ ...prev, [postId]: "" }));
+      }
     } catch (err) {
       console.error("Failed to add comment", err);
+    } finally {
+      if (parentId) setSubmittingReplyId(null);
     }
-    setCommentInput((prev) => ({ ...prev, [postId]: "" }));
   };
 
   const handleStartEditComment = (comment) => {
@@ -381,13 +1390,24 @@ const FeedPage = () => {
     setDeleteCommentPending(null);
     try {
       await api.delete(`feed/${postId}/comments/${commentId}/`);
+      const existing = postComments[postId] || [];
+      const getDescendantIds = (targetId) => {
+        const result = [targetId];
+        const children = existing.filter((c) => c.parent_id === targetId);
+        children.forEach((ch) => result.push(...getDescendantIds(ch.id)));
+        return result;
+      };
+      const idsToRemove = getDescendantIds(commentId);
+
       setPostComments((prev) => ({
         ...prev,
-        [postId]: (prev[postId] || []).filter((c) => c.id !== commentId),
+        [postId]: (prev[postId] || []).filter((c) => !idsToRemove.includes(c.id)),
       }));
       setPosts((prev) =>
         prev.map((p) =>
-          p.id === postId ? { ...p, comments_count: Math.max(0, (p.comments_count || 1) - 1) } : p
+          p.id === postId
+            ? { ...p, comments_count: Math.max(0, (p.comments_count || 0) - idsToRemove.length) }
+            : p
         )
       );
     } catch (err) {
@@ -428,7 +1448,7 @@ const FeedPage = () => {
     } else if (activeTab === "personal") {
       result = result.filter((p) => !p.company_name && !p.company);
     } else if (activeTab === "media") {
-      result = result.filter((p) => Boolean(p.media));
+      result = result.filter((p) => Boolean(p.media || (p.media_files && p.media_files.length > 0)));
     } else if (activeTab === "saved") {
       result = result.filter((p) => bookmarkedIds.includes(p.id));
     }
@@ -1102,8 +2122,8 @@ const FeedPage = () => {
                 }}
               />
 
-              {/* Media Preview Box */}
-              {mediaPreview && (
+              {/* Media Preview Box - Single or Multiple Gallery */}
+              {mediaPreviews.length === 1 && (
                 <div
                   style={{
                     position: "relative",
@@ -1115,15 +2135,15 @@ const FeedPage = () => {
                     maxHeight: "320px",
                   }}
                 >
-                  {media?.type?.startsWith("video/") ? (
+                  {mediaPreviews[0].isVideo ? (
                     <video
-                      src={mediaPreview}
+                      src={mediaPreviews[0].url}
                       controls
                       style={{ width: "100%", maxHeight: "320px", display: "block" }}
                     />
                   ) : (
                     <img
-                      src={mediaPreview}
+                      src={mediaPreviews[0].url}
                       alt="Upload preview"
                       style={{
                         width: "100%",
@@ -1134,7 +2154,7 @@ const FeedPage = () => {
                     />
                   )}
                   <button
-                    onClick={removeMedia}
+                    onClick={() => removeMediaItem(0)}
                     title="Remove attachment"
                     style={{
                       position: "absolute",
@@ -1158,6 +2178,179 @@ const FeedPage = () => {
                   >
                     <X size={16} />
                   </button>
+                </div>
+              )}
+
+              {mediaPreviews.length > 1 && (
+                <div
+                  style={{
+                    marginTop: "14px",
+                    padding: "12px",
+                    borderRadius: "14px",
+                    border: "1px solid var(--color-card-border, rgba(255,255,255,0.08))",
+                    background: "rgba(0,0,0,0.35)",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      marginBottom: "10px",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span
+                        style={{
+                          background: isCompany ? "rgba(139, 92, 246, 0.2)" : "rgba(16, 185, 129, 0.2)",
+                          color: isCompany ? "#c084fc" : "#34d399",
+                          padding: "3px 10px",
+                          borderRadius: "9999px",
+                          fontSize: "12px",
+                          fontWeight: 700,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "5px",
+                        }}
+                      >
+                        <Layers size={13} />
+                        {mediaPreviews.length} files attached
+                      </span>
+                      <span style={{ fontSize: "11px", color: "var(--color-text-muted, rgba(255,255,255,0.4))" }}>
+                        Scroll to view all
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={clearAllMedia}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        color: "#f87171",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        padding: "2px 6px",
+                      }}
+                    >
+                      Clear All
+                    </button>
+                  </div>
+
+                  <div
+                    className="no-scrollbar"
+                    style={{
+                      display: "flex",
+                      gap: "10px",
+                      overflowX: "auto",
+                      paddingBottom: "4px",
+                    }}
+                  >
+                    {mediaPreviews.map((item, idx) => (
+                      <div
+                        key={item.id}
+                        style={{
+                          position: "relative",
+                          minWidth: "120px",
+                          maxWidth: "120px",
+                          height: "105px",
+                          borderRadius: "10px",
+                          overflow: "hidden",
+                          border: "1px solid rgba(255,255,255,0.12)",
+                          background: "#050814",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {item.isVideo ? (
+                          <video
+                            src={item.url}
+                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                          />
+                        ) : (
+                          <img
+                            src={item.url}
+                            alt={item.name}
+                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                          />
+                        )}
+                        <span
+                          style={{
+                            position: "absolute",
+                            bottom: "6px",
+                            left: "6px",
+                            background: "rgba(0,0,0,0.75)",
+                            backdropFilter: "blur(4px)",
+                            color: "white",
+                            fontSize: "10px",
+                            fontWeight: 700,
+                            padding: "2px 6px",
+                            borderRadius: "6px",
+                          }}
+                        >
+                          #{idx + 1}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeMediaItem(idx)}
+                          title="Remove"
+                          style={{
+                            position: "absolute",
+                            top: "6px",
+                            right: "6px",
+                            background: "rgba(239, 68, 68, 0.9)",
+                            backdropFilter: "blur(4px)",
+                            border: "none",
+                            borderRadius: "50%",
+                            width: "22px",
+                            height: "22px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "white",
+                            cursor: "pointer",
+                            boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
+                          }}
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+
+                    <label
+                      htmlFor="feed-composer-file-input"
+                      style={{
+                        minWidth: "90px",
+                        height: "105px",
+                        borderRadius: "10px",
+                        border: "1px dashed rgba(255,255,255,0.25)",
+                        background: "rgba(255,255,255,0.03)",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "6px",
+                        cursor: "pointer",
+                        color: "var(--color-text-secondary, #cbd5e1)",
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        flexShrink: 0,
+                        transition: "all 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = isCompany ? "#c084fc" : "#34d399";
+                        e.currentTarget.style.color = isCompany ? "#c084fc" : "#34d399";
+                        e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)";
+                        e.currentTarget.style.color = "var(--color-text-secondary, #cbd5e1)";
+                        e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+                      }}
+                    >
+                      <Plus size={20} />
+                      <span>Add More</span>
+                    </label>
+                  </div>
                 </div>
               )}
 
@@ -1222,6 +2415,7 @@ const FeedPage = () => {
                 }}
               >
                 <label
+                  htmlFor="feed-composer-file-input"
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -1245,10 +2439,12 @@ const FeedPage = () => {
                     e.currentTarget.style.color = "var(--color-text-secondary, #cbd5e1)";
                   }}
                 >
-                  <ImageIcon size={17} color="#10b981" />
-                  <span>Attach Media</span>
+                  <ImageIcon size={17} color={isCompany ? "#a855f7" : "#10b981"} />
+                  <span>{mediaFiles.length > 0 ? `Attached (${mediaFiles.length})` : "Attach Media"}</span>
                   <input
+                    id="feed-composer-file-input"
                     type="file"
+                    multiple
                     accept="image/*,video/*"
                     hidden
                     onChange={handleMediaChange}
@@ -1260,7 +2456,7 @@ const FeedPage = () => {
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
                     onClick={handlePost}
-                    disabled={isPosting || (!content.trim() && !media)}
+                    disabled={isPosting || (!content.trim() && mediaFiles.length === 0)}
                     style={{
                       background: isCompany
                         ? "linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)"
@@ -1275,10 +2471,10 @@ const FeedPage = () => {
                       fontWeight: 700,
                       fontSize: "13px",
                       cursor:
-                        isPosting || (!content.trim() && !media)
+                        isPosting || (!content.trim() && mediaFiles.length === 0)
                           ? "not-allowed"
                           : "pointer",
-                      opacity: isPosting || (!content.trim() && !media) ? 0.5 : 1,
+                      opacity: isPosting || (!content.trim() && mediaFiles.length === 0) ? 0.5 : 1,
                       boxShadow: isCompany
                         ? "0 4px 18px rgba(139, 92, 246, 0.35)"
                         : "0 4px 18px rgba(16, 185, 129, 0.35)",
@@ -1909,7 +3105,7 @@ const FeedPage = () => {
                               fontSize: "14.5px",
                               lineHeight: "1.65",
                               whiteSpace: "pre-wrap",
-                              marginBottom: post.media ? "14px" : "16px",
+                              marginBottom: (post.media_files?.length > 0 || post.media) ? "14px" : "16px",
                               letterSpacing: "-0.005em",
                             }}
                           >
@@ -1935,67 +3131,12 @@ const FeedPage = () => {
                           </div>
                         )}
 
-                        {/* Post Media Display */}
-                        {post.media && (
-                          <div
-                            style={{
-                              borderRadius: "16px",
-                              overflow: "hidden",
-                              marginBottom: "16px",
-                              border: "1px solid var(--color-card-border, rgba(255,255,255,0.08))",
-                              background: "rgba(0,0,0,0.4)",
-                              position: "relative",
-                            }}
-                          >
-                            {post.media.match(/\.(mp4|webm|mov|ogg)$/i) ? (
-                              <video
-                                src={getMediaUrl(post.media)}
-                                controls
-                                style={{
-                                  width: "100%",
-                                  maxHeight: "500px",
-                                  display: "block",
-                                  background: "#000000",
-                                }}
-                              />
-                            ) : (
-                              <div
-                                onClick={() => setLightboxMedia(getMediaUrl(post.media))}
-                                style={{ cursor: "pointer", position: "relative" }}
-                              >
-                                <img
-                                  src={getMediaUrl(post.media)}
-                                  alt="Post attachment"
-                                  style={{
-                                    width: "100%",
-                                    maxHeight: "500px",
-                                    objectFit: "contain",
-                                    display: "block",
-                                    background: "#050814",
-                                  }}
-                                />
-                                <div
-                                  style={{
-                                    position: "absolute",
-                                    bottom: "10px",
-                                    right: "10px",
-                                    background: "rgba(0,0,0,0.6)",
-                                    backdropFilter: "blur(6px)",
-                                    padding: "4px 8px",
-                                    borderRadius: "8px",
-                                    fontSize: "11px",
-                                    color: "white",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "4px",
-                                  }}
-                                >
-                                  <Maximize2 size={12} />
-                                  <span>Preview</span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
+                        {/* Post Media Display - Multiple or Single Carousel */}
+                        {(post.media_files?.length > 0 || post.media) && (
+                          <FeedMediaCarousel
+                            mediaItems={getPostMediaItems(post)}
+                            onOpenLightbox={handleOpenLightbox}
+                          />
                         )}
 
                         {/* Interactive Engagement Bar */}
@@ -2163,179 +3304,39 @@ const FeedPage = () => {
                               </div>
                             )}
 
-                            {/* Comments List */}
+                            {/* Threaded Nested Comments List */}
                             {!commentsLoading[post.id] && (
-                              <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "12px" }}>
+                              <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "14px" }}>
                                 {(postComments[post.id] || []).length === 0 && (
                                   <div style={{ textAlign: "center", fontSize: "12px", color: "rgba(255,255,255,0.4)", padding: "12px 0" }}>
-                                    No comments yet — be the first!
+                                    No comments yet — be the first to start the discussion!
                                   </div>
                                 )}
-                                {(postComments[post.id] || []).map((comm) => {
-                                  const isMyComment = user && comm.author_id === user.id;
-                                  const isEditing = editingCommentId === comm.id;
-                                  return (
-                                    <div
-                                      key={comm.id}
-                                      style={{
-                                        display: "flex",
-                                        gap: "10px",
-                                        padding: "10px 12px",
-                                        background: "rgba(255,255,255,0.025)",
-                                        borderRadius: "12px",
-                                        border: "1px solid rgba(255,255,255,0.05)",
-                                        alignItems: "flex-start",
-                                      }}
-                                    >
-                                      {/* Avatar Link */}
-                                      <Link
-                                        to={
-                                          comm.is_company
-                                            ? `/company/${comm.company_public_id || comm.company_id}`
-                                            : `/profile/${comm.author_public_id || comm.author_id}`
-                                        }
-                                        style={{ textDecoration: "none" }}
-                                        onClick={(e) => e.stopPropagation()}
-                                        title={`View ${comm.author_name}'s profile`}
-                                      >
-                                        <div
-                                          style={{
-                                            width: "28px",
-                                            height: "28px",
-                                            borderRadius: "8px",
-                                            background: comm.is_company ? "#8b5cf6" : "#10b981",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            overflow: "hidden",
-                                            flexShrink: 0,
-                                            fontSize: "12px",
-                                            fontWeight: 700,
-                                            color: "white",
-                                            cursor: "pointer",
-                                          }}
-                                        >
-                                          {comm.author_profile_picture ? (
-                                            <img
-                                              src={getMediaUrl(comm.author_profile_picture)}
-                                              alt={comm.author_name}
-                                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                                            />
-                                          ) : (
-                                            (comm.author_name || "?").charAt(0).toUpperCase()
-                                          )}
-                                        </div>
-                                      </Link>
-
-                                      {/* Content */}
-                                      <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ display: "flex", alignItems: "center", gap: "6px", justifyContent: "space-between" }}>
-                                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                                            <Link
-                                              to={
-                                                comm.is_company
-                                                  ? `/company/${comm.company_public_id || comm.company_id}`
-                                                  : `/profile/${comm.author_public_id || comm.author_id}`
-                                              }
-                                              style={{ textDecoration: "none", color: "inherit" }}
-                                              onClick={(e) => e.stopPropagation()}
-                                              title={`View ${comm.author_name}'s profile`}
-                                            >
-                                              <span
-                                                style={{
-                                                  fontSize: "12px",
-                                                  fontWeight: 700,
-                                                  cursor: "pointer",
-                                                  transition: "color 0.2s ease",
-                                                }}
-                                                onMouseEnter={(e) =>
-                                                  (e.currentTarget.style.color = comm.is_company ? "#c084fc" : "#10b981")
-                                                }
-                                                onMouseLeave={(e) => (e.currentTarget.style.color = "inherit")}
-                                              >
-                                                {comm.author_name}
-                                              </span>
-                                            </Link>
-                                            {comm.is_company && (
-                                              <span style={{ fontSize: "10px", padding: "1px 5px", borderRadius: "9999px", background: "rgba(139,92,246,0.2)", color: "#c084fc", fontWeight: 700 }}>Co.</span>
-                                            )}
-                                            <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)" }}>
-                                              {formatRelativeTime(comm.created_at)}
-                                            </span>
-                                          </div>
-                                          {/* Edit / Delete (author only) */}
-                                          {isMyComment && !isEditing && (
-                                            <div style={{ display: "flex", gap: "4px", flexShrink: 0 }}>
-                                              <button
-                                                onClick={() => handleStartEditComment(comm)}
-                                                title="Edit comment"
-                                                style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", padding: "2px", display: "flex", alignItems: "center" }}
-                                                onMouseEnter={(e) => (e.currentTarget.style.color = "#60a5fa")}
-                                                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.4)")}
-                                              >
-                                                <Pencil size={13} />
-                                              </button>
-                                              <button
-                                                onClick={() => handleDeleteComment(post.id, comm.id)}
-                                                title="Delete comment"
-                                                style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", padding: "2px", display: "flex", alignItems: "center" }}
-                                                onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
-                                                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.4)")}
-                                              >
-                                                <Trash2 size={13} />
-                                              </button>
-                                            </div>
-                                          )}
-                                        </div>
-
-                                        {/* Edit mode */}
-                                        {isEditing ? (
-                                          <div style={{ display: "flex", gap: "6px", marginTop: "6px", alignItems: "center" }}>
-                                            <input
-                                              autoFocus
-                                              value={editCommentText}
-                                              onChange={(e) => setEditCommentText(e.target.value)}
-                                              onKeyDown={(e) => {
-                                                if (e.key === "Enter" && !e.shiftKey) {
-                                                  e.preventDefault();
-                                                  handleSaveEditComment(post.id, comm.id);
-                                                } else if (e.key === "Escape") {
-                                                  setEditingCommentId(null);
-                                                }
-                                              }}
-                                              style={{
-                                                flex: 1,
-                                                background: "rgba(0,0,0,0.3)",
-                                                border: "1px solid rgba(59,130,246,0.4)",
-                                                borderRadius: "8px",
-                                                padding: "5px 10px",
-                                                fontSize: "13px",
-                                                color: "#ffffff",
-                                                outline: "none",
-                                              }}
-                                            />
-                                            <button
-                                              onClick={() => handleSaveEditComment(post.id, comm.id)}
-                                              style={{ background: "#3b82f6", border: "none", borderRadius: "8px", color: "white", padding: "5px 8px", cursor: "pointer", display: "flex", alignItems: "center" }}
-                                            >
-                                              <Check size={14} />
-                                            </button>
-                                            <button
-                                              onClick={() => setEditingCommentId(null)}
-                                              style={{ background: "rgba(255,255,255,0.08)", border: "none", borderRadius: "8px", color: "white", padding: "5px 8px", cursor: "pointer", display: "flex", alignItems: "center" }}
-                                            >
-                                              <X size={14} />
-                                            </button>
-                                          </div>
-                                        ) : (
-                                          <div style={{ fontSize: "13px", color: "var(--color-text-primary, #ffffff)", marginTop: "3px", lineHeight: "1.45" }}>
-                                            {comm.text}
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-                                  );
-                                })}
+                                {buildCommentTree(postComments[post.id] || []).map((rootComment) => (
+                                  <CommentNode
+                                    key={rootComment.id}
+                                    comment={rootComment}
+                                    postId={post.id}
+                                    depth={0}
+                                    user={user}
+                                    isCompany={isCompany}
+                                    replyingToId={replyingToId}
+                                    setReplyingToId={setReplyingToId}
+                                    replyInputs={replyInputs}
+                                    setReplyInputs={setReplyInputs}
+                                    submittingReplyId={submittingReplyId}
+                                    onSendReply={handleAddComment}
+                                    editingCommentId={editingCommentId}
+                                    setEditingCommentId={setEditingCommentId}
+                                    editCommentText={editCommentText}
+                                    setEditCommentText={setEditCommentText}
+                                    onSaveEdit={handleSaveEditComment}
+                                    onDeleteComment={handleDeleteComment}
+                                    onToggleLikeComment={toggleCommentLike}
+                                    collapsedReplies={collapsedReplies}
+                                    toggleCollapseReplies={toggleCollapseReplies}
+                                  />
+                                ))}
                               </div>
                             )}
 
@@ -2580,58 +3581,266 @@ const FeedPage = () => {
         </div>
       </div>
 
-      {/* Media Lightbox Preview Modal */}
+      {/* Media Lightbox Preview Modal with Multi-Item Navigation */}
       <AnimatePresence>
-        {lightboxMedia && (
+        {lightboxState && lightboxState.items && lightboxState.items.length > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setLightboxMedia(null)}
+            onClick={() => setLightboxState(null)}
             style={{
               position: "fixed",
               inset: 0,
               zIndex: 10000,
-              background: "rgba(0,0,0,0.92)",
-              backdropFilter: "blur(20px)",
+              background: "rgba(0,0,0,0.94)",
+              backdropFilter: "blur(24px)",
               display: "flex",
+              flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              padding: "24px",
+              padding: "20px",
             }}
           >
-            <button
-              onClick={() => setLightboxMedia(null)}
+            {/* Top Bar with Counter and Close Button */}
+            <div
+              onClick={(e) => e.stopPropagation()}
               style={{
                 position: "absolute",
-                top: "24px",
+                top: "20px",
+                left: "24px",
                 right: "24px",
-                background: "rgba(255,255,255,0.1)",
-                border: "1px solid rgba(255,255,255,0.2)",
-                borderRadius: "50%",
-                width: "42px",
-                height: "42px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                zIndex: 10010,
+              }}
+            >
+              {lightboxState.items.length > 1 ? (
+                <div
+                  style={{
+                    background: "rgba(255,255,255,0.12)",
+                    backdropFilter: "blur(12px)",
+                    padding: "6px 14px",
+                    borderRadius: "9999px",
+                    color: "white",
+                    fontSize: "13px",
+                    fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  <Layers size={15} />
+                  <span>
+                    {lightboxState.index + 1} of {lightboxState.items.length}
+                  </span>
+                </div>
+              ) : (
+                <div />
+              )}
+
+              <button
+                onClick={() => setLightboxState(null)}
+                title="Close (Esc)"
+                style={{
+                  background: "rgba(255,255,255,0.12)",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  borderRadius: "50%",
+                  width: "42px",
+                  height: "42px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "white",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.25)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.12)")}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Main Content Area */}
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                position: "relative",
+                maxWidth: "92vw",
+                maxHeight: "80vh",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                color: "white",
-                cursor: "pointer",
               }}
             >
-              <X size={20} />
-            </button>
-            <img
-              src={lightboxMedia}
-              alt="Full resolution"
-              style={{
-                maxWidth: "92vw",
-                maxHeight: "90vh",
-                objectFit: "contain",
-                borderRadius: "12px",
-                boxShadow: "0 25px 60px rgba(0,0,0,0.8)",
-              }}
-              onClick={(e) => e.stopPropagation()}
-            />
+              {/* Previous Button */}
+              {lightboxState.items.length > 1 && lightboxState.index > 0 && (
+                <button
+                  onClick={() =>
+                    setLightboxState((prev) =>
+                      prev ? { ...prev, index: prev.index - 1 } : null
+                    )
+                  }
+                  title="Previous (Arrow Left)"
+                  style={{
+                    position: "fixed",
+                    left: "24px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "rgba(15, 23, 42, 0.8)",
+                    backdropFilter: "blur(12px)",
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    borderRadius: "50%",
+                    width: "48px",
+                    height: "48px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "white",
+                    cursor: "pointer",
+                    zIndex: 10020,
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.6)",
+                    transition: "transform 0.15s ease",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-50%) scale(1.1)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(-50%) scale(1)")}
+                >
+                  <ChevronLeft size={24} />
+                </button>
+              )}
+
+              {/* Current Item (Image or Video) */}
+              {lightboxState.items[lightboxState.index]?.isVideo ? (
+                <video
+                  src={lightboxState.items[lightboxState.index]?.url}
+                  controls
+                  autoPlay
+                  style={{
+                    maxWidth: "90vw",
+                    maxHeight: "78vh",
+                    borderRadius: "14px",
+                    boxShadow: "0 25px 60px rgba(0,0,0,0.85)",
+                    background: "#000000",
+                  }}
+                />
+              ) : (
+                <motion.img
+                  key={lightboxState.items[lightboxState.index]?.url}
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.18 }}
+                  src={lightboxState.items[lightboxState.index]?.url}
+                  alt="Full resolution"
+                  style={{
+                    maxWidth: "92vw",
+                    maxHeight: "78vh",
+                    objectFit: "contain",
+                    borderRadius: "14px",
+                    boxShadow: "0 25px 60px rgba(0,0,0,0.85)",
+                  }}
+                />
+              )}
+
+              {/* Next Button */}
+              {lightboxState.items.length > 1 &&
+                lightboxState.index < lightboxState.items.length - 1 && (
+                  <button
+                    onClick={() =>
+                      setLightboxState((prev) =>
+                        prev ? { ...prev, index: prev.index + 1 } : null
+                      )
+                    }
+                    title="Next (Arrow Right)"
+                    style={{
+                      position: "fixed",
+                      right: "24px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      background: "rgba(15, 23, 42, 0.8)",
+                      backdropFilter: "blur(12px)",
+                      border: "1px solid rgba(255,255,255,0.2)",
+                      borderRadius: "50%",
+                      width: "48px",
+                      height: "48px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "white",
+                      cursor: "pointer",
+                      zIndex: 10020,
+                      boxShadow: "0 8px 24px rgba(0,0,0,0.6)",
+                      transition: "transform 0.15s ease",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-50%) scale(1.1)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(-50%) scale(1)")}
+                  >
+                    <ChevronRight size={24} />
+                  </button>
+                )}
+            </div>
+
+            {/* Bottom Thumbnail Strip for Multi-Image Posts */}
+            {lightboxState.items.length > 1 && (
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="no-scrollbar"
+                style={{
+                  position: "absolute",
+                  bottom: "20px",
+                  display: "flex",
+                  gap: "8px",
+                  maxWidth: "90vw",
+                  overflowX: "auto",
+                  padding: "8px 12px",
+                  background: "rgba(0,0,0,0.65)",
+                  backdropFilter: "blur(12px)",
+                  borderRadius: "16px",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  zIndex: 10010,
+                }}
+              >
+                {lightboxState.items.map((it, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() =>
+                      setLightboxState((prev) => (prev ? { ...prev, index: idx } : null))
+                    }
+                    style={{
+                      width: "48px",
+                      height: "48px",
+                      borderRadius: "8px",
+                      overflow: "hidden",
+                      border:
+                        idx === lightboxState.index
+                          ? "2px solid #38bdf8"
+                          : "1px solid rgba(255,255,255,0.2)",
+                      padding: 0,
+                      background: "#000",
+                      cursor: "pointer",
+                      opacity: idx === lightboxState.index ? 1 : 0.6,
+                      transform: idx === lightboxState.index ? "scale(1.08)" : "scale(1)",
+                      transition: "all 0.15s ease",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {it.isVideo ? (
+                      <video
+                        src={it.url}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
+                    ) : (
+                      <img
+                        src={it.url}
+                        alt=""
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
