@@ -3,7 +3,8 @@ import { createPortal } from "react-dom";
 import {
   Search, History, Shield, Calendar, Mail, User, Clock,
   Filter, Download, ArrowUpRight, CheckCircle2, Eye,
-  Building2, Briefcase, FolderKanban, LogIn, LogOut, RefreshCw, X, Code
+  Building2, Briefcase, FolderKanban, LogIn, LogOut, RefreshCw, X, Code,
+  MessageSquare, MessageSquarePlus, Heart, HeartOff, Trash2, Edit3
 } from "lucide-react";
 import api from "../../api";
 import { formatDate } from "../../utils/dateUtils";
@@ -22,6 +23,16 @@ const ACTION_CONFIG = {
   RFP_INTEREST: { label: "Submitted Proposal", color: "#6366f1", bg: "rgba(99, 102, 241, 0.15)", border: "rgba(99, 102, 241, 0.3)", icon: FolderKanban },
   REVIEW_POST: { label: "Posted Review", color: "#f97316", bg: "rgba(249, 115, 22, 0.15)", border: "rgba(249, 115, 22, 0.3)", icon: RefreshCw },
   PROFILE_UPDATE: { label: "Profile Update", color: "#14b8a6", bg: "rgba(20, 184, 166, 0.15)", border: "rgba(20, 184, 166, 0.3)", icon: User },
+  POST_CREATE: { label: "Created Post", color: "#10b981", bg: "rgba(16, 185, 129, 0.15)", border: "rgba(16, 185, 129, 0.3)", icon: MessageSquarePlus },
+  POST_UPDATE: { label: "Updated Post", color: "#f59e0b", bg: "rgba(245, 158, 11, 0.15)", border: "rgba(245, 158, 11, 0.3)", icon: Edit3 },
+  POST_DELETE: { label: "Deleted Post", color: "#ef4444", bg: "rgba(239, 68, 68, 0.15)", border: "rgba(239, 68, 68, 0.3)", icon: Trash2 },
+  POST_LIKE: { label: "Liked Post", color: "#ec4899", bg: "rgba(236, 72, 153, 0.15)", border: "rgba(236, 72, 153, 0.3)", icon: Heart },
+  POST_UNLIKE: { label: "Unliked Post", color: "#64748b", bg: "rgba(100, 116, 139, 0.15)", border: "rgba(100, 116, 139, 0.3)", icon: HeartOff },
+  COMMENT_CREATE: { label: "Added Comment", color: "#3b82f6", bg: "rgba(59, 130, 246, 0.15)", border: "rgba(59, 130, 246, 0.3)", icon: MessageSquare },
+  COMMENT_UPDATE: { label: "Updated Comment", color: "#f59e0b", bg: "rgba(245, 158, 11, 0.15)", border: "rgba(245, 158, 11, 0.3)", icon: Edit3 },
+  COMMENT_DELETE: { label: "Deleted Comment", color: "#ef4444", bg: "rgba(239, 68, 68, 0.15)", border: "rgba(239, 68, 68, 0.3)", icon: Trash2 },
+  COMMENT_LIKE: { label: "Liked Comment", color: "#a855f7", bg: "rgba(168, 85, 247, 0.15)", border: "rgba(168, 85, 247, 0.3)", icon: Heart },
+  COMMENT_UNLIKE: { label: "Unliked Comment", color: "#64748b", bg: "rgba(100, 116, 139, 0.15)", border: "rgba(100, 116, 139, 0.3)", icon: HeartOff },
   PAGE_VIEW: { label: "Page Navigation", color: "#94a3b8", bg: "rgba(148, 163, 184, 0.12)", border: "rgba(148, 163, 184, 0.25)", icon: Eye },
   OTHER: { label: "System Action", color: "#a5b4fc", bg: "rgba(165, 180, 252, 0.12)", border: "rgba(165, 180, 252, 0.25)", icon: Shield },
 };
@@ -63,7 +74,9 @@ const AdminUserLogsList = ({ initialSearch = "" }) => {
     api.get(url)
       .then(res => {
         setLogs(res.data.logs || []);
-        setStats(res.data.stats || null);
+        if (res.data.stats) {
+          setStats(res.data.stats);
+        }
       })
       .catch(err => console.error("Error fetching user logs", err))
       .finally(() => setLoading(false));
@@ -185,6 +198,10 @@ const AdminUserLogsList = ({ initialSearch = "" }) => {
             <div style={{ fontSize: 11, color: "#e9d5ff", fontWeight: 500 }}>RFP Actions</div>
             <div style={{ fontSize: 20, fontWeight: 800, color: "#c084fc", marginTop: 4 }}>{stats ? stats.rfp_count : "—"}</div>
           </div>
+          <div style={{ background: "rgba(0,0,0,0.2)", padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(236,72,153,0.15)" }}>
+            <div style={{ fontSize: 11, color: "#f472b6", fontWeight: 500 }}>Feed Actions</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: "#ec4899", marginTop: 4 }}>{stats ? stats.feed_count : "—"}</div>
+          </div>
         </div>
       </div>
 
@@ -249,6 +266,10 @@ const AdminUserLogsList = ({ initialSearch = "" }) => {
           {[
             { id: "all", label: "All Actions" },
             { id: "LOGIN", label: "Logins" },
+            { id: "POST_CREATE", label: "Feed Posts" },
+            { id: "COMMENT_CREATE", label: "Comments" },
+            { id: "POST_LIKE", label: "Post Likes" },
+            { id: "COMMENT_LIKE", label: "Comment Likes" },
             { id: "PROFILE_SWITCH", label: "Profile Switches" },
             { id: "COMPANY_SWITCH", label: "Company Switches" },
             { id: "JOB_APPLY", label: "Job Applies" },

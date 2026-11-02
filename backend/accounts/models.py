@@ -650,6 +650,16 @@ class UserActivityLog(models.Model):
         ('REVIEW_POST', 'Posted Review'),
         ('PROFILE_UPDATE', 'Updated Profile Information'),
         ('PAGE_VIEW', 'Page View / Navigation'),
+        ('POST_CREATE', 'Created Feed Post'),
+        ('POST_UPDATE', 'Updated Feed Post'),
+        ('POST_DELETE', 'Deleted Feed Post'),
+        ('POST_LIKE', 'Liked Feed Post'),
+        ('POST_UNLIKE', 'Unliked Feed Post'),
+        ('COMMENT_CREATE', 'Added Feed Comment'),
+        ('COMMENT_UPDATE', 'Updated Feed Comment'),
+        ('COMMENT_DELETE', 'Deleted Feed Comment'),
+        ('COMMENT_LIKE', 'Liked Feed Comment'),
+        ('COMMENT_UNLIKE', 'Unliked Feed Comment'),
         ('OTHER', 'Other Action'),
     ]
 

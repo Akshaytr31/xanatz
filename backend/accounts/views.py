@@ -1935,12 +1935,25 @@ class AdminStatsView(APIView):
             JobOpening.objects.filter(Q(is_flagged=True) | Q(flagged_by__isnull=False)).distinct().count() +
             RFP.objects.filter(Q(is_flagged=True) | Q(flagged_by__isnull=False)).distinct().count()
         )
+        total_feed_posts = FeedPost.objects.count()
+        total_feed_comments = FeedComment.objects.count()
+        feed_action_types = [
+            'POST_CREATE', 'POST_UPDATE', 'POST_DELETE',
+            'POST_LIKE', 'POST_UNLIKE',
+            'COMMENT_CREATE', 'COMMENT_UPDATE', 'COMMENT_DELETE',
+            'COMMENT_LIKE', 'COMMENT_UNLIKE',
+        ]
+        total_feed_logs = UserActivityLog.objects.filter(action_type__in=feed_action_types).count()
+
         return Response({
             "total_users": total_users,
             "total_companies": total_companies,
             "active_jobs": active_jobs,
             "total_rfps": total_rfps,
             "flagged_count": flagged_count,
+            "total_feed_posts": total_feed_posts,
+            "total_feed_comments": total_feed_comments,
+            "total_feed_logs": total_feed_logs,
         }, status=status.HTTP_200_OK)
 
 
@@ -2198,26 +2211,143 @@ class AdminUserLogsListView(APIView):
             elif date_range == '30d':
                 logs = logs.filter(created_at__gte=now - datetime.timedelta(days=30))
 
-        total_logs = logs.count()
-        login_count = logs.filter(action_type='LOGIN').count()
-        job_count = logs.filter(action_type__in=['JOB_APPLY', 'JOB_CREATE', 'JOB_UPDATE']).count()
-        rfp_count = logs.filter(action_type__in=['RFP_CREATE', 'RFP_UPDATE', 'RFP_INTEREST']).count()
-        switch_count = logs.filter(action_type__in=['PROFILE_SWITCH', 'COMPANY_SWITCH']).count()
-        unique_users = logs.values('user_email').distinct().count()
+        # System-wide overall stats (independent of active search / filter)
+        all_logs = UserActivityLog.objects.all()
+        total_logs = all_logs.count()
+        total_filtered = logs.count()
+        login_count = all_logs.filter(action_type='LOGIN').count()
+        job_count = all_logs.filter(action_type__in=['JOB_APPLY', 'JOB_CREATE', 'JOB_UPDATE']).count()
+        rfp_count = all_logs.filter(action_type__in=['RFP_CREATE', 'RFP_UPDATE', 'RFP_INTEREST']).count()
+        switch_count = all_logs.filter(action_type__in=['PROFILE_SWITCH', 'COMPANY_SWITCH']).count()
+        feed_count = all_logs.filter(action_type__in=[
+            'POST_CREATE', 'POST_UPDATE', 'POST_DELETE',
+            'POST_LIKE', 'POST_UNLIKE',
+            'COMMENT_CREATE', 'COMMENT_UPDATE', 'COMMENT_DELETE',
+            'COMMENT_LIKE', 'COMMENT_UNLIKE'
+        ]).count()
+        unique_users = all_logs.values('user_email').distinct().count()
 
-        serialized_logs = UserActivityLogSerializer(logs[:300], many=True).data
+        serialized_logs = UserActivityLogSerializer(logs[:300], many=True, context={'request': request}).data
 
         return Response({
             'logs': serialized_logs,
             'stats': {
                 'total_logs': total_logs,
+                'total_filtered': total_filtered,
                 'login_count': login_count,
                 'job_count': job_count,
                 'rfp_count': rfp_count,
                 'switch_count': switch_count,
+                'feed_count': feed_count,
                 'unique_users': unique_users,
             }
         }, status=status.HTTP_200_OK)
+
+
+class AdminFeedLogsListView(APIView):
+    """
+    Dedicated admin audit log endpoint for Feed posts, likes, and comments.
+    Supports filtering by keyword search, user_id, post_id, category, action_type, and date range.
+    """
+    permission_classes = [permissions.IsAdminUser]
+
+    FEED_ACTION_TYPES = [
+        'POST_CREATE', 'POST_UPDATE', 'POST_DELETE',
+        'POST_LIKE', 'POST_UNLIKE',
+        'COMMENT_CREATE', 'COMMENT_UPDATE', 'COMMENT_DELETE',
+        'COMMENT_LIKE', 'COMMENT_UNLIKE',
+    ]
+    POST_ACTIONS = ['POST_CREATE', 'POST_UPDATE', 'POST_DELETE']
+    LIKE_ACTIONS = ['POST_LIKE', 'POST_UNLIKE', 'COMMENT_LIKE', 'COMMENT_UNLIKE']
+    COMMENT_ACTIONS = ['COMMENT_CREATE', 'COMMENT_UPDATE', 'COMMENT_DELETE']
+
+    def get(self, request):
+        query = request.query_params.get('q', '').strip()
+        user_id = request.query_params.get('user_id', '').strip()
+        post_id = request.query_params.get('post_id', '').strip()
+        category = request.query_params.get('category', 'all').strip().lower()
+        action_type = request.query_params.get('action_type', 'all').strip()
+        date_range = request.query_params.get('date_range', 'all').strip().lower()
+
+        logs = UserActivityLog.objects.filter(
+            action_type__in=self.FEED_ACTION_TYPES
+        ).select_related('user', 'user__profile').order_by('-created_at')
+
+        # Filter by broad category (posts, likes, comments)
+        if category == 'posts':
+            logs = logs.filter(action_type__in=self.POST_ACTIONS)
+        elif category == 'likes':
+            logs = logs.filter(action_type__in=self.LIKE_ACTIONS)
+        elif category == 'comments':
+            logs = logs.filter(action_type__in=self.COMMENT_ACTIONS)
+
+        # Filter by specific action type
+        if action_type and action_type != 'all':
+            logs = logs.filter(action_type=action_type)
+
+        # Filter by user
+        if user_id and user_id.isdigit():
+            logs = logs.filter(user__id=int(user_id))
+
+        # Filter by post
+        if post_id and post_id.isdigit():
+            pid = int(post_id)
+            logs = logs.filter(
+                Q(details__post_id=pid) |
+                Q(action_title__icontains=f"post #{pid}")
+            )
+
+        # Text search (by user name, email, action title, or IP)
+        if query:
+            logs = logs.filter(
+                Q(user_name__icontains=query) |
+                Q(user_email__icontains=query) |
+                Q(action_title__icontains=query) |
+                Q(ip_address__icontains=query)
+            )
+
+        # Date range filter
+        if date_range and date_range != 'all':
+            now = timezone.now()
+            if date_range == 'today':
+                logs = logs.filter(created_at__gte=now.replace(hour=0, minute=0, second=0, microsecond=0))
+            elif date_range == '7d':
+                logs = logs.filter(created_at__gte=now - datetime.timedelta(days=7))
+            elif date_range == '30d':
+                logs = logs.filter(created_at__gte=now - datetime.timedelta(days=30))
+
+        # System-wide statistics for the feed audit panel
+        all_feed_logs = UserActivityLog.objects.filter(action_type__in=self.FEED_ACTION_TYPES)
+        total_filtered = logs.count()
+        total_posts_created = all_feed_logs.filter(action_type='POST_CREATE').count()
+        total_posts_deleted = all_feed_logs.filter(action_type='POST_DELETE').count()
+        total_post_likes = all_feed_logs.filter(action_type='POST_LIKE').count()
+        total_post_unlikes = all_feed_logs.filter(action_type='POST_UNLIKE').count()
+        total_comments = all_feed_logs.filter(action_type='COMMENT_CREATE').count()
+        total_comments_deleted = all_feed_logs.filter(action_type='COMMENT_DELETE').count()
+        total_comment_likes = all_feed_logs.filter(action_type='COMMENT_LIKE').count()
+        unique_users = all_feed_logs.values('user_email').distinct().count()
+
+        serialized_logs = UserActivityLogSerializer(logs[:350], many=True, context={'request': request}).data
+
+        return Response({
+            'logs': serialized_logs,
+            'stats': {
+                'total_filtered': total_filtered,
+                'total_logs': all_feed_logs.count(),
+                'posts_created': total_posts_created,
+                'posts_deleted': total_posts_deleted,
+                'post_likes': total_post_likes,
+                'post_unlikes': total_post_unlikes,
+                'comments_created': total_comments,
+                'comments_deleted': total_comments_deleted,
+                'comment_likes': total_comment_likes,
+                'unique_users': unique_users,
+                'live_posts': FeedPost.objects.count(),
+                'live_comments': FeedComment.objects.count(),
+            }
+        }, status=status.HTTP_200_OK)
+
 
 
 class LogoutView(APIView):
@@ -2303,11 +2433,66 @@ class FeedPostViewSet(viewsets.ModelViewSet):
             post.media.name = first_media_file_name
             post.save(update_fields=['media'])
 
+        content_preview = (post.content or "").strip()
+        if len(content_preview) > 60:
+            content_preview = content_preview[:60] + "..."
+        media_count = len(files) or (1 if post.media else 0)
+
+        log_user_activity(
+            request=self.request,
+            user=self.request.user,
+            action_type="POST_CREATE",
+            action_title=f"Published feed post #{post.id}" + (f": \"{content_preview}\"" if content_preview else " (with media)"),
+            details={
+                "post_id": post.id,
+                "content": post.content or "",
+                "media_count": media_count,
+                "has_media": bool(media_count > 0),
+                "is_company": bool(company),
+                "company_id": company.id if company else None,
+                "company_name": company.name if company else None,
+            }
+        )
+
+    def perform_update(self, serializer):
+        instance = serializer.instance
+        if instance.author != self.request.user and not self.request.user.is_staff:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You can only edit your own posts.")
+        post = serializer.save()
+        content_preview = (post.content or "").strip()[:60]
+        log_user_activity(
+            request=self.request,
+            user=self.request.user,
+            action_type="POST_UPDATE",
+            action_title=f"Updated feed post #{post.id}" + (f": \"{content_preview}\"" if content_preview else ""),
+            details={
+                "post_id": post.id,
+                "content": post.content or "",
+            }
+        )
+
     def perform_destroy(self, instance):
         if instance.author != self.request.user and not self.request.user.is_staff:
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("You can only delete your own posts.")
+        post_id = instance.id
+        author_email = instance.author.email
+        content_preview = (instance.content or "").strip()[:60]
+        is_admin = bool(self.request.user.is_staff and self.request.user != instance.author)
         instance.delete()
+        log_user_activity(
+            request=self.request,
+            user=self.request.user,
+            action_type="POST_DELETE",
+            action_title=f"Deleted feed post #{post_id}" + (f": \"{content_preview}\"" if content_preview else "") + (" [Admin Action]" if is_admin else ""),
+            details={
+                "post_id": post_id,
+                "author_email": author_email,
+                "deleted_by": self.request.user.email,
+                "is_admin_action": is_admin
+            }
+        )
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def toggle_like(self, request, pk=None):
@@ -2316,9 +2501,29 @@ class FeedPostViewSet(viewsets.ModelViewSet):
         if post.likes.filter(id=user.id).exists():
             post.likes.remove(user)
             liked = False
+            action_type = "POST_UNLIKE"
+            action_title = f"Unliked feed post #{post.id} by {post.author.email}"
         else:
             post.likes.add(user)
             liked = True
+            action_type = "POST_LIKE"
+            action_title = f"Liked feed post #{post.id} by {post.author.email}"
+
+        content_preview = (post.content or "").strip()[:60]
+        log_user_activity(
+            request=request,
+            user=user,
+            action_type=action_type,
+            action_title=action_title,
+            details={
+                "post_id": post.id,
+                "post_author_email": post.author.email,
+                "post_author_id": post.author.id,
+                "content_preview": content_preview,
+                "liked": liked,
+                "total_likes": post.likes.count()
+            }
+        )
         return Response({'liked': liked, 'likes_count': post.likes.count()})
 
 
@@ -2345,20 +2550,70 @@ class FeedCommentViewSet(viewsets.ModelViewSet):
         parent = None
         if parent_id:
             parent = FeedComment.objects.filter(id=parent_id, post=post).first()
-        serializer.save(author=self.request.user, post=post, company=company, parent=parent)
+        comment = serializer.save(author=self.request.user, post=post, company=company, parent=parent)
+
+        comment_preview = (comment.text or "").strip()[:60]
+        is_reply = bool(parent)
+        title = f"{'Replied to comment on' if is_reply else 'Commented on'} post #{post.id}: \"{comment_preview}\""
+
+        log_user_activity(
+            request=self.request,
+            user=self.request.user,
+            action_type="COMMENT_CREATE",
+            action_title=title,
+            details={
+                "comment_id": comment.id,
+                "post_id": post.id,
+                "post_author_email": post.author.email,
+                "is_reply": is_reply,
+                "parent_id": parent.id if parent else None,
+                "comment_text": comment.text,
+                "is_company": bool(company),
+                "company_id": company.id if company else None,
+                "company_name": company.name if company else None,
+            }
+        )
 
     def perform_update(self, serializer):
         instance = serializer.instance
-        if instance.author != self.request.user:
+        if instance.author != self.request.user and not self.request.user.is_staff:
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("You can only edit your own comments.")
-        serializer.save()
+        comment = serializer.save()
+        comment_preview = (comment.text or "").strip()[:60]
+        log_user_activity(
+            request=self.request,
+            user=self.request.user,
+            action_type="COMMENT_UPDATE",
+            action_title=f"Updated comment #{comment.id} on post #{comment.post_id}: \"{comment_preview}\"",
+            details={
+                "comment_id": comment.id,
+                "post_id": comment.post_id,
+                "updated_text": comment.text,
+            }
+        )
 
     def perform_destroy(self, instance):
         if instance.author != self.request.user and not self.request.user.is_staff:
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("You can only delete your own comments.")
+        comment_id = instance.id
+        post_id = instance.post_id
+        text_snippet = (instance.text or "")[:60]
+        is_admin = bool(self.request.user.is_staff and self.request.user != instance.author)
         instance.delete()
+        log_user_activity(
+            request=self.request,
+            user=self.request.user,
+            action_type="COMMENT_DELETE",
+            action_title=f"Deleted comment #{comment_id} from post #{post_id}: \"{text_snippet}\"" + (" [Admin Action]" if is_admin else ""),
+            details={
+                "comment_id": comment_id,
+                "post_id": post_id,
+                "deleted_by": self.request.user.email,
+                "is_admin_action": is_admin
+            }
+        )
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def toggle_like(self, request, post_pk=None, pk=None):
@@ -2367,9 +2622,28 @@ class FeedCommentViewSet(viewsets.ModelViewSet):
         if comment.likes.filter(id=user.id).exists():
             comment.likes.remove(user)
             liked = False
+            action_type = "COMMENT_UNLIKE"
+            action_title = f"Unliked comment #{comment.id} on post #{comment.post_id}"
         else:
             comment.likes.add(user)
             liked = True
+            action_type = "COMMENT_LIKE"
+            action_title = f"Liked comment #{comment.id} on post #{comment.post_id}"
+
+        log_user_activity(
+            request=request,
+            user=user,
+            action_type=action_type,
+            action_title=action_title,
+            details={
+                "comment_id": comment.id,
+                "post_id": comment.post_id,
+                "comment_author_email": comment.author.email,
+                "comment_snippet": (comment.text or "")[:60],
+                "liked": liked,
+                "total_likes": comment.likes.count()
+            }
+        )
         return Response({
             'status': 'success',
             'has_liked': liked,

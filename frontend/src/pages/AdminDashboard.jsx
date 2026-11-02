@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, CreditCard, ShieldAlert, FileText,
-  ArrowUpRight, Briefcase, Search, Bell, Building2, FolderKanban, History
+  ArrowUpRight, Briefcase, Search, Bell, Building2, FolderKanban, History,
+  MessageSquareShare
 } from "lucide-react";
 import AdminNavbar from "../components/admin/AdminNavbar";
 import PrivacyPolicyEditor from "../components/admin/PrivacyPolicyEditor";
@@ -13,6 +14,7 @@ import AdminCompaniesList from "../components/admin/AdminCompaniesList";
 import AdminJobsList from "../components/admin/AdminJobsList";
 import AdminRFPsList from "../components/admin/AdminRFPsList";
 import AdminUserLogsList from "../components/admin/AdminUserLogsList";
+import AdminFeedLogsList from "../components/admin/AdminFeedLogsList";
 import api from "../api";
 
 
@@ -116,11 +118,12 @@ const OverviewPanel = ({ setActiveTab }) => {
         gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
         gap: 14,
       }}>
-        <StatCard icon={Users}        label="Total Users"   value={statsLoading ? "…" : fmt(stats?.total_users)}   color="#6366f1" delay={0.05} onClick={() => setActiveTab("users")} />
-        <StatCard icon={Building2}    label="Companies"     value={statsLoading ? "…" : fmt(stats?.total_companies)} color="#3b82f6" delay={0.1}  onClick={() => setActiveTab("companies")} />
-        <StatCard icon={Briefcase}    label="Active Jobs"   value={statsLoading ? "…" : fmt(stats?.active_jobs)}   color="#10b981" delay={0.15} onClick={() => setActiveTab("jobs")} />
-        <StatCard icon={FolderKanban} label="Total RFPs"    value={statsLoading ? "…" : fmt(stats?.total_rfps)}    color="#8b5cf6" delay={0.2}  onClick={() => setActiveTab("rfps")} />
-        <StatCard icon={ShieldAlert}  label="Flagged Items" value={statsLoading ? "…" : fmt(stats?.flagged_count)} color="#ef4444" delay={0.25} onClick={() => setActiveTab("flagged_reviews")} />
+        <StatCard icon={Users}              label="Total Users"   value={statsLoading ? "…" : fmt(stats?.total_users)}   color="#6366f1" delay={0.05} onClick={() => setActiveTab("users")} />
+        <StatCard icon={Building2}          label="Companies"     value={statsLoading ? "…" : fmt(stats?.total_companies)} color="#3b82f6" delay={0.1}  onClick={() => setActiveTab("companies")} />
+        <StatCard icon={Briefcase}          label="Active Jobs"   value={statsLoading ? "…" : fmt(stats?.active_jobs)}   color="#10b981" delay={0.15} onClick={() => setActiveTab("jobs")} />
+        <StatCard icon={FolderKanban}       label="Total RFPs"    value={statsLoading ? "…" : fmt(stats?.total_rfps)}    color="#8b5cf6" delay={0.2}  onClick={() => setActiveTab("rfps")} />
+        <StatCard icon={MessageSquareShare} label="Feed Logs"     value={statsLoading ? "…" : fmt(stats?.total_feed_logs || stats?.total_feed_posts)} color="#ec4899" delay={0.25} onClick={() => setActiveTab("feed_logs")} />
+        <StatCard icon={ShieldAlert}        label="Flagged Items" value={statsLoading ? "…" : fmt(stats?.flagged_count)} color="#ef4444" delay={0.3}  onClick={() => setActiveTab("flagged_reviews")} />
       </div>
 
       {/* Quick Actions */}
@@ -136,9 +139,10 @@ const OverviewPanel = ({ setActiveTab }) => {
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {[
-            { icon: CreditCard,  label: "Manage Plans",  tab: "plans",           color: "#6366f1" },
-            { icon: ShieldAlert, label: "Review Flags",  tab: "flagged_reviews", color: "#ef4444" },
-            { icon: FileText,    label: "Edit Policy",   tab: "policy",          color: "#10b981" },
+            { icon: MessageSquareShare, label: "Feed Logs",     tab: "feed_logs",       color: "#ec4899" },
+            { icon: CreditCard,         label: "Manage Plans",  tab: "plans",           color: "#6366f1" },
+            { icon: ShieldAlert,        label: "Review Flags",  tab: "flagged_reviews", color: "#ef4444" },
+            { icon: FileText,           label: "Edit Policy",   tab: "policy",          color: "#10b981" },
           ].map(({ icon: Icon, label, tab, color }) => (
             <button
               key={tab} onClick={() => setActiveTab(tab)}
@@ -244,15 +248,16 @@ const AdminDashboard = () => {
 
 
   const TAB_META = {
-    overview:        { icon: LayoutDashboard, label: "Overview",          desc: "System overview and quick access to all modules" },
-    users:           { icon: Users,           label: "Users List",        desc: "All registered users across the platform" },
-    user_logs:       { icon: History,         label: "User Activity Logs",desc: "Track user login times, IP addresses, profile switches, and site actions" },
-    companies:       { icon: Building2,       label: "Companies List",    desc: "All registered companies on the platform" },
-    jobs:            { icon: Briefcase,       label: "Jobs List",         desc: "All active and closed job openings" },
-    rfps:            { icon: FolderKanban,    label: "RFPs List",         desc: "All active and draft RFPs (Request for Proposals)" },
-    plans:           { icon: CreditCard,      label: "Job Posting Plans", desc: "Create and manage subscription plans for companies" },
-    policy:          { icon: FileText,        label: "Privacy Policy",    desc: "Edit the privacy policy shown to users during registration" },
-    flagged_reviews: { icon: ShieldAlert,     label: "Flagged Content",   desc: "Moderate flagged content submitted by users" },
+    overview:        { icon: LayoutDashboard,    label: "Overview",            desc: "System overview and quick access to all modules" },
+    users:           { icon: Users,              label: "Users List",          desc: "All registered users across the platform" },
+    user_logs:       { icon: History,            label: "User Activity Logs",  desc: "Track user login times, IP addresses, profile switches, and site actions" },
+    feed_logs:       { icon: MessageSquareShare, label: "Feed Activity Logs",  desc: "Monitor live audit trail for feed posts, comments, likes, and interactions" },
+    companies:       { icon: Building2,          label: "Companies List",      desc: "All registered companies on the platform" },
+    jobs:            { icon: Briefcase,          label: "Jobs List",           desc: "All active and closed job openings" },
+    rfps:            { icon: FolderKanban,       label: "RFPs List",           desc: "All active and draft RFPs (Request for Proposals)" },
+    plans:           { icon: CreditCard,         label: "Job Posting Plans",   desc: "Create and manage subscription plans for companies" },
+    policy:          { icon: FileText,           label: "Privacy Policy",      desc: "Edit the privacy policy shown to users during registration" },
+    flagged_reviews: { icon: ShieldAlert,        label: "Flagged Content",     desc: "Moderate flagged content submitted by users" },
   };
 
 
@@ -390,15 +395,16 @@ const AdminDashboard = () => {
               background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
               borderRadius: 11, padding: 5, width: "fit-content", maxWidth: "100%",
             }}>
-              <TabButton icon={LayoutDashboard} label="Overview"     isActive={activeTab === "overview"}        onClick={() => setActiveTab("overview")} />
-              <TabButton icon={Users}           label="Users"        isActive={activeTab === "users"}           onClick={() => setActiveTab("users")} />
-              <TabButton icon={History}         label="User Logs"    isActive={activeTab === "user_logs"}       onClick={() => setActiveTab("user_logs")} />
-              <TabButton icon={Building2}       label="Companies"    isActive={activeTab === "companies"}       onClick={() => setActiveTab("companies")} />
-              <TabButton icon={Briefcase}       label="Jobs"         isActive={activeTab === "jobs"}            onClick={() => setActiveTab("jobs")} />
-              <TabButton icon={FolderKanban}    label="RFPs"         isActive={activeTab === "rfps"}            onClick={() => setActiveTab("rfps")} />
-              <TabButton icon={CreditCard}      label="Job Plans"    isActive={activeTab === "plans"}           onClick={() => setActiveTab("plans")} />
-              <TabButton icon={FileText}        label="Policy"       isActive={activeTab === "policy"}          onClick={() => setActiveTab("policy")} />
-              <TabButton icon={ShieldAlert}     label="Flagged"      isActive={activeTab === "flagged_reviews"} onClick={() => setActiveTab("flagged_reviews")} />
+              <TabButton icon={LayoutDashboard}    label="Overview"     isActive={activeTab === "overview"}        onClick={() => setActiveTab("overview")} />
+              <TabButton icon={Users}              label="Users"        isActive={activeTab === "users"}           onClick={() => setActiveTab("users")} />
+              <TabButton icon={History}            label="User Logs"    isActive={activeTab === "user_logs"}       onClick={() => setActiveTab("user_logs")} />
+              <TabButton icon={MessageSquareShare} label="Feed Logs"    isActive={activeTab === "feed_logs"}       onClick={() => setActiveTab("feed_logs")} />
+              <TabButton icon={Building2}          label="Companies"    isActive={activeTab === "companies"}       onClick={() => setActiveTab("companies")} />
+              <TabButton icon={Briefcase}          label="Jobs"         isActive={activeTab === "jobs"}            onClick={() => setActiveTab("jobs")} />
+              <TabButton icon={FolderKanban}       label="RFPs"         isActive={activeTab === "rfps"}            onClick={() => setActiveTab("rfps")} />
+              <TabButton icon={CreditCard}         label="Job Plans"    isActive={activeTab === "plans"}           onClick={() => setActiveTab("plans")} />
+              <TabButton icon={FileText}           label="Policy"       isActive={activeTab === "policy"}          onClick={() => setActiveTab("policy")} />
+              <TabButton icon={ShieldAlert}        label="Flagged"      isActive={activeTab === "flagged_reviews"} onClick={() => setActiveTab("flagged_reviews")} />
             </div>
           )}
 
@@ -407,6 +413,7 @@ const AdminDashboard = () => {
             {activeTab === "overview"        && <OverviewPanel setActiveTab={setActiveTab} />}
             {activeTab === "users"           && <AdminUsersList onViewLogs={handleViewUserLogs} />}
             {activeTab === "user_logs"       && <AdminUserLogsList initialSearch={userLogsSearch} />}
+            {activeTab === "feed_logs"       && <AdminFeedLogsList />}
             {activeTab === "companies"       && <AdminCompaniesList />}
             {activeTab === "jobs"            && <AdminJobsList />}
             {activeTab === "rfps"            && <AdminRFPsList />}

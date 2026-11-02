@@ -902,14 +902,30 @@ class PublicCompanySerializer(serializers.ModelSerializer):
 
 class UserActivityLogSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(source='user.id', read_only=True)
+    user_profile_picture = serializers.SerializerMethodField()
+    user_public_id = serializers.SerializerMethodField()
 
     class Meta:
         model = UserActivityLog
         fields = [
             'id', 'user_id', 'user_email', 'user_name',
+            'user_profile_picture', 'user_public_id',
             'action_type', 'action_title', 'details',
             'ip_address', 'user_agent', 'created_at'
         ]
+
+    def get_user_profile_picture(self, obj):
+        request = self.context.get('request')
+        if obj.user and hasattr(obj.user, 'profile') and obj.user.profile.profile_picture:
+            url = obj.user.profile.profile_picture.url
+            return request.build_absolute_uri(url) if request else url
+        return None
+
+    def get_user_public_id(self, obj):
+        if obj.user and hasattr(obj.user, 'profile') and obj.user.profile.public_id:
+            return str(obj.user.profile.public_id)
+        return str(obj.user_id) if obj.user_id else None
+
 
 
 class FeedCommentSerializer(serializers.ModelSerializer):
