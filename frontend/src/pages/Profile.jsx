@@ -9,13 +9,14 @@ import VisualHeader from "../components/Profile/VisualHeader";
 import CareerTimeline from "../components/Profile/CareerTimeline";
 import EducationSection from "../components/Profile/EducationSection";
 import SkillsSection from "../components/Profile/SkillsSection";
+import MyActivitySection from "../components/Profile/MyActivitySection";
 import CompanySection from "../components/company/CompanySection";
 import CreateCompanySection from "../components/company/CreateCompanySection";
 import api from "../api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Building2, ChevronDown, LayoutDashboard, Briefcase,
-  Zap, TrendingUp, CheckCircle2, User, Star, AlertCircle, UserCheck
+  Zap, TrendingUp, CheckCircle2, User, Star, AlertCircle, UserCheck, Activity, Sparkles
 } from "lucide-react";
 import CompleteProfileModal, { getProfileCompletionDetails } from "../components/Profile/CompleteProfileModal";
 
@@ -369,6 +370,16 @@ const Profile = () => {
   const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
   const [becomingFreelancer, setBecomingFreelancer]       = useState(false);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") === "activity" ? "activity" : "overview";
+
+  const handleTabChange = (tab) => {
+    if (tab === "activity") {
+      setSearchParams({ tab: "activity" });
+    } else {
+      setSearchParams({});
+    }
+  };
 
   const [updatingAvailability, setUpdatingAvailability] = useState(false);
 
@@ -554,54 +565,201 @@ const Profile = () => {
           </div>
         )}
 
-        {/* ═══ ROW 2: Action Bar — Responsive Grid ════════════════ */}
+        {/* ═══ TAB SELECTOR: Overview vs Activity & Analytics ═══ */}
         {user && (
-          <MotionBox {...fadeUp(0.08)} mb={5}>
-            <Box
-              display="grid"
-              gridTemplateColumns={{ base: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(5, 1fr)" }}
-              background="linear-gradient(135deg, rgba(15,23,42,0.9), rgba(8,12,28,0.95))"
-              border="1px solid rgba(255,255,255,0.07)"
-              borderRadius="20px"
-              backdropFilter="blur(28px)"
-              overflow="hidden"
-              boxShadow="0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)"
+          <MotionBox {...fadeUp(0.04)} mb={5}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+                gap: 12,
+                background: "linear-gradient(135deg, rgba(15,23,42,0.85), rgba(8,12,28,0.9))",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: 16,
+                padding: "8px 12px",
+                backdropFilter: "blur(20px)",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+              }}
             >
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={() => handleTabChange("overview")}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "9px 18px",
+                    borderRadius: 12,
+                    border: "none",
+                    background: activeTab === "overview"
+                      ? "linear-gradient(135deg, #3b82f6, #6366f1)"
+                      : "transparent",
+                    color: activeTab === "overview" ? "white" : "rgba(255,255,255,0.6)",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    boxShadow: activeTab === "overview" ? "0 4px 14px rgba(59,130,246,0.35)" : "none",
+                  }}
+                >
+                  <User size={15} />
+                  <span>Profile Overview</span>
+                </button>
 
-              {/* ── Cell 1: Activity Stats ─────────────────── */}
-              <Box
-                p={{ base: 4, md: 5 }}
-                borderRight={{ base: "none", sm: "1px solid rgba(255,255,255,0.06)", lg: "1px solid rgba(255,255,255,0.06)" }}
-                borderBottom={{ base: "1px solid rgba(255,255,255,0.06)", lg: "none" }}
-                display="flex" flexDirection="column" gap={3.5}
-                position="relative" overflow="hidden"
-              >
-                <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 20% 0%, rgba(59,130,246,0.06) 0%, transparent 60%)", pointerEvents: "none" }} />
-                <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: "2px", color: "rgba(255,255,255,0.22)" }}>
-                  ACTIVITY
+                <button
+                  type="button"
+                  onClick={() => handleTabChange("activity")}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "9px 18px",
+                    borderRadius: 12,
+                    border: activeTab === "activity" ? "none" : "1px solid rgba(139,92,246,0.3)",
+                    background: activeTab === "activity"
+                      ? "linear-gradient(135deg, #8b5cf6, #ec4899)"
+                      : "rgba(139,92,246,0.08)",
+                    color: activeTab === "activity" ? "white" : "#c4b5fd",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    boxShadow: activeTab === "activity" ? "0 4px 14px rgba(139,92,246,0.4)" : "none",
+                  }}
+                >
+                  <Activity size={15} />
+                  <span>My Activity & Analytics</span>
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 800,
+                      background: activeTab === "activity" ? "rgba(255,255,255,0.25)" : "rgba(139,92,246,0.35)",
+                      color: "white",
+                      borderRadius: 6,
+                      padding: "2px 6px",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    GRAPHS
+                  </span>
+                </button>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
+                  {activeTab === "activity" ? "Visual activity trends & audit metrics" : "Credentials, experiences & company profile"}
                 </span>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {[
-                    { label: "Years Exp.",  value: totalYearsExp,        color: "#3b82f6", bar: Math.min((parseFloat(totalYearsExp) || 1) * 12, 100) },
-                    { label: "Companies",   value: totalCompaniesCount,  color: "#8b5cf6", bar: Math.min(totalCompaniesCount * 20, 100) },
-                    { label: "Skills",      value: skills.length,        color: "#f59e0b", bar: Math.min(skills.length * 8, 100) },
-                  ].map(({ label, value, color, bar }) => (
-                    <div key={label}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>{label}</span>
-                        <span style={{ fontSize: 14, fontWeight: 800, color, letterSpacing: "-0.3px" }}>{value}</span>
-                      </div>
-                      <div style={{ height: 3, borderRadius: 99, background: "rgba(255,255,255,0.06)" }}>
-                        <div style={{ height: "100%", borderRadius: 99, width: `${bar}%`, background: color, opacity: 0.7, minWidth: (typeof value === "number" ? value > 0 : true) ? 6 : 0 }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Box>
+              </div>
+            </div>
+          </MotionBox>
+        )}
 
-              {/* ── Cell 2: Profile Strength ────────────────── */}
-              {(() => {
-                const color = pct >= 80 ? "#10b981" : pct >= 50 ? "#f59e0b" : "#3b82f6";
+        {/* ═══ TAB 1: My Activity & Analytics ═══ */}
+        {user && activeTab === "activity" && (
+          <MotionBox {...fadeUp(0.08)}>
+            <MyActivitySection />
+          </MotionBox>
+        )}
+
+        {/* ═══ TAB 2: Profile Overview ═══ */}
+        {user && activeTab === "overview" && (
+          <>
+            {/* ═══ ROW 2: Action Bar — Responsive Grid ════════════════ */}
+            <MotionBox {...fadeUp(0.08)} mb={5}>
+              <Box
+                display="grid"
+                gridTemplateColumns={{ base: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(5, 1fr)" }}
+                background="linear-gradient(135deg, rgba(15,23,42,0.9), rgba(8,12,28,0.95))"
+                border="1px solid rgba(255,255,255,0.07)"
+                borderRadius="20px"
+                backdropFilter="blur(28px)"
+                overflow="hidden"
+                boxShadow="0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)"
+              >
+
+                {/* ── Cell 1: Activity Stats ─────────────────── */}
+                <Box
+                  p={{ base: 4, md: 5 }}
+                  borderRight={{ base: "none", sm: "1px solid rgba(255,255,255,0.06)", lg: "1px solid rgba(255,255,255,0.06)" }}
+                  borderBottom={{ base: "1px solid rgba(255,255,255,0.06)", lg: "none" }}
+                  display="flex" flexDirection="column" gap={3.5}
+                  position="relative" overflow="hidden"
+                >
+                  <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 20% 0%, rgba(59,130,246,0.06) 0%, transparent 60%)", pointerEvents: "none" }} />
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: "2px", color: "rgba(255,255,255,0.22)" }}>
+                      ACTIVITY
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleTabChange("activity")}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        color: "#60a5fa",
+                        fontSize: 9,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                        padding: 0,
+                      }}
+                    >
+                      <span>Charts</span> →
+                    </button>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {[
+                      { label: "Years Exp.",  value: totalYearsExp,        color: "#3b82f6", bar: Math.min((parseFloat(totalYearsExp) || 1) * 12, 100) },
+                      { label: "Companies",   value: totalCompaniesCount,  color: "#8b5cf6", bar: Math.min(totalCompaniesCount * 20, 100) },
+                      { label: "Skills",      value: skills.length,        color: "#f59e0b", bar: Math.min(skills.length * 8, 100) },
+                    ].map(({ label, value, color, bar }) => (
+                      <div key={label}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>{label}</span>
+                          <span style={{ fontSize: 14, fontWeight: 800, color, letterSpacing: "-0.3px" }}>{value}</span>
+                        </div>
+                        <div style={{ height: 3, borderRadius: 99, background: "rgba(255,255,255,0.06)" }}>
+                          <div style={{ height: "100%", borderRadius: 99, width: `${bar}%`, background: color, opacity: 0.7, minWidth: (typeof value === "number" ? value > 0 : true) ? 6 : 0 }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleTabChange("activity")}
+                    style={{
+                      marginTop: 4,
+                      padding: "6px 10px",
+                      borderRadius: 8,
+                      background: "rgba(59,130,246,0.1)",
+                      border: "1px solid rgba(59,130,246,0.22)",
+                      color: "#93c5fd",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 5,
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(59,130,246,0.2)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(59,130,246,0.1)"; }}
+                  >
+                    <Activity size={12} />
+                    <span>View Analytics & Graphs →</span>
+                  </button>
+                </Box>
+
+                {/* ── Cell 2: Profile Strength ────────────────── */}
+                {(() => {
+                  const color = pct >= 80 ? "#10b981" : pct >= 50 ? "#f59e0b" : "#3b82f6";
                 const trackColor = pct >= 80 ? "rgba(16,185,129,0.12)" : pct >= 50 ? "rgba(245,158,11,0.12)" : "rgba(59,130,246,0.12)";
                 const label = pct >= 80 ? "Excellent" : pct >= 50 ? "Good" : "Getting started";
                 // Compact SVG ring math for 90x90 viewBox
@@ -876,8 +1034,6 @@ const Profile = () => {
               }
             `}</style>
           </MotionBox>
-        )}
-
 
         {/* ═══ ROW 3: Career Timeline — FULL WIDTH ═══════════════ */}
 
@@ -913,6 +1069,8 @@ const Profile = () => {
               onCompanyChange={handleCompanyChange}
             />
           </MotionBox>
+        )}
+          </>
         )}
 
       </Container>

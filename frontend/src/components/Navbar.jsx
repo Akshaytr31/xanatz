@@ -1443,6 +1443,14 @@ const Navbar = () => {
                       }}
                     />
                     <MenuLink
+                      icon={Activity}
+                      label="My Activity & Insights"
+                      onClick={() => {
+                        setIsProfileOpen(false);
+                        navigate("/profile?tab=activity");
+                      }}
+                    />
+                    <MenuLink
                       icon={theme === "light" ? Moon : Sun}
                       label={theme === "light" ? "Dark Mode" : "Light Mode"}
                       onClick={() => {

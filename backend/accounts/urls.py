@@ -10,7 +10,7 @@ from .views import (
     PublicCompanyProfileView, CompanyReviewViewSet, FreelancerReviewViewSet, AdminFlaggedReviewsView,
     CompanyFAQViewSet, CompanyMediaViewSet, AIEnhanceView, AdminStatsView,
     AdminUsersListView, AdminCompaniesListView, AdminJobsListView, AdminRFPsListView,
-    FreelancersListView, UserActivityLogCreateView, AdminUserLogsListView, AdminFeedLogsListView, LogoutView, FeedPostViewSet, FeedCommentViewSet,
+    FreelancersListView, UserActivityLogCreateView, MyActivityAnalyticsView, AdminUserLogsListView, AdminFeedLogsListView, LogoutView, FeedPostViewSet, FeedCommentViewSet,
     ConnectionViewSet, CompanyFollowViewSet
 )
 
@@ -59,6 +59,7 @@ urlpatterns = [
     path('users/search/', UserSearchView.as_view(), name='user_search'),
     path('freelancers/', FreelancersListView.as_view(), name='freelancers_list'),
     path('user-activity/log/', UserActivityLogCreateView.as_view(), name='user-activity-log'),
+    path('user-activity/my-activity/', MyActivityAnalyticsView.as_view(), name='my-user-activity'),
     path('admin/user-logs/', AdminUserLogsListView.as_view(), name='admin-user-logs'),
     path('admin/feed-logs/', AdminFeedLogsListView.as_view(), name='admin-feed-logs'),
     path('admin/reviews/flagged/', AdminFlaggedReviewsView.as_view(), name='admin_reviews_flagged'),

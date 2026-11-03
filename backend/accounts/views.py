@@ -3,7 +3,8 @@ from django.utils import timezone
 from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.db.models import Q
+from django.db.models import Q, Count
+from django.db.models.functions import TruncDate
 from django.core.exceptions import ValidationError
 from .models import OTP, User, PrivacyPolicy, Profile, Experience, Education, Company, CompanyMember, JobOpening, JobApplication, RFP, RFPInterest, JobPostPlan, CompanySubscription, Notification, Message, PortfolioProject, CompanyReview, FreelancerReview, CompanyFAQ, CompanyMedia, UserActivityLog, FeedPost, FeedPostMedia, FeedComment, Connection, CompanyFollow
 from .serializers import (
@@ -2346,6 +2347,163 @@ class AdminFeedLogsListView(APIView):
                 'live_posts': FeedPost.objects.count(),
                 'live_comments': FeedComment.objects.count(),
             }
+        }, status=status.HTTP_200_OK)
+
+
+class MyActivityAnalyticsView(APIView):
+    """
+    User-facing activity dashboard & analytics endpoint.
+    Provides personal activity logs, daily trend timeseries for graphs,
+    category distribution, active streak, and peak activity patterns.
+    Strictly scoped to request.user.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    CATEGORY_MAP = {
+        'feed': [
+            'POST_CREATE', 'POST_UPDATE', 'POST_DELETE',
+            'POST_LIKE', 'POST_UNLIKE',
+            'COMMENT_CREATE', 'COMMENT_UPDATE', 'COMMENT_DELETE',
+            'COMMENT_LIKE', 'COMMENT_UNLIKE',
+        ],
+        'jobs': ['JOB_APPLY', 'JOB_CREATE', 'JOB_UPDATE'],
+        'rfps': ['RFP_CREATE', 'RFP_UPDATE', 'RFP_INTEREST'],
+        'account': ['LOGIN', 'LOGOUT', 'PROFILE_SWITCH', 'COMPANY_SWITCH', 'PROFILE_UPDATE'],
+        'other': ['REVIEW_POST', 'PAGE_VIEW', 'OTHER'],
+    }
+
+    def get(self, request):
+        user = request.user
+        time_range = request.query_params.get('range', '30d').strip().lower()
+        category = request.query_params.get('category', 'all').strip().lower()
+        query = request.query_params.get('q', '').strip()
+
+        base_logs = UserActivityLog.objects.filter(user=user)
+        total_all_time = base_logs.count()
+
+        now = timezone.now()
+        num_days = 30
+        if time_range == '7d':
+            num_days = 7
+            start_date = now - datetime.timedelta(days=7)
+        elif time_range == '90d':
+            num_days = 90
+            start_date = now - datetime.timedelta(days=90)
+        elif time_range == 'year':
+            num_days = 365
+            start_date = now - datetime.timedelta(days=365)
+        elif time_range == 'all':
+            num_days = 30
+            start_date = None
+        else: # 30d default
+            num_days = 30
+            start_date = now - datetime.timedelta(days=30)
+
+        period_logs = base_logs
+        if start_date:
+            period_logs = period_logs.filter(created_at__gte=start_date)
+
+        total_in_period = period_logs.count()
+
+        # Category Breakdown in this period
+        category_breakdown = {}
+        for cat_key, actions in self.CATEGORY_MAP.items():
+            category_breakdown[cat_key] = period_logs.filter(action_type__in=actions).count()
+
+        # Daily trends for the chart
+        # Generate continuous daily dates for smooth zero-gap timeseries
+        graph_days = min(num_days, 90)
+        graph_start_date = now - datetime.timedelta(days=graph_days)
+
+        recent_daily_counts = dict(
+            base_logs.filter(created_at__gte=graph_start_date)
+            .annotate(date=TruncDate('created_at'))
+            .values('date')
+            .annotate(cnt=Count('id'))
+            .values_list('date', 'cnt')
+        )
+
+        daily_trends = []
+        peak_count = 0
+        peak_date_str = None
+        for i in range(graph_days - 1, -1, -1):
+            d = (now - datetime.timedelta(days=i)).date()
+            cnt = recent_daily_counts.get(d, 0)
+            if cnt > peak_count:
+                peak_count = cnt
+                peak_date_str = d.strftime('%b %d, %Y')
+            daily_trends.append({
+                'date': d.isoformat(),
+                'label': d.strftime('%b %d'),
+                'day_name': d.strftime('%a'),
+                'count': cnt
+            })
+
+        # Calculate Active Streak
+        active_dates = set(
+            base_logs.annotate(date=TruncDate('created_at'))
+            .values_list('date', flat=True)
+            .distinct()
+        )
+        streak = 0
+        check_date = now.date()
+        if check_date not in active_dates:
+            check_date = check_date - datetime.timedelta(days=1)
+        while check_date in active_dates:
+            streak += 1
+            check_date = check_date - datetime.timedelta(days=1)
+
+        # Weekday & Hourly distributions (in local time)
+        weekday_names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+        weekday_map = {name: 0 for name in weekday_names}
+        hourly_map = {h: 0 for h in range(24)}
+
+        for ts in period_logs.values_list('created_at', flat=True)[:1000]:
+            loc = timezone.localtime(ts)
+            weekday_map[weekday_names[loc.weekday()]] += 1
+            hourly_map[loc.hour] += 1
+
+        most_active_hour = max(hourly_map, key=hourly_map.get) if any(hourly_map.values()) else 12
+        formatted_peak_hour = f"{most_active_hour:02d}:00 - {(most_active_hour+1)%24:02d}:00"
+
+        # Filter logs for user timeline
+        filtered_logs = period_logs
+        if category and category != 'all':
+            if category in self.CATEGORY_MAP:
+                filtered_logs = filtered_logs.filter(action_type__in=self.CATEGORY_MAP[category])
+            elif category in dict(UserActivityLog.ACTION_TYPES):
+                filtered_logs = filtered_logs.filter(action_type=category)
+
+        if query:
+            filtered_logs = filtered_logs.filter(
+                Q(action_title__icontains=query) |
+                Q(action_type__icontains=query)
+            )
+
+        serialized_timeline = UserActivityLogSerializer(
+            filtered_logs.order_by('-created_at')[:200],
+            many=True,
+            context={'request': request}
+        ).data
+
+        top_cat = max(category_breakdown, key=category_breakdown.get) if any(category_breakdown.values()) else 'feed'
+
+        return Response({
+            'summary': {
+                'total_all_time': total_all_time,
+                'total_in_period': total_in_period,
+                'active_streak_days': streak,
+                'top_category': top_cat,
+                'peak_day': peak_date_str or 'No activity yet',
+                'peak_day_count': peak_count,
+                'peak_hour_window': formatted_peak_hour,
+            },
+            'category_breakdown': category_breakdown,
+            'daily_trends': daily_trends,
+            'weekday_distribution': [{'day': k, 'count': v} for k, v in weekday_map.items()],
+            'hourly_distribution': [{'hour': k, 'count': v} for k, v in hourly_map.items()],
+            'logs': serialized_timeline,
+            'total_filtered': filtered_logs.count(),
         }, status=status.HTTP_200_OK)
 
 
