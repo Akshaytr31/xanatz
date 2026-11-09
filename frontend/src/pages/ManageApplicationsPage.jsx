@@ -32,7 +32,7 @@ const STATUS_COLORS = {
 };
 
 const ManageApplicationsPage = () => {
-  const { id } = useParams();
+  const { id, jobId } = useParams();
   const navigate = useNavigate();
 
   const [company, setCompany] = useState(null);
@@ -42,11 +42,12 @@ const ManageApplicationsPage = () => {
   const [loading, setLoading] = useState(true);
 
   // Filters
-  const [selectedJobId, setSelectedJobId] = useState("all");
+  const [selectedJobId, setSelectedJobId] = useState(jobId ? String(jobId) : "all");
   const [selectedStatus, setSelectedStatus] = useState("all");
 
   // Expanded cover letters tracking
   const [expandedApps, setExpandedApps] = useState({});
+  const [updatingAppId, setUpdatingAppId] = useState(null);
 
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
@@ -89,6 +90,12 @@ const ManageApplicationsPage = () => {
     fetchData();
   }, [id]);
 
+  useEffect(() => {
+    if (jobId) {
+      setSelectedJobId(String(jobId));
+    }
+  }, [jobId]);
+
   const handleLogout = () => {
     localStorage.clear();
     navigate("/login");
@@ -96,6 +103,7 @@ const ManageApplicationsPage = () => {
 
   const handleStatusChange = async (appId, newStatus) => {
     try {
+      setUpdatingAppId(appId);
       await api.patch(`applications/${appId}/`, { status: newStatus });
       showSuccess(`Status successfully updated to ${STATUS_LABELS[newStatus]}.`);
       // Update local state smoothly
@@ -105,6 +113,8 @@ const ManageApplicationsPage = () => {
     } catch (err) {
       console.error(err);
       showError("Failed to update status.");
+    } finally {
+      setUpdatingAppId(null);
     }
   };
 
@@ -167,7 +177,7 @@ const ManageApplicationsPage = () => {
             <VStack align="start" gap={1}>
               <Button variant="ghost" color="var(--color-text-muted)" fontWeight="bold" fontSize="2xs"
                 letterSpacing="widest" px={0} mb={2} _hover={{ color: "white", transform: "translateX(-4px)" }}
-                transition="all 0.3s" onClick={() => navigate(`/company/${id}`)}>
+                transition="all 0.3s" onClick={() => navigate(`/company/${id}/dashboard`)}>
                 <ArrowLeft size={13} style={{ marginRight: "6px" }} />
                 BACK TO DASHBOARD
               </Button>
@@ -459,6 +469,7 @@ const ManageApplicationsPage = () => {
                                 fontWeight="black"
                                 fontSize="3xs"
                                 letterSpacing="wider"
+                                isDisabled={updatingAppId === app.id}
                                 onClick={() => handleStatusChange(app.id, option.status)}
                                 style={
                                   isCurrent

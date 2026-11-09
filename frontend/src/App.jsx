@@ -134,6 +134,14 @@ function App() {
             }
           />
           <Route
+            path="/company/:id/applications"
+            element={
+              <ProtectedRoute>
+                <ManageApplicationsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/company/:id/openings/:jobId/applications"
             element={
               <ProtectedRoute>
