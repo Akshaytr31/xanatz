@@ -508,7 +508,7 @@ const Navbar = () => {
       >
         {/* ── Logo ── */}
         <motion.span
-          onClick={() => navigate("/dashboard")}
+          onClick={() => navigate("/feeds")}
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.96 }}
           style={{
@@ -538,16 +538,16 @@ const Navbar = () => {
           {accountMode === "company" ? (
             <>
               <NavItem
+                icon={Activity}
+                label="Feeds"
+                active={location.pathname === "/feeds" || location.pathname === "/"}
+                onClick={() => navigate("/feeds")}
+              />
+              <NavItem
                 icon={Building2}
                 label="Workspace"
                 active={location.pathname === "/dashboard"}
                 onClick={() => navigate("/dashboard")}
-              />
-              <NavItem
-                icon={Activity}
-                label="Feeds"
-                active={location.pathname === "/feeds"}
-                onClick={() => navigate("/feeds")}
               />
               <NavItem
                 icon={Briefcase}
@@ -571,16 +571,16 @@ const Navbar = () => {
           ) : (
             <>
               <NavItem
+                icon={Activity}
+                label="Feeds"
+                active={location.pathname === "/feeds" || location.pathname === "/"}
+                onClick={() => navigate("/feeds")}
+              />
+              <NavItem
                 icon={Home}
                 label="Home"
                 active={location.pathname === "/dashboard"}
                 onClick={() => navigate("/dashboard")}
-              />
-              <NavItem
-                icon={Activity}
-                label="Feeds"
-                active={location.pathname === "/feeds"}
-                onClick={() => navigate("/feeds")}
               />
               <NavItem
                 icon={Briefcase}
@@ -1520,6 +1520,7 @@ const Navbar = () => {
           >
             {accountMode === "company" ? (
               <>
+                <MobileNavItem icon={Activity} label="Feeds" active={location.pathname === "/feeds" || location.pathname === "/"} onClick={() => { navigate("/feeds"); setIsMobileMenuOpen(false); }} />
                 <MobileNavItem icon={Building2} label="Workspace" active={location.pathname === "/dashboard"} onClick={() => { navigate("/dashboard"); setIsMobileMenuOpen(false); }} />
                 <MobileNavItem icon={Briefcase} label="Manage Openings" active={location.pathname.includes("/openings")} onClick={() => { navigate(activeCompany?.id ? `/company/${activeCompany.id}/openings` : "/dashboard"); setIsMobileMenuOpen(false); }} />
                 <MobileNavItem icon={FileText} label="Manage RFPs" active={location.pathname.includes("/rfps") && location.pathname.includes("/company")} onClick={() => { navigate(activeCompany?.id ? `/company/${activeCompany.id}/rfps` : "/rfps"); setIsMobileMenuOpen(false); }} />
@@ -1527,6 +1528,7 @@ const Navbar = () => {
               </>
             ) : (
               <>
+                <MobileNavItem icon={Activity} label="Feeds" active={location.pathname === "/feeds" || location.pathname === "/"} onClick={() => { navigate("/feeds"); setIsMobileMenuOpen(false); }} />
                 <MobileNavItem icon={Home} label="Home" active={location.pathname === "/dashboard"} onClick={() => { navigate("/dashboard"); setIsMobileMenuOpen(false); }} />
                 <MobileNavItem icon={Briefcase} label="Jobs" active={location.pathname === "/jobs"} onClick={() => { navigate("/jobs"); setIsMobileMenuOpen(false); }} />
                 <MobileNavItem icon={FileText} label="RFPs" active={location.pathname === "/rfps"} onClick={() => { navigate("/rfps"); setIsMobileMenuOpen(false); }} />

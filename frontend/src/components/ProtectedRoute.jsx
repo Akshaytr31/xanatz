@@ -42,7 +42,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
 
   // Admin access check
   if (requireAdmin && !user.is_staff) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/feeds" replace />;
   }
 
   // Regular user access check (prevent staff from accessing regular dashboard)

@@ -162,7 +162,7 @@ const LoginForm = () => {
       const userRes = await api.get("me/");
       const from = location.state?.from
         ? (location.state.from.pathname + (location.state.from.search || ""))
-        : (userRes.data.is_staff ? "/admin" : "/dashboard");
+        : (userRes.data.is_staff ? "/admin" : "/feeds");
       navigate(from, { replace: true });
     } catch (err) {
       setError("Invalid credentials, please try again.");
@@ -200,7 +200,7 @@ const LoginForm = () => {
       const userRes = await api.get("me/");
       const from = location.state?.from
         ? (location.state.from.pathname + (location.state.from.search || ""))
-        : (userRes.data.is_staff ? "/admin" : "/dashboard");
+        : (userRes.data.is_staff ? "/admin" : "/feeds");
 
       if (response.data.needs_password) {
         setPendingRedirection(from);

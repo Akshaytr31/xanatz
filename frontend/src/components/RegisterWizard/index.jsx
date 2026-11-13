@@ -152,7 +152,7 @@ const RegisterWizard = () => {
       const userRes = await api.get("me/");
       const from = location.state?.from
         ? (location.state.from.pathname + (location.state.from.search || ""))
-        : (userRes.data.is_staff ? "/admin" : "/dashboard");
+        : (userRes.data.is_staff ? "/admin" : "/feeds");
       navigate(from, { replace: true });
     } catch (err) {
       setError("Registration failed. Please check details.");
@@ -191,7 +191,7 @@ const RegisterWizard = () => {
       const userRes = await api.get("me/");
       const targetPath = location.state?.from
         ? (location.state.from.pathname + (location.state.from.search || ""))
-        : (userRes.data.is_staff ? "/admin" : "/dashboard");
+        : (userRes.data.is_staff ? "/admin" : "/feeds");
 
       if (response.data.needs_password) {
         setPendingRedirection(targetPath);

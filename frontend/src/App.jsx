@@ -53,11 +53,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route
             path="/"
-            element={
-              <ProtectedRoute>
-                <HomePage />
-              </ProtectedRoute>
-            }
+            element={<Navigate to="/feeds" replace />}
           />
           <Route
             path="/dashboard"
