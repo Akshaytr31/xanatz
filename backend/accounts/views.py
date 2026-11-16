@@ -1921,6 +1921,62 @@ class AIEnhanceView(APIView):
         
         return Response({"enhanced_text": enhanced_text}, status=status.HTTP_200_OK)
 
+
+class PublicStatsView(APIView):
+    """Returns key public platform statistics (companies, users, RFPs) and random user avatars for auth and landing pages."""
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        import random
+
+        # Prioritize users with uploaded profile pictures
+        users_with_pic = list(
+            User.objects.filter(
+                profile__profile_picture__isnull=False
+            ).exclude(profile__profile_picture='').select_related('profile')
+        )
+
+        if len(users_with_pic) >= 4:
+            selected_users = random.sample(users_with_pic, 4)
+        else:
+            selected_users = list(users_with_pic)
+            needed = 4 - len(selected_users)
+            other_users = list(
+                User.objects.exclude(id__in=[u.id for u in selected_users]).select_related('profile')
+            )
+            if other_users:
+                selected_users.extend(random.sample(other_users, min(needed, len(other_users))))
+
+        random_users = []
+        for u in selected_users:
+            pic_url = None
+            if hasattr(u, 'profile') and u.profile and u.profile.profile_picture:
+                try:
+                    pic_url = request.build_absolute_uri(u.profile.profile_picture.url)
+                except Exception:
+                    pic_url = u.profile.profile_picture.url
+
+            full_name = f"{u.first_name} {u.last_name}".strip() or u.email.split('@')[0]
+            initials = (
+                (u.first_name[:1] + u.last_name[:1]).upper()
+                if (u.first_name and u.last_name)
+                else u.email[:2].upper()
+            )
+            random_users.append({
+                "id": u.id,
+                "name": full_name,
+                "profile_picture": pic_url,
+                "initials": initials,
+            })
+
+        return Response({
+            "total_companies": Company.objects.count(),
+            "total_users": User.objects.count(),
+            "total_rfps": RFP.objects.count(),
+            "random_users": random_users,
+        }, status=status.HTTP_200_OK)
+
+
 class AdminStatsView(APIView):
     """Returns key platform statistics for the admin dashboard."""
     permission_classes = [permissions.IsAdminUser]
