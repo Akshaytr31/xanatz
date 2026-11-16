@@ -92,7 +92,10 @@ const PageModeHeader = ({ title, subtitle, actions }) => {
               <Button
                 size="xs"
                 variant="ghost"
-                onClick={() => switchAccountMode("company", userCompanies[0])}
+                onClick={() => {
+                  switchAccountMode("company", userCompanies[0]);
+                  navigate("/feeds");
+                }}
                 style={{
                   height: "22px",
                   fontSize: "10px",

@@ -461,7 +461,7 @@ const Navbar = () => {
           top: 0,
           left: 0,
           right: 0,
-          height: "3.5px",
+          height: "1px",
           overflow: "hidden",
           pointerEvents: "none",
           zIndex: 1005,
@@ -1065,6 +1065,7 @@ const Navbar = () => {
                         onClick={() => {
                           switchAccountMode("personal");
                           setIsAccountSwitcherOpen(false);
+                          navigate("/feeds");
                         }}
                         style={{
                           display: "flex",
@@ -1140,6 +1141,7 @@ const Navbar = () => {
                                 onClick={() => {
                                   switchAccountMode("company", comp);
                                   setIsAccountSwitcherOpen(false);
+                                  navigate("/feeds");
                                 }}
                                 style={{
                                   display: "flex",
