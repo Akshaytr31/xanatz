@@ -613,6 +613,9 @@ class RFPInterestSerializer(serializers.ModelSerializer):
     applicant_company_name = serializers.ReadOnlyField(source='applicant_company.name', default=None)
     applicant_company_logo_url = serializers.SerializerMethodField()
     associated_review = serializers.SerializerMethodField()
+    submitted_by_name = serializers.SerializerMethodField()
+    submitted_by_email = serializers.ReadOnlyField(source='user.email')
+    submitted_by_avatar = serializers.SerializerMethodField()
 
     class Meta:
         model = RFPInterest
@@ -620,9 +623,27 @@ class RFPInterestSerializer(serializers.ModelSerializer):
             'id', 'quotation_id', 'rfp', 'rfp_title', 'rfp_company_name', 'user', 'user_email',
             'applicant_company', 'applicant_company_name', 'applicant_company_logo_url',
             'company_name', 'email', 'phone_number', 'proposal_summary',
-            'attached_file', 'status', 'is_reviewed', 'associated_review', 'created_at'
+            'attached_file', 'status', 'is_reviewed', 'associated_review', 'created_at',
+            'submitted_by_name', 'submitted_by_email', 'submitted_by_avatar'
         ]
         read_only_fields = ['user', 'quotation_id']
+
+    def get_submitted_by_name(self, obj):
+        if obj.user:
+            name = f"{obj.user.first_name} {obj.user.last_name}".strip()
+            return name if name else obj.user.email.split('@')[0]
+        return None
+
+    def get_submitted_by_avatar(self, obj):
+        request = self.context.get('request')
+        if obj.user and hasattr(obj.user, 'profile') and obj.user.profile and obj.user.profile.profile_picture:
+            try:
+                if request:
+                    return request.build_absolute_uri(obj.user.profile.profile_picture.url)
+                return obj.user.profile.profile_picture.url
+            except Exception:
+                return None
+        return None
 
     def get_applicant_company_logo_url(self, obj):
         request = self.context.get('request')

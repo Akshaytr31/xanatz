@@ -995,11 +995,10 @@ class RFPInterestViewSet(viewsets.ModelViewSet):
         user = self.request.user
         rfp_id = self.request.query_params.get('rfp_id')
         company_id = self.request.query_params.get('company_id')
+        applicant_company_id = self.request.query_params.get('applicant_company_id') or self.request.query_params.get('submitted_by_company_id')
 
         my_companies = Company.objects.filter(creator=user).values_list('id', flat=True)
-        my_member_companies = CompanyMember.objects.filter(
-            user=user, access_role__in=['super_admin', 'admin', 'accountant']
-        ).values_list('company_id', flat=True)
+        my_member_companies = CompanyMember.objects.filter(user=user).values_list('company_id', flat=True)
         all_my_company_ids = list(set(list(my_companies) + list(my_member_companies)))
 
         queryset = RFPInterest.objects.all()
@@ -1007,7 +1006,8 @@ class RFPInterestViewSet(viewsets.ModelViewSet):
         if self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
             queryset = queryset.filter(
                 Q(user=user) | 
-                Q(rfp__company_id__in=all_my_company_ids)
+                Q(rfp__company_id__in=all_my_company_ids) |
+                Q(applicant_company_id__in=all_my_company_ids)
             )
         elif rfp_id:
             queryset = queryset.filter(rfp_id=rfp_id)
@@ -1019,6 +1019,15 @@ class RFPInterestViewSet(viewsets.ModelViewSet):
                 comp_id = int(company_id)
                 if comp_id in all_my_company_ids:
                     queryset = queryset.filter(rfp__company_id=comp_id)
+                else:
+                    queryset = queryset.none()
+            except ValueError:
+                queryset = queryset.none()
+        elif applicant_company_id:
+            try:
+                comp_id = int(applicant_company_id)
+                if comp_id in all_my_company_ids:
+                    queryset = queryset.filter(applicant_company_id=comp_id)
                 else:
                     queryset = queryset.none()
             except ValueError:
@@ -1043,7 +1052,9 @@ class RFPInterestViewSet(viewsets.ModelViewSet):
         applicant_company_id = self.request.data.get('applicant_company') or self.request.data.get('applicant_company_id')
         applicant_company = None
         if applicant_company_id:
-            user_companies = Company.objects.filter(Q(creator=user) | Q(members=user)).distinct()
+            user_companies = Company.objects.filter(
+                Q(creator=user) | Q(members=user) | Q(company_members__user=user)
+            ).distinct()
             applicant_company = user_companies.filter(id=applicant_company_id).first()
 
         save_kwargs = {'user': self.request.user}

@@ -3,15 +3,17 @@ import {
   Box, Flex, Text, Button, VStack, HStack, Container, Spinner, Badge, Heading, Input
 } from "@chakra-ui/react";
 import {
-  ArrowLeft, FileText, Building2, Clock, Search
+  ArrowLeft, FileText, Building2, Clock, Search, User
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { useAccount } from "../context/AccountContext";
 import api from "../api";
 import { formatDate } from "../utils/dateUtils";
 
 const MySubmittedRFPInterestsPage = () => {
   const navigate = useNavigate();
+  const { accountMode, activeCompany } = useAccount();
   const [interests, setInterests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -29,7 +31,11 @@ const MySubmittedRFPInterestsPage = () => {
       return;
     }
     try {
-      const res = await api.get("rfp-interests/");
+      const endpoint =
+        accountMode === "company" && activeCompany?.id
+          ? `rfp-interests/?applicant_company_id=${activeCompany.id}`
+          : "rfp-interests/";
+      const res = await api.get(endpoint);
       setInterests(res.data || []);
     } catch (err) {
       console.error("Error fetching submitted RFP interests:", err);
@@ -40,7 +46,7 @@ const MySubmittedRFPInterestsPage = () => {
 
   useEffect(() => {
     fetchMyInterests();
-  }, []);
+  }, [accountMode, activeCompany?.id]);
 
   const filteredInterests = interests.filter((item) => {
     const q = searchQuery.toLowerCase();
@@ -89,10 +95,14 @@ const MySubmittedRFPInterestsPage = () => {
         <Flex justify="space-between" align="center" mb={8} flexWrap="wrap" gap={4}>
           <VStack align="start" gap={1}>
             <Heading size="lg" fontWeight="900" letterSpacing="tight">
-              My Submitted RFP Interests
+              {accountMode === "company" && activeCompany
+                ? `${activeCompany.name} Submitted Proposals`
+                : "My Submitted RFP Interests"}
             </Heading>
             <Text color="rgba(255,255,255,0.5)" fontSize="xs">
-              All proposal submissions and status updates across public client RFPs.
+              {accountMode === "company" && activeCompany
+                ? `All RFP proposals and interest submissions submitted across ${activeCompany.name} team members.`
+                : "All proposal submissions and status updates across public client RFPs."}
             </Text>
           </VStack>
 
@@ -216,6 +226,15 @@ const MySubmittedRFPInterestsPage = () => {
                           <Badge bg="rgba(59, 130, 246, 0.15)" color="#93c5fd" border="1px solid rgba(59, 130, 246, 0.3)" fontSize="10px" px={2} py={0.5} borderRadius="md" fontWeight="bold">
                             👤 Personal Account
                           </Badge>
+                        )}
+                        {item.submitted_by_name && (
+                          <HStack gap={1} bg="rgba(139, 92, 246, 0.15)" px={2} py={0.5} borderRadius="md" border="1px solid rgba(139, 92, 246, 0.3)">
+                            <User size={11} color="#c4b5fd" />
+                            <Text fontSize="10px" color="#c4b5fd" fontWeight="bold">
+                              By {item.submitted_by_name}
+                              {item.submitted_by_email ? ` (${item.submitted_by_email})` : ""}
+                            </Text>
+                          </HStack>
                         )}
                       </HStack>
 

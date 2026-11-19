@@ -558,8 +558,14 @@ const Navbar = () => {
               <NavItem
                 icon={FileText}
                 label="RFPs"
-                active={location.pathname.includes("/rfps") && location.pathname.includes("/company")}
-                onClick={() => navigate(activeCompany?.id ? `/company/${activeCompany.id}/rfps` : "/rfps")}
+                active={location.pathname === "/rfps" || (location.pathname.includes("/rfps") && !location.pathname.includes("/company"))}
+                onClick={() => navigate("/rfps")}
+              />
+              <NavItem
+                icon={Send}
+                label="Proposals"
+                active={location.pathname === "/my-rfp-interests"}
+                onClick={() => navigate("/my-rfp-interests")}
               />
               <NavItem
                 icon={Users}
@@ -1525,7 +1531,8 @@ const Navbar = () => {
                 <MobileNavItem icon={Activity} label="Feeds" active={location.pathname === "/feeds" || location.pathname === "/"} onClick={() => { navigate("/feeds"); setIsMobileMenuOpen(false); }} />
                 <MobileNavItem icon={Building2} label="Workspace" active={location.pathname === "/dashboard"} onClick={() => { navigate("/dashboard"); setIsMobileMenuOpen(false); }} />
                 <MobileNavItem icon={Briefcase} label="Manage Openings" active={location.pathname.includes("/openings")} onClick={() => { navigate(activeCompany?.id ? `/company/${activeCompany.id}/openings` : "/dashboard"); setIsMobileMenuOpen(false); }} />
-                <MobileNavItem icon={FileText} label="Manage RFPs" active={location.pathname.includes("/rfps") && location.pathname.includes("/company")} onClick={() => { navigate(activeCompany?.id ? `/company/${activeCompany.id}/rfps` : "/rfps"); setIsMobileMenuOpen(false); }} />
+                <MobileNavItem icon={FileText} label="RFPs" active={location.pathname === "/rfps" || (location.pathname.includes("/rfps") && !location.pathname.includes("/company"))} onClick={() => { navigate("/rfps"); setIsMobileMenuOpen(false); }} />
+                <MobileNavItem icon={Send} label="Proposals" active={location.pathname === "/my-rfp-interests"} onClick={() => { navigate("/my-rfp-interests"); setIsMobileMenuOpen(false); }} />
                 <MobileNavItem icon={Users} label="Team Members" active={location.pathname.includes("/members")} onClick={() => { navigate(activeCompany?.id ? `/company/${activeCompany.id}/members` : "/dashboard"); setIsMobileMenuOpen(false); }} />
               </>
             ) : (

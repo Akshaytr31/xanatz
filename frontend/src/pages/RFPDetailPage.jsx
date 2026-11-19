@@ -33,6 +33,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { useAccount } from "../context/AccountContext";
 import RFPInterestModal from "../components/company/RFPInterestModal";
 import FlagConfirmationModal from "../components/FlagConfirmationModal";
 import ShareModal from "../components/ShareModal";
@@ -47,6 +48,7 @@ const RFPDetailPage = () => {
   const id = rfpId || paramId;
   const navigate = useNavigate();
   const location = useLocation();
+  const { accountMode, activeCompany } = useAccount();
 
   const getImageUrl = (path) => {
     if (!path) return null;
@@ -157,7 +159,11 @@ const RFPDetailPage = () => {
       const token = localStorage.getItem("access");
       if (!token) return;
       try {
-        const iRes = await api.get("rfp-interests/");
+        const endpoint =
+          accountMode === "company" && activeCompany?.id
+            ? `rfp-interests/?applicant_company_id=${activeCompany.id}`
+            : "rfp-interests/";
+        const iRes = await api.get(endpoint);
         setMyInterests(iRes.data || []);
       } catch (err) {
         console.error("Failed to fetch my interests:", err);
@@ -167,7 +173,7 @@ const RFPDetailPage = () => {
     fetchData();
     fetchUser();
     fetchMyInterests();
-  }, [id]);
+  }, [id, accountMode, activeCompany?.id]);
 
   if (loading) {
     return (
@@ -455,7 +461,7 @@ const RFPDetailPage = () => {
                             YOUR COMPANY'S RFP
                           </Button>
                         )
-                      ) : myInterests.some((i) => String(i.rfp) === String(id)) ? (
+                      ) : myInterests.some((i) => String(typeof i.rfp === "object" ? i.rfp?.id : i.rfp) === String(id)) ? (
                         <Button
                           px={6}
                           h="40px"
@@ -819,7 +825,7 @@ const RFPDetailPage = () => {
                           YOUR COMPANY'S RFP
                         </Button>
                       )
-                    ) : myInterests.some((i) => String(i.rfp) === String(id)) ? (
+                    ) : myInterests.some((i) => String(typeof i.rfp === "object" ? i.rfp?.id : i.rfp) === String(id)) ? (
                       <Button
                         w="full"
                         h="42px"
@@ -943,15 +949,19 @@ const RFPDetailPage = () => {
           onClose={() => setIsInterestOpen(false)}
           rfp={rfp}
           onSubmitSuccess={() => {
-            const fetchMyInterests = async () => {
+            const fetchUpdatedInterests = async () => {
               try {
-                const iRes = await api.get("rfp-interests/");
+                const endpoint =
+                  accountMode === "company" && activeCompany?.id
+                    ? `rfp-interests/?applicant_company_id=${activeCompany.id}`
+                    : "rfp-interests/";
+                const iRes = await api.get(endpoint);
                 setMyInterests(iRes.data || []);
               } catch (err) {
                 console.error(err);
               }
             };
-            fetchMyInterests();
+            fetchUpdatedInterests();
           }}
         />
       )}

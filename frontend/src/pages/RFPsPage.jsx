@@ -10,6 +10,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { useAccount } from "../context/AccountContext";
 import RFPInterestModal from "../components/company/RFPInterestModal";
 import RFPFilterSidebar from "../components/RFPFilterSidebar";
 import FlagConfirmationModal from "../components/FlagConfirmationModal";
@@ -61,6 +62,7 @@ const RFPsPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { id: paramRfpId } = useParams();
+  const { accountMode, activeCompany } = useAccount();
 
   const [rfps, setRfps] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
@@ -184,7 +186,11 @@ const RFPsPage = () => {
     const token = localStorage.getItem("access");
     if (!token) return;
     try {
-      const iRes = await api.get("rfp-interests/");
+      const endpoint =
+        accountMode === "company" && activeCompany?.id
+          ? `rfp-interests/?applicant_company_id=${activeCompany.id}`
+          : "rfp-interests/";
+      const iRes = await api.get(endpoint);
       setMyInterests(iRes.data || []);
     } catch (err) {
       console.error(err);
@@ -194,8 +200,11 @@ const RFPsPage = () => {
   useEffect(() => {
     fetchData();
     fetchUser();
-    fetchMyInterests();
   }, []);
+
+  useEffect(() => {
+    fetchMyInterests();
+  }, [accountMode, activeCompany?.id]);
 
   useEffect(() => {
     if (!loading && rfps.length > 0) {
@@ -463,6 +472,96 @@ const RFPsPage = () => {
                 </HStack>
               </Flex>
 
+              {/* COMPANY WORKSPACE QUICK ACTIONS */}
+              {accountMode === "company" && activeCompany && (
+                <Flex
+                  direction={{ base: "column", md: "row" }}
+                  align={{ base: "stretch", md: "center" }}
+                  justify="space-between"
+                  p={4}
+                  borderRadius="2xl"
+                  border="1px solid rgba(139,92,246,0.35)"
+                  style={{
+                    background: "linear-gradient(90deg, rgba(139,92,246,0.18) 0%, rgba(15,23,42,0.9) 100%)",
+                    backdropFilter: "blur(20px)",
+                    boxShadow: "0 10px 30px rgba(0,0,0,0.35)",
+                  }}
+                  gap={3.5}
+                >
+                  <HStack gap={3}>
+                    <Circle size="40px" bg="rgba(139,92,246,0.25)" border="1px solid rgba(139,92,246,0.5)">
+                      <Building2 size={20} color="#c4b5fd" />
+                    </Circle>
+                    <VStack align="start" gap={0.5}>
+                      <HStack gap={2}>
+                        <Text color="white" fontWeight="900" fontSize="xs" letterSpacing="wider">
+                          {activeCompany.name.toUpperCase()} RFP WORKSPACE
+                        </Text>
+                        <Badge bg="rgba(139,92,246,0.35)" color="#e9d5ff" fontSize="9px" px={2} py={0.5} borderRadius="full" fontWeight="black">
+                          ACTIVE COMPANY
+                        </Badge>
+                      </HStack>
+                      <Text fontSize="11px" color="rgba(255,255,255,0.6)">
+                        Browse public tenders below, manage your company's posted RFPs, or review team proposals.
+                      </Text>
+                    </VStack>
+                  </HStack>
+
+                  <HStack gap={2} wrap="wrap">
+                    <Button
+                      size="xs"
+                      h="8"
+                      px={3.5}
+                      borderRadius="xl"
+                      bg="rgba(139,92,246,0.25)"
+                      border="1px solid rgba(139,92,246,0.45)"
+                      color="#c4b5fd"
+                      fontWeight="bold"
+                      fontSize="11px"
+                      _hover={{ bg: "#8b5cf6", color: "white" }}
+                      onClick={() => navigate(`/company/${activeCompany.id}/rfps`)}
+                    >
+                      <FileText size={13} style={{ marginRight: 6 }} />
+                      Manage Our RFPs
+                    </Button>
+
+                    <Button
+                      size="xs"
+                      h="8"
+                      px={3.5}
+                      borderRadius="xl"
+                      bg="rgba(16,185,129,0.15)"
+                      border="1px solid rgba(16,185,129,0.35)"
+                      color="#34d399"
+                      fontWeight="bold"
+                      fontSize="11px"
+                      _hover={{ bg: "#10b981", color: "white" }}
+                      onClick={() => navigate(`/company/${activeCompany.id}/rfp-interests`)}
+                    >
+                      <Zap size={13} style={{ marginRight: 6 }} />
+                      Inbound Proposals
+                    </Button>
+
+                    <Button
+                      size="xs"
+                      h="8"
+                      px={3.5}
+                      borderRadius="xl"
+                      bg="rgba(59,130,246,0.15)"
+                      border="1px solid rgba(59,130,246,0.35)"
+                      color="#93c5fd"
+                      fontWeight="bold"
+                      fontSize="11px"
+                      _hover={{ bg: "#3b82f6", color: "white" }}
+                      onClick={() => navigate("/my-rfp-interests")}
+                    >
+                      <CheckCircle2 size={13} style={{ marginRight: 6 }} />
+                      Team Submitted ({myInterests.length})
+                    </Button>
+                  </HStack>
+                </Flex>
+              )}
+
               {/* FLOATING SEARCH BAR & CONTROLS TOOLBAR */}
               <Box
                 p={{ base: 3, md: 4 }}
@@ -653,8 +752,8 @@ const RFPsPage = () => {
             {/* ─── CENTER COLUMN: MY PROPOSALS & RFP CARDS ─── */}
             <VStack align="stretch" gap={6}>
 
-              {/* ─── RELOCATED: MY SUBMITTED PROPOSALS TOP SECTION ─── */}
-              {currentUser && myInterests.length > 0 && !currentUser.companies?.some((c) => !c.is_owner) && (
+              {/* ─── RELOCATED: MY / COMPANY SUBMITTED PROPOSALS TOP SECTION ─── */}
+              {currentUser && myInterests.length > 0 && (
                 <Box
                   p={4.5}
                   borderRadius="2xl"
@@ -673,14 +772,18 @@ const RFPsPage = () => {
                       <VStack align="start" gap={0}>
                         <HStack gap={2}>
                           <Text color="white" fontWeight="black" fontSize="xs" letterSpacing="wide">
-                            MY SUBMITTED PROPOSALS
+                            {accountMode === "company" && activeCompany
+                              ? `${activeCompany.name.toUpperCase()} TEAM PROPOSALS`
+                              : "MY SUBMITTED PROPOSALS"}
                           </Text>
                           <Badge px={2} py={0.5} borderRadius="full" fontSize="10px" fontWeight="black" bg={accentColor} color="white">
                             {myInterests.length}
                           </Badge>
                         </HStack>
                         <Text fontSize="11px" color="var(--color-text-muted)">
-                          Track your submitted quotes and proposal statuses
+                          {accountMode === "company" && activeCompany
+                            ? "Track proposals and interest submitted across your company team"
+                            : "Track your submitted quotes and proposal statuses"}
                         </Text>
                       </VStack>
                     </HStack>
@@ -763,6 +866,15 @@ const RFPsPage = () => {
                               <Building2 size={12} color="#a78bfa" />
                               <Text fontWeight="600" noOfLines={1}>{item.rfp_company_name || "Company Client"}</Text>
                             </HStack>
+
+                            {item.submitted_by_name && (
+                              <HStack gap={1} fontSize="10px" color="rgba(255,255,255,0.65)">
+                                <UserIcon size={11} color="#c4b5fd" />
+                                <Text noOfLines={1}>
+                                  By: <Text as="span" color="#c4b5fd" fontWeight="bold">{item.submitted_by_name}</Text>
+                                </Text>
+                              </HStack>
+                            )}
 
                             {item.quotation_id && (
                               <Text fontSize="10px" color="rgba(255,255,255,0.4)">

@@ -359,6 +359,11 @@ const ManageRFPInterestsPage = () => {
                           <VStack align="start" gap={0.5}>
                             <HStack gap={2} align="center" flexWrap="wrap">
                               <Text color="var(--color-text-primary)" fontWeight="black" fontSize="sm" letterSpacing="tight">{interest.company_name}</Text>
+                              {interest.applicant_company_name && (
+                                <Badge bg="rgba(16, 185, 129, 0.15)" color="#34d399" border="1px solid rgba(16, 185, 129, 0.3)" fontSize="2xs" px={1.5} py={0.2} borderRadius="sm">
+                                  🏢 {interest.applicant_company_name}
+                                </Badge>
+                              )}
                               {interest.quotation_id && (
                                 <Badge variant="outline" colorScheme="gray" fontSize="2xs" px={1.5} py={0.2} borderRadius="sm" color="var(--color-text-muted)" style={{ background: "rgba(255,255,255,0.03)", borderColor: "var(--color-card-border)" }}>
                                   {interest.quotation_id}
@@ -366,6 +371,12 @@ const ManageRFPInterestsPage = () => {
                               )}
                             </HStack>
                             <HStack gap={3} flexWrap="wrap">
+                              {interest.submitted_by_name && (
+                                <HStack gap={1.5} fontSize="xs" color="var(--color-text-muted)">
+                                  <User size={12} />
+                                  <Text>Submitted by: {interest.submitted_by_name}</Text>
+                                </HStack>
+                              )}
                               <HStack gap={1.5} fontSize="xs" color="var(--color-text-muted)">
                                 <Mail size={12} />
                                 <Text>{interest.email}</Text>

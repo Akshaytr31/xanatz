@@ -121,7 +121,10 @@ const RFPInterestModal = ({ isOpen, onClose, rfp, onSubmitSuccess }) => {
             api.get("companies/my-companies/")
           ]);
           setUserInfo(userRes.data);
-          const companies = companiesRes.data || [];
+          let companies = companiesRes.data || [];
+          if (activeCompany && !companies.some(c => c.id === activeCompany.id)) {
+            companies = [activeCompany, ...companies];
+          }
           setMyCompanies(companies);
           
           const userName = `${userRes.data.first_name || ""} ${userRes.data.last_name || ""}`.trim();
@@ -157,6 +160,7 @@ const RFPInterestModal = ({ isOpen, onClose, rfp, onSubmitSuccess }) => {
 
   const isOwnCompanyRfp = Boolean(
     rfp && (
+      (activeCompany && rfp.company === activeCompany.id) ||
       myCompanies.some((c) => c.id === rfp.company) ||
       userInfo?.companies?.some((c) => c.id === rfp.company) ||
       (userInfo && rfp.company === userInfo.company_id)
@@ -377,6 +381,31 @@ const RFPInterestModal = ({ isOpen, onClose, rfp, onSubmitSuccess }) => {
                         <Flex bg="rgba(239, 68, 68, 0.1)" border="1px solid rgba(239, 68, 68, 0.2)" p={4} borderRadius="xl" align="center" gap={3}>
                           <AlertCircle size={18} color="#ef4444" />
                           <Text color="#f87171" fontSize="xs" fontWeight="bold">{errorMsg}</Text>
+                        </Flex>
+                      )}
+
+                      {accountMode === "company" && activeCompany && (
+                        <Flex
+                          p={3.5}
+                          borderRadius="xl"
+                          border="1px solid rgba(139, 92, 246, 0.35)"
+                          bg="rgba(139, 92, 246, 0.12)"
+                          align="center"
+                          gap={3}
+                        >
+                          <Building2 size={18} color="#c4b5fd" />
+                          <Text fontSize="xs" color="#e9d5ff">
+                            Submitting proposal on behalf of corporate account:{" "}
+                            <Text as="span" fontWeight="bold" color="white">
+                              {activeCompany.name}
+                            </Text>
+                            {userInfo ? (
+                              <Text as="span" color="rgba(255,255,255,0.65)">
+                                {" "}
+                                (Submitted by: {userInfo.first_name || userInfo.email})
+                              </Text>
+                            ) : null}
+                          </Text>
                         </Flex>
                       )}
 
