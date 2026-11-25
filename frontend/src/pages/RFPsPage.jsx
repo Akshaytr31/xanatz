@@ -5,13 +5,15 @@ import {
 import {
   FileText, Search, Clock, DollarSign, Calendar, Building2, ChevronRight, AlertCircle,
   TrendingUp, User as UserIcon, Briefcase, Award, Info, MapPin, Users, CheckCircle2,
-  Share2, Flag, LayoutGrid, List, SlidersHorizontal, Zap, Globe, ShieldCheck, ArrowUpRight, X as XIcon, RotateCcw
+  Share2, Flag, LayoutGrid, List, SlidersHorizontal, Zap, Globe, ShieldCheck, ArrowUpRight, X as XIcon, RotateCcw,
+  MessageSquare
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { useAccount } from "../context/AccountContext";
 import RFPInterestModal from "../components/company/RFPInterestModal";
+import RFPChatModal from "../components/rfp/RFPChatModal";
 import RFPFilterSidebar from "../components/RFPFilterSidebar";
 import FlagConfirmationModal from "../components/FlagConfirmationModal";
 import ShareModal from "../components/ShareModal";
@@ -90,6 +92,12 @@ const RFPsPage = () => {
   // Modal Control
   const [selectedRfp, setSelectedRfp] = useState(null);
   const [isInterestOpen, setIsInterestOpen] = useState(false);
+  const [activeChatRfp, setActiveChatRfp] = useState(null);
+
+  const handleOpenChat = (e, rfp) => {
+    if (e) e.stopPropagation();
+    setActiveChatRfp(rfp);
+  };
 
   const [shareModalData, setShareModalData] = useState({
     isOpen: false,
@@ -209,8 +217,16 @@ const RFPsPage = () => {
   useEffect(() => {
     if (!loading && rfps.length > 0) {
       const queryParams = new URLSearchParams(location.search);
+      const isChat = queryParams.get("chat") === "true";
       const targetId = paramRfpId || queryParams.get("rfp");
-      if (targetId) {
+      if (isChat && targetId) {
+        const found = rfps.find((r) => String(r.id) === String(targetId));
+        if (found) {
+          setActiveChatRfp(found);
+          return;
+        }
+      }
+      if (targetId && !isChat) {
         navigate(`/rfps/${targetId}`, { replace: true });
       }
     }
@@ -1016,6 +1032,20 @@ const RFPsPage = () => {
                                   p={0}
                                   color="var(--color-text-muted)"
                                   _hover={{ color: accentColor, bg: `${accentColor}15` }}
+                                  onClick={(e) => handleOpenChat(e, rfp)}
+                                  title="Chat about this RFP"
+                                >
+                                  <MessageSquare size={13} />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="xs"
+                                  w="7"
+                                  h="7"
+                                  minW="0"
+                                  p={0}
+                                  color="var(--color-text-muted)"
+                                  _hover={{ color: accentColor, bg: `${accentColor}15` }}
                                   onClick={(e) => handleShareRfp(e, rfp)}
                                   title="Share RFP"
                                 >
@@ -1095,6 +1125,24 @@ const RFPsPage = () => {
                               onClick={() => handleViewDetails(rfp)}
                             >
                               DETAILS
+                            </Button>
+
+                            <Button
+                              h="8"
+                              px={2.5}
+                              borderRadius="lg"
+                              fontSize="11px"
+                              fontWeight="bold"
+                              variant="ghost"
+                              color="#c4b5fd"
+                              bg="rgba(139, 92, 246, 0.1)"
+                              border="1px solid rgba(139, 92, 246, 0.25)"
+                              _hover={{ bg: "#8b5cf6", color: "white" }}
+                              onClick={(e) => handleOpenChat(e, rfp)}
+                              title="Chat about this RFP"
+                            >
+                              <MessageSquare size={12} style={{ marginRight: 4 }} />
+                              CHAT
                             </Button>
 
                             {(() => {
@@ -1237,6 +1285,16 @@ const RFPsPage = () => {
                                 size="xs"
                                 color="var(--color-text-muted)"
                                 _hover={{ color: accentColor, bg: `${accentColor}15` }}
+                                onClick={(e) => handleOpenChat(e, rfp)}
+                                title="Chat about this RFP"
+                              >
+                                <MessageSquare size={14} />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="xs"
+                                color="var(--color-text-muted)"
+                                _hover={{ color: accentColor, bg: `${accentColor}15` }}
                                 onClick={(e) => handleShareRfp(e, rfp)}
                                 title="Share RFP"
                               >
@@ -1356,6 +1414,24 @@ const RFPsPage = () => {
                           <HStack gap={3} pt={3.5} borderTop="1px solid var(--color-card-border)" justify="flex-end">
                             <Button
                               h="8.5"
+                              px={3.5}
+                              borderRadius="xl"
+                              fontSize="xs"
+                              fontWeight="bold"
+                              variant="ghost"
+                              bg="rgba(139, 92, 246, 0.12)"
+                              border="1px solid rgba(139, 92, 246, 0.3)"
+                              color="#c4b5fd"
+                              _hover={{ bg: "#8b5cf6", color: "white" }}
+                              onClick={(e) => handleOpenChat(e, rfp)}
+                              title="Chat about this RFP"
+                            >
+                              <MessageSquare size={13} style={{ marginRight: 6 }} />
+                              CHAT
+                            </Button>
+
+                            <Button
+                              h="8.5"
                               px={4.5}
                               borderRadius="xl"
                               fontSize="xs"
@@ -1465,6 +1541,14 @@ const RFPsPage = () => {
           onClose={() => setIsInterestOpen(false)}
           rfp={selectedRfp}
           onSubmitSuccess={fetchMyInterests}
+        />
+      )}
+
+      {/* RFP Direct Chat Modal */}
+      {activeChatRfp && (
+        <RFPChatModal
+          rfp={activeChatRfp}
+          onClose={() => setActiveChatRfp(null)}
         />
       )}
 

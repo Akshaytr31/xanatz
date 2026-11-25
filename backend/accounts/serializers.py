@@ -719,6 +719,11 @@ class MessageSerializer(serializers.ModelSerializer):
     sender_email = serializers.ReadOnlyField(source='sender.email')
     recipient_email = serializers.ReadOnlyField(source='recipient.email', default=None)
     company_name = serializers.ReadOnlyField(source='company.name', default=None)
+    sender_company_name = serializers.ReadOnlyField(source='sender_company.name', default=None)
+    sender_company_logo = serializers.SerializerMethodField()
+    rfp_title = serializers.ReadOnlyField(source='rfp.title', default=None)
+    rfp_code = serializers.ReadOnlyField(source='rfp.rfp_id', default=None)
+    sender_avatar = serializers.SerializerMethodField()
     sender_name = serializers.SerializerMethodField()
     recipient_name = serializers.SerializerMethodField()
     sender_role = serializers.SerializerMethodField()
@@ -728,12 +733,30 @@ class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = [
-            'id', 'sender', 'sender_email', 'sender_name',
+            'id', 'sender', 'sender_email', 'sender_name', 'sender_avatar',
+            'sender_company', 'sender_company_name', 'sender_company_logo',
             'sender_role', 'sender_position', 'is_xanatz_admin',
             'recipient', 'recipient_email', 'recipient_name',
-            'company', 'company_name', 'content', 'is_read', 'created_at'
+            'company', 'company_name', 'rfp', 'rfp_title', 'rfp_code',
+            'content', 'is_read', 'created_at'
         ]
-        read_only_fields = ['id', 'sender', 'created_at']
+        read_only_fields = ['id', 'sender', 'sender_company', 'rfp', 'created_at']
+
+    def get_sender_company_logo(self, obj):
+        if obj.sender_company and obj.sender_company.logo:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.sender_company.logo.url)
+            return obj.sender_company.logo.url
+        return None
+
+    def get_sender_avatar(self, obj):
+        if obj.sender and hasattr(obj.sender, 'profile') and obj.sender.profile.profile_picture:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.sender.profile.profile_picture.url)
+            return obj.sender.profile.profile_picture.url
+        return None
 
     def get_is_xanatz_admin(self, obj):
         if not obj.sender:
@@ -752,8 +775,10 @@ class MessageSerializer(serializers.ModelSerializer):
         if self.get_is_xanatz_admin(obj):
             name = f"{obj.sender.first_name or ''} {obj.sender.last_name or ''}".strip()
             return f"Xanatz Admin ({name})" if name else "Xanatz Admin"
-        name = f"{obj.sender.first_name or ''} {obj.sender.last_name or ''}".strip()
-        return name or obj.sender.email
+        user_name = f"{obj.sender.first_name or ''} {obj.sender.last_name or ''}".strip() or obj.sender.email
+        if obj.sender_company:
+            return f"{obj.sender_company.name} ({user_name})"
+        return user_name
 
     def get_recipient_name(self, obj):
         if not obj.recipient:
@@ -766,6 +791,21 @@ class MessageSerializer(serializers.ModelSerializer):
             return None
         if self.get_is_xanatz_admin(obj):
             return "Xanatz Admin"
+        if obj.sender_company:
+            if obj.sender_company.creator_id == obj.sender.id:
+                return f"{obj.sender_company.name} Owner"
+            member = CompanyMember.objects.filter(company=obj.sender_company, user=obj.sender).first()
+            if member:
+                role_map = {
+                    'super_admin': 'Super Admin',
+                    'admin': 'Admin',
+                    'hr': 'HR Manager',
+                    'accountant': 'Accountant',
+                    'user': 'Team Member',
+                }
+                return f"{obj.sender_company.name} {role_map.get(member.access_role, 'Member')}"
+            return f"{obj.sender_company.name} Member"
+
         if obj.company:
             if obj.company.creator_id == obj.sender.id:
                 return "Company Owner"
@@ -789,7 +829,7 @@ class MessageSerializer(serializers.ModelSerializer):
                 'user': 'Company Member',
             }
             return role_map.get(member.access_role, 'Company Member')
-        return "Company Member"
+        return "General User"
 
     def get_sender_position(self, obj):
         if not obj.sender:

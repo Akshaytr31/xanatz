@@ -1163,107 +1163,281 @@ class MessageViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        my_companies = Company.objects.filter(creator=user).values_list('id', flat=True)
-        my_member_companies = CompanyMember.objects.filter(
-            user=user, access_role__in=['super_admin', 'admin', 'hr']
-        ).values_list('company_id', flat=True)
-        company_ids = set(list(my_companies) + list(my_member_companies))
+        company_id = self.request.query_params.get('company_id')
+        mode = self.request.query_params.get('mode')
+        rfp_id = self.request.query_params.get('rfp_id')
 
-        return Message.objects.filter(
-            Q(sender=user) | Q(recipient=user) | Q(company_id__in=company_ids)
-        ).distinct().order_by('created_at')
+        my_companies = Company.objects.filter(
+            Q(creator=user) | Q(members=user) | Q(company_members__user=user)
+        ).values_list('id', flat=True).distinct()
+        all_my_company_ids = set(my_companies)
+
+        if company_id:
+            try:
+                c_id = int(company_id)
+                if c_id in all_my_company_ids or user.is_staff or user.is_superuser:
+                    qs = Message.objects.filter(
+                        Q(company_id=c_id) | Q(sender_company_id=c_id)
+                    )
+                else:
+                    qs = Message.objects.none()
+            except ValueError:
+                qs = Message.objects.none()
+        elif mode == 'personal':
+            # Strictly personal conversations: exclude messages addressed to or from user's companies
+            qs = Message.objects.filter(
+                (Q(sender=user) & Q(sender_company__isnull=True)) | Q(recipient=user)
+            ).exclude(
+                company_id__in=all_my_company_ids
+            )
+        else:
+            qs = Message.objects.filter(
+                Q(sender=user) | Q(recipient=user) | Q(company_id__in=all_my_company_ids) | Q(sender_company_id__in=all_my_company_ids)
+            )
+
+        if rfp_id:
+            try:
+                qs = qs.filter(rfp_id=int(rfp_id))
+            except ValueError:
+                pass
+
+        return qs.distinct().order_by('created_at')
 
     def perform_create(self, serializer):
+        user = self.request.user
         company_id = self.request.data.get('company_id') or self.request.data.get('company')
+        recipient_id = self.request.data.get('recipient_id') or self.request.data.get('recipient')
+        sender_company_id = self.request.data.get('sender_company_id') or self.request.data.get('sender_company')
+        rfp_id = self.request.data.get('rfp_id') or self.request.data.get('rfp')
+
         company = None
         if company_id:
             company = Company.objects.filter(id=company_id).first()
 
-        recipient_id = self.request.data.get('recipient_id') or self.request.data.get('recipient')
+        sender_company = None
+        if sender_company_id:
+            user_companies = Company.objects.filter(
+                Q(creator=user) | Q(members=user) | Q(company_members__user=user)
+            ).distinct()
+            sender_company = user_companies.filter(id=sender_company_id).first()
+
+        rfp = None
+        if rfp_id:
+            rfp = RFP.objects.filter(id=rfp_id).first()
+            if not company and rfp and rfp.company:
+                if not sender_company or sender_company.id != rfp.company.id:
+                    company = rfp.company
+
         recipient = None
         if recipient_id:
             recipient = User.objects.filter(id=recipient_id).first()
 
-        save_kwargs = {'sender': self.request.user}
+        save_kwargs = {'sender': user}
         if company:
             save_kwargs['company'] = company
+        if sender_company:
+            save_kwargs['sender_company'] = sender_company
         if recipient:
             save_kwargs['recipient'] = recipient
+        if rfp:
+            save_kwargs['rfp'] = rfp
 
         msg = serializer.save(**save_kwargs)
 
-        # Send notifications depending on whether message recipient is admin or regular user/company
-        sender_name = f"{self.request.user.first_name} {self.request.user.last_name}".strip() or self.request.user.email
-        if company:
-            sender_name = f"{company.name} ({sender_name})"
+        # Build sender display name for notifications
+        user_name = f"{user.first_name} {user.last_name}".strip() or user.email
+        if sender_company:
+            sender_display = f"{sender_company.name} ({user_name})"
+        else:
+            sender_display = user_name
+
+        rfp_suffix = f" on RFP: '{rfp.title[:30]}'" if rfp else ""
+        notification_url = f"/rfps/{rfp.id}" if rfp else "/messages"
 
         if recipient and (recipient.is_staff or recipient.is_superuser):
             Notification.objects.create(
                 recipient=recipient,
-                sender=self.request.user,
-                message=f"Message from {sender_name}: '{msg.content[:50]}'",
+                sender=user,
+                message=f"Message from {sender_display}{rfp_suffix}: '{msg.content[:45]}'",
                 target_url="/admin?tab=flagged_reviews"
             )
-        elif recipient and recipient != self.request.user:
+        elif recipient and recipient != user:
             Notification.objects.create(
                 recipient=recipient,
-                sender=self.request.user,
-                message=f"New message from {sender_name}: '{msg.content[:50]}'",
-                target_url="/messages"
+                sender=user,
+                message=f"New message from {sender_display}{rfp_suffix}: '{msg.content[:45]}'",
+                target_url=notification_url
             )
-        elif company and company.creator and company.creator != self.request.user:
-            Notification.objects.create(
-                recipient=company.creator,
-                sender=self.request.user,
-                message=f"New message for {company.name} from {sender_name}: '{msg.content[:50]}'",
-                target_url="/messages"
-            )
+        elif company:
+            company_admins = User.objects.filter(
+                Q(created_companies=company) |
+                Q(company_memberships__company=company, company_memberships__access_role__in=['super_admin', 'admin'])
+            ).distinct().exclude(id=user.id)
+            for admin_user in company_admins:
+                Notification.objects.create(
+                    recipient=admin_user,
+                    sender=user,
+                    message=f"Inquiry for {company.name}{rfp_suffix} from {sender_display}: '{msg.content[:45]}'",
+                    target_url=notification_url
+                )
 
     @action(detail=False, methods=['get'])
     def conversations(self, request):
         user = request.user
+        company_id = request.query_params.get('company_id')
         from django.utils import timezone
         
-        my_companies = Company.objects.filter(creator=user).values_list('id', flat=True)
-        my_member_companies = CompanyMember.objects.filter(user=user).values_list('company_id', flat=True)
-        company_ids = set(list(my_companies) + list(my_member_companies))
+        my_companies = Company.objects.filter(
+            Q(creator=user) | Q(members=user) | Q(company_members__user=user)
+        ).values_list('id', flat=True).distinct()
+        company_ids = set(my_companies)
 
-        sent_recipients = Message.objects.filter(sender=user).values_list('recipient', flat=True)
+        conversations_data = []
+
+        if company_id:
+            try:
+                comp_id_int = int(company_id)
+                comp = Company.objects.get(id=comp_id_int)
+                if comp_id_int not in company_ids and not (user.is_staff or user.is_superuser):
+                    return Response({"error": "Permission denied for company messages"}, status=status.HTTP_403_FORBIDDEN)
+            except (ValueError, Company.DoesNotExist):
+                return Response({"error": "Company not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            comp_msgs = Message.objects.filter(Q(company=comp) | Q(sender_company=comp)).distinct()
+
+            # 1. Official Admin support channel
+            last_comp_msg = comp_msgs.filter(Q(sender__is_staff=True) | Q(recipient__is_staff=True)).order_by('-created_at').first()
+            unread_comp_count = comp_msgs.filter(Q(sender__is_staff=True), is_read=False).count()
+            conversations_data.append({
+                'id': f"company_{comp.id}",
+                'is_company_channel': True,
+                'company_id': comp.id,
+                'email': f"Official Admin Inquiry & Clarification Channel ({comp.name})",
+                'name': "Xanatz Admin Support",
+                'company_name': comp.name,
+                'profile_picture': None,
+                'last_message': last_comp_msg.content if last_comp_msg else "Official clarification channel with Xanatz Admins",
+                'last_message_time': last_comp_msg.created_at if last_comp_msg else comp.created_at,
+                'unread_count': unread_comp_count
+            })
+
+            # 2. RFP threads involving this company
+            rfp_ids = comp_msgs.exclude(rfp__isnull=True).values_list('rfp_id', flat=True).distinct()
+            for r_id in rfp_ids:
+                try:
+                    r_obj = RFP.objects.get(id=r_id)
+                    r_msgs = comp_msgs.filter(rfp_id=r_id)
+
+                    # Distinct partner companies on this RFP
+                    other_comp_ids = set(
+                        list(r_msgs.exclude(sender_company=comp).values_list('sender_company_id', flat=True)) +
+                        list(r_msgs.exclude(company=comp).values_list('company_id', flat=True))
+                    )
+                    other_comp_ids.discard(None)
+                    for oc_id in other_comp_ids:
+                        try:
+                            oc = Company.objects.get(id=oc_id)
+                            t_msgs = r_msgs.filter(
+                                (Q(company=comp, sender_company=oc) | Q(company=oc, sender_company=comp))
+                            )
+                            last_t_msg = t_msgs.order_by('-created_at').first()
+                            unread_cnt = t_msgs.filter(is_read=False).exclude(sender=user).count()
+                            logo_url = request.build_absolute_uri(oc.logo.url) if oc.logo else None
+
+                            conversations_data.append({
+                                'id': f"rfp_{r_obj.id}_comp_{oc.id}",
+                                'is_rfp_chat': True,
+                                'rfp_id': r_obj.id,
+                                'rfp_title': r_obj.title,
+                                'company_id': oc.id,
+                                'company_name': oc.name,
+                                'name': oc.name,
+                                'email': f"Proposal / Discussion on {r_obj.title}",
+                                'profile_picture': logo_url,
+                                'last_message': last_t_msg.content if last_t_msg else "",
+                                'last_message_time': last_t_msg.created_at if last_t_msg else r_obj.created_at,
+                                'unread_count': unread_cnt
+                            })
+                        except Company.DoesNotExist:
+                            pass
+
+                    # Distinct individual users on this RFP
+                    indiv_user_ids = set(
+                        list(r_msgs.filter(sender_company__isnull=True).values_list('sender_id', flat=True)) +
+                        list(r_msgs.values_list('recipient_id', flat=True))
+                    )
+                    indiv_user_ids.discard(None)
+                    comp_u_ids = set(CompanyMember.objects.filter(company=comp).values_list('user_id', flat=True))
+                    if comp.creator_id:
+                        comp_u_ids.add(comp.creator_id)
+                    indiv_user_ids = indiv_user_ids - comp_u_ids
+
+                    for u_id in indiv_user_ids:
+                        try:
+                            u_obj = User.objects.get(id=u_id)
+                            t_msgs = r_msgs.filter(
+                                (Q(company=comp, sender=u_obj, sender_company__isnull=True) | Q(sender_company=comp, recipient=u_obj))
+                            )
+                            last_t_msg = t_msgs.order_by('-created_at').first()
+                            unread_cnt = t_msgs.filter(is_read=False).exclude(sender=user).count()
+                            pic_url = request.build_absolute_uri(u_obj.profile.profile_picture.url) if hasattr(u_obj, 'profile') and u_obj.profile.profile_picture else None
+                            p_name = f"{u_obj.first_name or ''} {u_obj.last_name or ''}".strip() or u_obj.email
+
+                            conversations_data.append({
+                                'id': f"rfp_{r_obj.id}_user_{u_obj.id}",
+                                'is_rfp_chat': True,
+                                'rfp_id': r_obj.id,
+                                'rfp_title': r_obj.title,
+                                'user_id': u_obj.id,
+                                'name': p_name,
+                                'email': u_obj.email,
+                                'profile_picture': pic_url,
+                                'last_message': last_t_msg.content if last_t_msg else "",
+                                'last_message_time': last_t_msg.created_at if last_t_msg else r_obj.created_at,
+                                'unread_count': unread_cnt
+                            })
+                        except User.DoesNotExist:
+                            pass
+                except RFP.DoesNotExist:
+                    pass
+
+            conversations_data.sort(key=lambda x: x['last_message_time'] or timezone.now(), reverse=True)
+            return Response(conversations_data)
+
+        # Personal conversations (Default or mode=personal)
+        sent_recipients = Message.objects.filter(sender=user, sender_company__isnull=True).values_list('recipient', flat=True)
         received_senders = Message.objects.filter(recipient=user).values_list('sender', flat=True)
-        comp_sent_recipients = Message.objects.filter(company_id__in=company_ids).values_list('recipient', flat=True) if company_ids else []
-        comp_senders = Message.objects.filter(company_id__in=company_ids).values_list('sender', flat=True) if company_ids else []
 
-        partner_ids = set(list(sent_recipients) + list(received_senders) + list(comp_sent_recipients) + list(comp_senders))
+        partner_ids = set(list(sent_recipients) + list(received_senders))
         partner_ids.discard(None)
         partner_ids.discard(user.id)
-        
-        conversations_data = []
-        
-        # Add company channels for companies the user belongs to
-        for comp_id in company_ids:
-            try:
-                comp = Company.objects.get(id=comp_id)
-                last_comp_msg = Message.objects.filter(company_id=comp_id).order_by('-created_at').first()
-                unread_comp_count = Message.objects.filter(company_id=comp_id, is_read=False).exclude(sender=user).count()
 
-                logo_url = None
-                if comp.logo:
-                    logo_url = request.build_absolute_uri(comp.logo.url)
-
-                conversations_data.append({
-                    'id': f"company_{comp.id}",
-                    'is_company_channel': True,
-                    'company_id': comp.id,
-                    'email': f"Official Admin Inquiry & Clarification Channel ({comp.name})",
-                    'name': "Xanatz Admin Support",
-                    'company_name': comp.name,
-                    'profile_picture': None,
-                    'last_message': last_comp_msg.content if last_comp_msg else "Official clarification channel with Xanatz Admins",
-                    'last_message_time': last_comp_msg.created_at if last_comp_msg else comp.created_at,
-                    'unread_count': unread_comp_count
-                })
-            except Company.DoesNotExist:
-                pass
+        # Also add companies the user messaged in their individual capacity
+        individual_company_ids = Message.objects.filter(sender=user, sender_company__isnull=True).exclude(company__isnull=True).values_list('company_id', flat=True).distinct()
+        for c_id in individual_company_ids:
+            if c_id not in company_ids:
+                try:
+                    c_obj = Company.objects.get(id=c_id)
+                    c_msgs = Message.objects.filter(
+                        (Q(sender=user, company=c_obj, sender_company__isnull=True) | Q(recipient=user, sender_company=c_obj))
+                    )
+                    last_c_msg = c_msgs.order_by('-created_at').first()
+                    unread_c_cnt = c_msgs.filter(is_read=False).exclude(sender=user).count()
+                    logo_url = request.build_absolute_uri(c_obj.logo.url) if c_obj.logo else None
+                    conversations_data.append({
+                        'id': f"direct_comp_{c_obj.id}",
+                        'is_company_channel': False,
+                        'company_id': c_obj.id,
+                        'email': f"Inquiries with {c_obj.name}",
+                        'name': c_obj.name,
+                        'company_name': c_obj.name,
+                        'profile_picture': logo_url,
+                        'last_message': last_c_msg.content if last_c_msg else "",
+                        'last_message_time': last_c_msg.created_at if last_c_msg else c_obj.created_at,
+                        'unread_count': unread_c_cnt
+                    })
+                except Company.DoesNotExist:
+                    pass
 
         partners = User.objects.filter(id__in=partner_ids)
         for partner in partners:
@@ -1302,8 +1476,71 @@ class MessageViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def chat(self, request):
         user = request.user
+        rfp_id = request.query_params.get('rfp_id')
         company_id = request.query_params.get('company_id')
+        sender_company_id = request.query_params.get('sender_company_id')
         partner_id = request.query_params.get('user_id')
+
+        my_companies = set(Company.objects.filter(
+            Q(creator=user) | Q(members=user) | Q(company_members__user=user)
+        ).values_list('id', flat=True))
+
+        if rfp_id:
+            try:
+                r_id = int(rfp_id)
+                rfp = RFP.objects.get(id=r_id)
+            except (ValueError, RFP.DoesNotExist):
+                return Response({"error": "RFP not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            rfp_messages = Message.objects.filter(rfp_id=r_id)
+
+            if sender_company_id:
+                try:
+                    s_id = int(sender_company_id)
+                    if s_id not in my_companies and not (user.is_staff or user.is_superuser):
+                        return Response({"error": "Permission denied for this company"}, status=status.HTTP_403_FORBIDDEN)
+                    
+                    if company_id and str(company_id) != str(s_id):
+                        c_id = int(company_id)
+                        rfp_messages = rfp_messages.filter(
+                            (Q(company_id=c_id) & Q(sender_company_id=s_id)) |
+                            (Q(company_id=s_id) & Q(sender_company_id=c_id))
+                        )
+                    elif partner_id:
+                        p_id = int(partner_id)
+                        rfp_messages = rfp_messages.filter(
+                            (Q(company_id=s_id) & Q(sender_id=p_id) & Q(sender_company__isnull=True)) |
+                            (Q(sender_company_id=s_id) & Q(recipient_id=p_id))
+                        )
+                    else:
+                        if s_id != rfp.company_id:
+                            rfp_messages = rfp_messages.filter(
+                                (Q(company_id=rfp.company_id) & Q(sender_company_id=s_id)) |
+                                (Q(company_id=s_id) & Q(sender_company_id=rfp.company_id))
+                            )
+                        else:
+                            rfp_messages = rfp_messages.filter(
+                                Q(company_id=s_id) | Q(sender_company_id=s_id)
+                            )
+                except ValueError:
+                    return Response({"error": "Invalid company id"}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                # Personal user chatting about RFP
+                if partner_id:
+                    p_id = int(partner_id)
+                    rfp_messages = rfp_messages.filter(
+                        (Q(sender=user) & Q(recipient_id=p_id)) |
+                        (Q(sender_id=p_id) & Q(recipient=user))
+                    )
+                else:
+                    target_comp_id = int(company_id) if company_id else rfp.company_id
+                    rfp_messages = rfp_messages.filter(
+                        (Q(company_id=target_comp_id) & Q(sender=user) & Q(sender_company__isnull=True)) |
+                        (Q(recipient=user) & (Q(company_id=target_comp_id) | Q(sender_company_id=target_comp_id)))
+                    )
+
+            serializer = MessageSerializer(rfp_messages.distinct().order_by('created_at'), many=True, context={'request': request})
+            return Response(serializer.data)
 
         if company_id:
             try:
@@ -1357,6 +1594,12 @@ class MessageViewSet(viewsets.ModelViewSet):
         user = request.user
         sender_id = request.data.get('sender_id')
         company_id = request.data.get('company_id')
+        rfp_id = request.data.get('rfp_id')
+
+        qs = Message.objects.filter(is_read=False).exclude(sender=user)
+
+        if rfp_id:
+            qs = qs.filter(rfp_id=rfp_id)
 
         if company_id:
             comp = Company.objects.filter(id=company_id).first()
@@ -1366,13 +1609,12 @@ class MessageViewSet(viewsets.ModelViewSet):
                 if comp.creator_id:
                     company_user_ids.add(comp.creator_id)
 
-            Message.objects.filter(
-                Q(company_id=company_id) | Q(sender_id__in=company_user_ids),
-                is_read=False
-            ).exclude(sender=user).update(is_read=True)
+            qs.filter(Q(company_id=company_id) | Q(sender_id__in=company_user_ids)).update(is_read=True)
 
         if sender_id:
-            Message.objects.filter(sender_id=sender_id, is_read=False).exclude(sender=user).update(is_read=True)
+            qs.filter(sender_id=sender_id).update(is_read=True)
+
+        return Response({"message": "Messages marked as read"}, status=status.HTTP_200_OK)
 
         return Response({"message": "Messages marked as read"}, status=status.HTTP_200_OK)
 

@@ -35,6 +35,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { useAccount } from "../context/AccountContext";
 import RFPInterestModal from "../components/company/RFPInterestModal";
+import RFPChatModal from "../components/rfp/RFPChatModal";
 import FlagConfirmationModal from "../components/FlagConfirmationModal";
 import ShareModal from "../components/ShareModal";
 import { ALL_CATEGORY_LABELS, ALL_SUBCATEGORY_LABELS } from "../components/company/JobOpeningModal";
@@ -62,6 +63,7 @@ const RFPDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [isInterestOpen, setIsInterestOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [myInterests, setMyInterests] = useState([]);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
@@ -174,6 +176,13 @@ const RFPDetailPage = () => {
     fetchUser();
     fetchMyInterests();
   }, [id, accountMode, activeCompany?.id]);
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    if (queryParams.get("chat") === "true") {
+      setIsChatOpen(true);
+    }
+  }, [location.search]);
 
   if (loading) {
     return (
@@ -419,6 +428,30 @@ const RFPDetailPage = () => {
                     </HStack>
 
                     <HStack gap={3}>
+                      <Button
+                        onClick={() => {
+                          const token = localStorage.getItem("access");
+                          if (!token) {
+                            navigate("/login", { state: { from: location } });
+                            return;
+                          }
+                          setIsChatOpen(true);
+                        }}
+                        px={5}
+                        h="40px"
+                        borderRadius="xl"
+                        fontWeight="black"
+                        fontSize="xs"
+                        letterSpacing="wider"
+                        bg="rgba(139, 92, 246, 0.15)"
+                        color="#c4b5fd"
+                        border="1px solid rgba(139, 92, 246, 0.35)"
+                        _hover={{ bg: "#8b5cf6", color: "white" }}
+                      >
+                        <MessageSquare size={14} style={{ marginRight: "6px" }} />
+                        CHAT ABOUT RFP
+                      </Button>
+
                       {isCompanyMember ? (
                         canManageRfp ? (
                           <Button
@@ -863,6 +896,31 @@ const RFPDetailPage = () => {
                         EXPRESS INTEREST NOW
                       </Button>
                     )}
+
+                    <Button
+                      onClick={() => {
+                        const token = localStorage.getItem("access");
+                        if (!token) {
+                          navigate("/login", { state: { from: location } });
+                          return;
+                        }
+                        setIsChatOpen(true);
+                      }}
+                      w="full"
+                      h="42px"
+                      borderRadius="xl"
+                      fontWeight="black"
+                      fontSize="xs"
+                      letterSpacing="widest"
+                      bg="rgba(139, 92, 246, 0.15)"
+                      color="#c4b5fd"
+                      border="1px solid rgba(139, 92, 246, 0.35)"
+                      _hover={{ bg: "#8b5cf6", color: "white" }}
+                      mt={3}
+                    >
+                      <MessageSquare size={15} style={{ marginRight: "6px" }} />
+                      CHAT ABOUT RFP
+                    </Button>
                   </Box>
 
                   {/* Other RFPs Sidebar Stream */}
@@ -976,6 +1034,14 @@ const RFPDetailPage = () => {
         url={window.location.href}
         type="rfp"
       />
+
+      {/* RFP Chat Modal */}
+      {rfp && isChatOpen && (
+        <RFPChatModal
+          rfp={rfp}
+          onClose={() => setIsChatOpen(false)}
+        />
+      )}
     </Box>
   );
 };

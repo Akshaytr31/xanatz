@@ -3,11 +3,12 @@ import {
   Box, Flex, Text, Button, VStack, HStack, Container, Spinner, Badge, Heading, Input
 } from "@chakra-ui/react";
 import {
-  ArrowLeft, FileText, Building2, Clock, Search, User
+  ArrowLeft, FileText, Building2, Clock, Search, User, MessageSquare
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { useAccount } from "../context/AccountContext";
+import RFPChatModal from "../components/rfp/RFPChatModal";
 import api from "../api";
 import { formatDate } from "../utils/dateUtils";
 
@@ -18,6 +19,7 @@ const MySubmittedRFPInterestsPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [activeChatRfp, setActiveChatRfp] = useState(null);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -273,20 +275,46 @@ const MySubmittedRFPInterestsPage = () => {
                         {isAccepted ? "✓ ACCEPTED" : isRejected ? "✕ REJECTED" : "⏳ PENDING"}
                       </Badge>
 
-                      <Button
-                        size="xs"
-                        variant="ghost"
-                        color="#c4b5fd"
-                        fontSize="11px"
-                        fontWeight="bold"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (targetRfpId) navigate(`/rfps/${targetRfpId}`);
-                        }}
-                        _hover={{ bg: "rgba(139, 92, 246, 0.2)", color: "white" }}
-                      >
-                        View RFP Details →
-                      </Button>
+                      <HStack gap={2}>
+                        <Button
+                          size="xs"
+                          variant="ghost"
+                          color="#c4b5fd"
+                          bg="rgba(139, 92, 246, 0.15)"
+                          border="1px solid rgba(139, 92, 246, 0.3)"
+                          fontSize="11px"
+                          fontWeight="bold"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveChatRfp({
+                              id: targetRfpId,
+                              title: item.rfp_title,
+                              company: item.rfp_company || (typeof item.rfp === "object" ? item.rfp?.company : null),
+                              company_name: item.rfp_company_name,
+                              rfp_id: item.rfp_code || item.quotation_id,
+                            });
+                          }}
+                          _hover={{ bg: "#8b5cf6", color: "white" }}
+                        >
+                          <MessageSquare size={12} style={{ marginRight: 5 }} />
+                          Chat with Client
+                        </Button>
+
+                        <Button
+                          size="xs"
+                          variant="ghost"
+                          color="#c4b5fd"
+                          fontSize="11px"
+                          fontWeight="bold"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (targetRfpId) navigate(`/rfps/${targetRfpId}`);
+                          }}
+                          _hover={{ bg: "rgba(139, 92, 246, 0.2)", color: "white" }}
+                        >
+                          View RFP Details →
+                        </Button>
+                      </HStack>
                     </VStack>
                   </Flex>
                 </Box>
@@ -295,6 +323,14 @@ const MySubmittedRFPInterestsPage = () => {
           </VStack>
         )}
       </Container>
+
+      {/* RFP Chat Modal */}
+      {activeChatRfp && (
+        <RFPChatModal
+          rfp={activeChatRfp}
+          onClose={() => setActiveChatRfp(null)}
+        />
+      )}
     </Box>
   );
 };

@@ -4,11 +4,13 @@ import {
 } from "@chakra-ui/react";
 import {
   ArrowLeft, FileText, Link2, AlertCircle, Building2, CheckCircle,
-  Mail, Phone, User, Clock, ChevronDown, ChevronUp, Download, Star
+  Mail, Phone, User, Clock, ChevronDown, ChevronUp, Download, Star,
+  MessageSquare
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import RFPChatModal from "../components/rfp/RFPChatModal";
 import api, { backendUrl } from "../api";
 import { getMemberPermissions } from "../utils/companyPermissions";
 import { formatDate } from "../utils/dateUtils";
@@ -41,6 +43,26 @@ const ManageRFPInterestsPage = () => {
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const [submitReviewLoading, setSubmitReviewLoading] = useState(false);
+  const [activeChatData, setActiveChatData] = useState(null);
+
+  const handleOpenChat = (interest) => {
+    const targetRfp = rfps.find((r) => r.id === interest.rfp) || {
+      id: interest.rfp,
+      title: "RFP Project",
+      company: company?.id,
+      company_name: company?.name,
+    };
+    setActiveChatData({
+      rfp: targetRfp,
+      targetPartner: {
+        user_id: interest.user,
+        company_id: interest.applicant_company,
+        company_name: interest.applicant_company_name,
+        name: interest.submitted_by_name || interest.company_name,
+        email: interest.email,
+      },
+    });
+  };
 
   const handleToggleReviewForm = (interest) => {
     if (!interest) {
@@ -448,30 +470,47 @@ const ManageRFPInterestsPage = () => {
 
                         {/* Attachments & Action Buttons */}
                         <HStack gap={3} pt={3.5} borderTop="1px solid var(--color-card-border)" justify="space-between" flexWrap="wrap">
-                          {interest.attached_file ? (
+                          <HStack gap={2} wrap="wrap">
+                            {interest.attached_file && (
+                              <Button
+                                as="a"
+                                href={
+                                  interest.attached_file.startsWith("http://") || interest.attached_file.startsWith("https://")
+                                    ? interest.attached_file
+                                    : `${backendUrl}${interest.attached_file}`
+                                }
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                h="7.5"
+                                px={3.5}
+                                borderRadius="xl"
+                                fontSize="2xs"
+                                fontWeight="bold"
+                                style={{ background: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.3)", color: "#10b981" }}
+                                _hover={{ background: "rgba(16, 185, 129, 0.2)" }}
+                                leftIcon={<Download size={11} />}
+                              >
+                                Download Proposal File
+                              </Button>
+                            )}
                             <Button
-                              as="a"
-                              href={
-                                interest.attached_file.startsWith("http://") || interest.attached_file.startsWith("https://")
-                                  ? interest.attached_file
-                                  : `${backendUrl}${interest.attached_file}`
-                              }
-                              target="_blank"
-                              rel="noopener noreferrer"
                               h="7.5"
                               px={3.5}
                               borderRadius="xl"
                               fontSize="2xs"
                               fontWeight="bold"
-                              style={{ background: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.3)", color: "#10b981" }}
-                              _hover={{ background: "rgba(16, 185, 129, 0.2)" }}
-                              leftIcon={<Download size={11} />}
+                              style={{
+                                background: "rgba(139, 92, 246, 0.15)",
+                                border: "1px solid rgba(139, 92, 246, 0.35)",
+                                color: "#c4b5fd",
+                              }}
+                              _hover={{ background: "#8b5cf6", color: "white" }}
+                              onClick={() => handleOpenChat(interest)}
                             >
-                              Download Proposal File
+                              <MessageSquare size={12} style={{ marginRight: 5 }} />
+                              Chat with Applicant
                             </Button>
-                          ) : (
-                            <Box />
-                          )}
+                          </HStack>
 
                           {interest.status === "accepted" && (
                             <HStack gap={3}>
@@ -659,6 +698,15 @@ const ManageRFPInterestsPage = () => {
           </VStack>
         </Container>
       </Box>
+
+      {/* RFP Chat Modal */}
+      {activeChatData && (
+        <RFPChatModal
+          rfp={activeChatData.rfp}
+          targetPartner={activeChatData.targetPartner}
+          onClose={() => setActiveChatData(null)}
+        />
+      )}
     </Box>
   );
 };

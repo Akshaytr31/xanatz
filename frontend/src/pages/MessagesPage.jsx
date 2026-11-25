@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { useAccount } from "../context/AccountContext";
 import api, { backendUrl } from "../api";
 import { MessageSquare, Send, Search, User, Loader2, MessageCircle, Building2, Shield } from "lucide-react";
 
 const MessagesPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { accountMode, activeCompany } = useAccount();
   const [conversations, setConversations] = useState([]);
 
   const [activePartner, setActivePartner] = useState(null);
@@ -42,10 +44,14 @@ const MessagesPage = () => {
     fetchMe();
   }, []);
 
-  // Fetch conversation threads
+  // Fetch conversation threads based on personal vs company context
   const fetchConversations = async (silent = false) => {
     try {
-      const res = await api.get("messages/conversations/");
+      const endpoint =
+        accountMode === "company" && activeCompany?.id
+          ? `messages/conversations/?company_id=${activeCompany.id}`
+          : "messages/conversations/?mode=personal";
+      const res = await api.get(endpoint);
       setConversations((prev) => {
         const backendIds = new Set(res.data.map((c) => String(c.id)));
         const draftConvs = prev.filter(
@@ -58,6 +64,12 @@ const MessagesPage = () => {
     }
   };
 
+  // Reset active partner on account mode switch so company and personal don't cross
+  useEffect(() => {
+    setActivePartner(null);
+    hasHandledInitialRef.current = false;
+  }, [accountMode, activeCompany?.id]);
+
   // Fetch chat history with active partner
   const fetchChatHistory = async (partner, silent = false) => {
     if (!partner) return;
@@ -67,7 +79,19 @@ const MessagesPage = () => {
     }
     try {
       let res;
-      if (partner.is_company_channel && partner.company_id) {
+      if (partner.is_rfp_chat) {
+        let queryUrl = `messages/chat/?rfp_id=${partner.rfp_id}`;
+        if (accountMode === "company" && activeCompany) {
+          queryUrl += `&sender_company_id=${activeCompany.id}`;
+          if (partner.company_id) queryUrl += `&company_id=${partner.company_id}`;
+          if (partner.user_id) queryUrl += `&user_id=${partner.user_id}`;
+        } else {
+          if (partner.company_id) queryUrl += `&company_id=${partner.company_id}`;
+          if (partner.user_id) queryUrl += `&user_id=${partner.user_id}`;
+        }
+        res = await api.get(queryUrl);
+        await api.post("messages/mark-read/", { rfp_id: partner.rfp_id }).catch(() => {});
+      } else if (partner.is_company_channel && partner.company_id) {
         res = await api.get(`messages/chat/?company_id=${partner.company_id}`);
         await api.post("messages/mark-read/", { company_id: partner.company_id }).catch(() => {});
       } else {
@@ -107,9 +131,13 @@ const MessagesPage = () => {
     fetchConversations();
     const intervalConv = setInterval(() => fetchConversations(true), 6000);
     return () => clearInterval(intervalConv);
-  }, []);
+  }, [accountMode, activeCompany?.id]);
 
-  const activePartnerKey = activePartner?.is_company_channel ? `company_${activePartner.company_id}` : activePartner?.id;
+  const activePartnerKey = activePartner?.is_company_channel
+    ? `company_${activePartner.company_id}`
+    : activePartner?.is_rfp_chat
+    ? activePartner.id
+    : activePartner?.id;
 
   useEffect(() => {
     if (activePartner) {
@@ -203,7 +231,16 @@ const MessagesPage = () => {
 
     try {
       const payload = { content: newMessage.trim() };
-      if (activePartner.is_company_channel && activePartner.company_id) {
+
+      if (accountMode === "company" && activeCompany) {
+        payload.sender_company_id = activeCompany.id;
+      }
+
+      if (activePartner.is_rfp_chat) {
+        payload.rfp = activePartner.rfp_id;
+        if (activePartner.company_id) payload.company = activePartner.company_id;
+        if (activePartner.user_id) payload.recipient = activePartner.user_id;
+      } else if (activePartner.is_company_channel && activePartner.company_id) {
         payload.company = activePartner.company_id;
       } else {
         payload.recipient = activePartner.id;
@@ -281,7 +318,29 @@ const MessagesPage = () => {
       } else if (location.search) {
         const searchParams = new URLSearchParams(location.search);
         const targetUserId = searchParams.get("user");
-        if (targetUserId) {
+        const targetRfpId = searchParams.get("rfp_id");
+
+        if (targetRfpId) {
+          try {
+            const rRes = await api.get(`rfps/${targetRfpId}/`);
+            if (rRes.data) {
+              const rfpData = rRes.data;
+              partner = {
+                id: `rfp_${rfpData.id}`,
+                is_rfp_chat: true,
+                rfp_id: rfpData.id,
+                rfp_title: rfpData.title,
+                company_id: rfpData.company,
+                company_name: rfpData.company_name,
+                name: rfpData.company_name,
+                email: `RFP Discussion • ${rfpData.title}`,
+                profile_picture: rfpData.company_logo_url,
+              };
+            }
+          } catch (e) {
+            console.error("Failed to load RFP for chat", e);
+          }
+        } else if (targetUserId) {
           try {
             const res = await api.get(`users/search/?q=${targetUserId}`);
             if (res.data && res.data.length > 0) {
@@ -486,6 +545,11 @@ const MessagesPage = () => {
                                   ADMIN
                                 </span>
                               )}
+                              {conv.is_rfp_chat && (
+                                <span style={{ background: "rgba(139,92,246,0.2)", color: "#c4b5fd", border: "1px solid rgba(139,92,246,0.4)", borderRadius: "4px", fontSize: "9px", padding: "1px 4px", fontWeight: "bold" }}>
+                                  RFP
+                                </span>
+                              )}
                             </span>
                             {conv.last_message_time && (
                               <span style={{ fontSize: "0.65rem", color: "#64748b" }}>
@@ -661,10 +725,17 @@ const MessagesPage = () => {
                           ADMIN SUPPORT
                         </span>
                       )}
+                      {activePartner.is_rfp_chat && (
+                        <span style={{ background: "rgba(139,92,246,0.2)", color: "#c4b5fd", border: "1px solid rgba(139,92,246,0.4)", borderRadius: "4px", fontSize: "9px", padding: "1px 5px", fontWeight: "bold" }}>
+                          RFP DISCUSSION
+                        </span>
+                      )}
                     </div>
                     <span style={{ fontSize: "0.7rem", color: "#64748b" }}>
                       {activePartner.is_company_channel
                         ? `Official Admin Inquiry & Clarification Channel ${activePartner.company_name ? `(${activePartner.company_name})` : ""}`
+                        : activePartner.is_rfp_chat
+                        ? `Project Tender: ${activePartner.rfp_title}`
                         : activePartner.email}
                     </span>
                   </div>

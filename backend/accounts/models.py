@@ -522,8 +522,10 @@ class Notification(models.Model):
 
 class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    sender_company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, related_name='sent_company_messages')
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='received_messages')
     company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, related_name='company_messages')
+    rfp = models.ForeignKey('RFP', on_delete=models.CASCADE, null=True, blank=True, related_name='messages')
     content = models.TextField()
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -532,8 +534,10 @@ class Message(models.Model):
         ordering = ['created_at']
 
     def __str__(self):
+        sender_str = f"{self.sender_company.name} ({self.sender.email})" if self.sender_company else self.sender.email
         target_str = self.company.name if self.company else (self.recipient.email if self.recipient else "Unknown")
-        return f'Message from {self.sender.email} to {target_str}: {self.content[:35]}'
+        rfp_str = f" [RFP: {self.rfp.title[:20]}]" if self.rfp else ""
+        return f'Message from {sender_str} to {target_str}{rfp_str}: {self.content[:35]}'
 
 
 class CompanyReview(models.Model):
